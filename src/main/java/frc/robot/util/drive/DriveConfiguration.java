@@ -1,4 +1,4 @@
-package frc.robot.driveutil;
+package frc.robot.util.drive;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
