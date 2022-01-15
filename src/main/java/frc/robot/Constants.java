@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 
 /**
@@ -58,5 +59,8 @@ public final class Constants {
 	public static final double MAX_SPEED_HIGH = 18;
 	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
+
+	// Sensors
+	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
 }

@@ -7,9 +7,12 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.util.NavX;
 
 /**
@@ -19,14 +22,15 @@ import frc.robot.util.NavX;
  */
 
 public class Sensors extends SubsystemBase {
-  private final NavX m_navx;
+  private final NavX m_navx = new NavX();
+  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
+
   private double m_yawOffset = 0.0;
 
   /**
    * Creates a new Sensors subsystem
    */
   public Sensors() {
-    m_navx = new NavX();
   }
 
   public void zeroYaw() {
@@ -48,5 +52,14 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
     SmartDashboard.putNumber("NavX Pitch", m_navx.getPitch());
     SmartDashboard.putNumber("NavX Roll", m_navx.getRoll());
+
+    // Color Sensor data
+    Color detectedColor = m_colorSensor.getColor();
+    double IR = m_colorSensor.getIR();
+
+    SmartDashboard.putNumber("Red", detectedColor.red);
+    SmartDashboard.putNumber("Green", detectedColor.green);
+    SmartDashboard.putNumber("Blue", detectedColor.blue);
+    SmartDashboard.putNumber("IR", IR);
   }
 }
