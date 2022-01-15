@@ -34,11 +34,11 @@ public final class Constants {
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
 	public static final int RIGHT_DRIVE_ENCODER_ID = 15;
     public static final PneumaticsModuleType SHIFTER_LEFT_PCM_TYPE = PneumaticsModuleType.REVPH;
-	public static final int SHIFTER_LEFT_PCM = 0;
+	public static final int SHIFTER_LEFT_PCM = 1;
 	public static final int SHIFTER_LEFT_OUT = 2;
 	public static final int SHIFTER_LEFT_IN = 5;
     public static final PneumaticsModuleType SHIFTER_RIGHT_PCM_TYPE = PneumaticsModuleType.REVPH;
-	public static final int SHIFTER_RIGHT_PCM = 0;
+	public static final int SHIFTER_RIGHT_PCM = 1;
 	public static final int SHIFTER_RIGHT_OUT = 1;
 	public static final int SHIFTER_RIGHT_IN = 6;
 
