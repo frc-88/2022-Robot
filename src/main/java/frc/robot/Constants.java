@@ -36,12 +36,14 @@ public final class Constants {
 	public static final int RIGHT_DRIVE_ENCODER_ID = 15;
     public static final PneumaticsModuleType SHIFTER_LEFT_PCM_TYPE = PneumaticsModuleType.REVPH;
 	public static final int SHIFTER_LEFT_PCM = 1;
-	public static final int SHIFTER_LEFT_OUT = 2;
-	public static final int SHIFTER_LEFT_IN = 5;
+	public static final int SHIFTER_LEFT_OUT = 0;
+	public static final int SHIFTER_LEFT_IN = 15;
     public static final PneumaticsModuleType SHIFTER_RIGHT_PCM_TYPE = PneumaticsModuleType.REVPH;
 	public static final int SHIFTER_RIGHT_PCM = 1;
 	public static final int SHIFTER_RIGHT_OUT = 1;
-	public static final int SHIFTER_RIGHT_IN = 6;
+	public static final int SHIFTER_RIGHT_IN = 14;
+	public static final int LEFT_SHIFTER_ENCODER_ID = 20;
+	public static final int RIGHT_SHIFTER_ENCODER_ID = 21;
 
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
@@ -62,6 +64,15 @@ public final class Constants {
 	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 
+	public static final int LEFT_SHIFTER_ENCODER_MIN = 0;
+	public static final int LEFT_LOW_GEAR_ENCODER_THRESHOLD = 1000;
+	public static final int LEFT_HIGH_GEAR_ENCODER_THRESHOLD = 2000;
+	public static final int LEFT_SHIFTER_ENCODER_MAX = 4000;
+	public static final int RIGHT_SHIFTER_ENCODER_MIN = 0;
+	public static final int RIGHT_LOW_GEAR_ENCODER_THRESHOLD = 1000;
+	public static final int RIGHT_HIGH_GEAR_ENCODER_THRESHOLD = 2000;
+	public static final int RIGHT_SHIFTER_ENCODER_MAX = 4000;
+
 	public static final int DRIVE_SPEED_EXP = 2;
 	public static final int DRIVE_TURN_EXP = 2;
 	public static final double DRIVE_JOYSTICK_DEADBAND = 0.12;
@@ -72,5 +83,13 @@ public final class Constants {
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
+
+	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
+	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
+	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
+	public final static double WORKING_PRESSURE_WARNING = 50;
+	public final static double LEAK_WARNING = 0.01;
+	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
+	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
 
 }

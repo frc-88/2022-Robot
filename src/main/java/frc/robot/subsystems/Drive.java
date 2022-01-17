@@ -46,11 +46,12 @@ public class Drive extends SubsystemBase {
 
   private final TJDriveModule m_leftDrive, m_rightDrive;
   private final WPI_CANCoder m_leftEncoder, m_rightEncoder;
-  private ShiftingTransmission m_leftTransmission, m_rightTransmission;
-  private SyncPIDController m_leftVelPID, m_rightVelPID;
-  private WrappingPIDController m_headingPID;
-  private DriveConfiguration m_driveConfiguration;
-  private DoubleSolenoid m_leftShifter, m_rightShifter;
+  private final ShiftingTransmission m_leftTransmission, m_rightTransmission;
+  private final SyncPIDController m_leftVelPID, m_rightVelPID;
+  private final WrappingPIDController m_headingPID;
+  private final DriveConfiguration m_driveConfiguration;
+  private final DoubleSolenoid m_leftShifter, m_rightShifter;
+  private final WPI_CANCoder m_leftShifterEncoder, m_rightShifterEncoder;
 
   private double m_currentLimit = Constants.DRIVE_CURRENT_LIMIT;
   private double m_leftCommandedSpeed = 0;
@@ -125,6 +126,12 @@ public class Drive extends SubsystemBase {
         Constants.SHIFTER_LEFT_IN);
     m_rightShifter = new DoubleSolenoid(Constants.SHIFTER_RIGHT_PCM, Constants.SHIFTER_RIGHT_PCM_TYPE, Constants.SHIFTER_RIGHT_OUT,
         Constants.SHIFTER_RIGHT_IN);
+
+    m_leftShifterEncoder = new WPI_CANCoder(Constants.LEFT_SHIFTER_ENCODER_ID);
+    m_rightShifterEncoder = new WPI_CANCoder(Constants.RIGHT_SHIFTER_ENCODER_ID);
+
+    m_leftShifterEncoder.configFactoryDefault();
+    m_rightShifterEncoder.configFactoryDefault();
 
     m_headingPID = new WrappingPIDController(180, -180, headingPIDConstants);
 
