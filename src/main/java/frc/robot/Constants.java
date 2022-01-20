@@ -46,8 +46,10 @@ public final class Constants {
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
 	public static final double WHEEL_DIAMETER = 5.84375;
-	public static final double LOW_DRIVE_RATIO = (1. / 18.38) * (WHEEL_DIAMETER/12.) * Math.PI;
-	public static final double HIGH_DRIVE_RATIO = (1. / 8.50) * (WHEEL_DIAMETER/12.) * Math.PI;
+	public static final double LOW_GEAR_RATIO = (1. / 18.38);
+	public static final double HIGH_GEAR_RATIO = (1. / 8.50);
+	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER/12.) * Math.PI;
+	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER/12.) * Math.PI;
 	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER/12.) * Math.PI)) * 7.5;
 	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
 	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
@@ -56,12 +58,20 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_LOW_EFFICIENCY = 1.03;
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
-	public static final double MAX_SPEED_HIGH = 18;
+	public static final double MAX_SPEED_HIGH = 16.5;
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
     public static final double MAX_TRAJ_VELOCITY = 0;
     public static final double MAX_TRAJ_ACCELERATION = 0;
     public static final double MAX_TRAJ_CENTRIP_ACC = 0;
+
+	public static final int DRIVE_SPEED_EXP = 2;
+	public static final int DRIVE_TURN_EXP = 2;
+	public static final double DRIVE_JOYSTICK_DEADBAND = 0.12;
+	public static final double CHEESY_DRIVE_MIN_TURN = 0.4;
+	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
+	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
+	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
