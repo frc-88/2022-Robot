@@ -42,8 +42,9 @@ public class RapidReactTrajectories
 
     // drive ten feet forward, keep same facing
     ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(0.0D), Units.feetToMeters(0.0D), new Rotation2d()));
-    waypoints.add(new Pose2d(Units.feetToMeters(10.0D), Units.feetToMeters(0.0D), new Rotation2d()));
+    waypoints.add(new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d()));
+    waypoints.add(new Pose2d(Units.feetToMeters(10.0), Units.feetToMeters(0.0), new Rotation2d()));
+    
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 

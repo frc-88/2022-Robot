@@ -61,9 +61,9 @@ public final class Constants {
 	public static final double MAX_SPEED_HIGH = 16.5;
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
-    public static final double MAX_TRAJ_VELOCITY = 0;
-    public static final double MAX_TRAJ_ACCELERATION = 0;
-    public static final double MAX_TRAJ_CENTRIP_ACC = 0;
+    public static final double MAX_TRAJ_VELOCITY = 16.0;
+    public static final double MAX_TRAJ_ACCELERATION = 8.0;
+    public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
 	public static final int DRIVE_SPEED_EXP = 2;
 	public static final int DRIVE_TURN_EXP = 2;
