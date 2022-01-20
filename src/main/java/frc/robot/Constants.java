@@ -19,14 +19,14 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 public final class Constants {
 
 	/********************************************************************
-	 * 
+	* 
     *                ____       _          
     *       --------/ __ \_____(_)   _____ 
     *      --------/ / / / ___/ / | / / _ \
     *     --------/ /_/ / /  / /| |/ /  __/
     *    --------/_____/_/  /_/ |___/\___/ 
-	 * 
-	 */
+	* 
+	*/
 
 	// Drive CAN IDs
 	public static final int LEFT_MASTER_DRIVE_ID = 0;
