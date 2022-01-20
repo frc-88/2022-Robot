@@ -19,25 +19,19 @@ import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.TJController;
 import frc.robot.util.drive.DriveUtils;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
 public class RobotContainer {
   // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
 
+  // Commands
   private CommandBase m_teleopDrive;
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
+  // Controllers
   private final TJController m_driverController = new TJController(0);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // Configure the button bindings
     configureDriverController();
     configureDefaultCommands();
     configureDashboardCommands();
@@ -82,7 +76,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
 }
