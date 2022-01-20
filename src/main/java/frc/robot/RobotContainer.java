@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
+import frc.robot.commands.drive.TankDrive;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.RapidReactTrajectories;
@@ -25,7 +26,7 @@ public class RobotContainer {
   private final Drive m_drive = new Drive(m_sensors);
 
   // Commands
-  private CommandBase m_teleopDrive;
+  private CommandBase m_arcadeDrive;
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
   // Controllers
@@ -55,9 +56,14 @@ public class RobotContainer {
         && m_drive.autoshift(arcadeDriveSpeedSupplier.getAsDouble());
     DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> arcadeDriveForceLowGear.getAsBoolean() ? Constants.MAX_SPEED_LOW
         : Constants.MAX_SPEED_HIGH;
-    m_teleopDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
+
+    m_arcadeDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
         arcadeDriveShiftSupplier, arcadeDriveMaxSpeedSupplier);
-    SmartDashboard.putData("Teleop Drive", m_teleopDrive);
+
+    CommandBase tankDrive = new TankDrive(m_drive, m_driverController::getLeftStickY, m_driverController::getRightStickY);
+
+    SmartDashboard.putData("Arcade Drive", m_arcadeDrive);
+    SmartDashboard.putData("Tank Drive", tankDrive);
   }
 
   private void configureDashboardCommands() {
@@ -67,7 +73,7 @@ public class RobotContainer {
   }
 
   private void configureDefaultCommands() {
-    m_drive.setDefaultCommand(m_teleopDrive);
+    m_drive.setDefaultCommand(m_arcadeDrive);
   }
 
   /**
