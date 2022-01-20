@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
-import frc.robot.util.WrappingPIDController;
 import frc.robot.util.drive.DriveConfiguration;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -61,7 +60,6 @@ public class Drive extends SubsystemBase {
   private Pose2d m_pose;
 
   private PIDPreferenceConstants velPIDConstants;
-  private PIDPreferenceConstants headingPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
   private DoublePreferenceConstant upshiftSpeed;
   private DoublePreferenceConstant commandDownshiftSpeed;
@@ -86,7 +84,6 @@ public class Drive extends SubsystemBase {
     m_driveConfiguration = new DriveConfiguration();
 
     velPIDConstants = new PIDPreferenceConstants("Drive Vel", 1.0, 0.02, 0, 0, 2, 2, 0);
-    headingPIDConstants = new PIDPreferenceConstants("Heading", .01, .0005, 0, 0, 3, 1, 0.25);
     downshiftSpeed = new DoublePreferenceConstant("Downshift Speed", 4.5);
     upshiftSpeed = new DoublePreferenceConstant("UpshiftSpeed", 6);
     commandDownshiftSpeed = new DoublePreferenceConstant("Command Downshift Speed", 5);
