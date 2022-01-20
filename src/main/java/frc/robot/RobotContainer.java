@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
+import frc.robot.util.tunnel.ROSInterface;
+import frc.robot.util.tunnel.TunnelServer;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -24,10 +26,18 @@ public class RobotContainer {
 
   private final Command m_autoCommand = new WaitCommand(15.0);
 
+  // ROS tunnel interfaces
+  private TunnelServer m_tunnel;
+  private ROSInterface m_ros_interface;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+
+    m_ros_interface = new ROSInterface(m_drive);
+    m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
+    m_tunnel.start();
   }
 
   /**

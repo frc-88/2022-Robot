@@ -32,8 +32,10 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
 import frc.robot.util.transmission.Falcon500;
 import frc.robot.util.transmission.ShiftingTransmission;
+import frc.robot.util.tunnel.ChassisInterface;
+import frc.robot.util.tunnel.VelocityCommand;
 
-public class Drive extends SubsystemBase {
+public class Drive extends SubsystemBase implements ChassisInterface {
 
   private final Sensors m_sensors;
 
@@ -49,6 +51,7 @@ public class Drive extends SubsystemBase {
   private double m_leftCommandedSpeed = 0;
   private double m_rightCommandedSpeed = 0;
   private double m_maxSpeed = Constants.MAX_SPEED_HIGH;
+  private double m_maxAngVel = 2.0 * Constants.MAX_SPEED_HIGH / Constants.WHEEL_BASE_WIDTH;  // in radians per second. arc / radius = angle
 
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
@@ -388,5 +391,39 @@ public class Drive extends SubsystemBase {
     } else {
       this.setCoastMode();
     }
+  }
+
+  // ROS tunnel interfaces
+  @Override
+  public void drive(VelocityCommand command) {
+    drive(command.vx, command.vy, command.vt);
+  }
+
+  @Override
+  public void drive(double vx, double vy, double angularVelocity) {
+    double speed = vx / (m_maxSpeed * Constants.FEET_TO_METERS);
+    double turn = angularVelocity / m_maxAngVel;
+    arcadeDrive(speed, turn);
+  }
+
+  @Override
+  public void stop() {
+    basicDrive(0.0, 0.0);
+  }
+
+  @Override
+  public void resetPosition(Pose2d pose) {
+    zeroDrive();  // TODO: is it ok to set the encoders to zero for a non zero pose?
+    resetOdometry(pose, pose.getRotation());
+  }
+
+  @Override
+  public Pose2d getOdometryPose() {
+    return m_odometry.getPoseMeters();
+  }
+
+  @Override
+  public ChassisSpeeds getChassisVelocity() {
+    return getCurrentChassisSpeeds();
   }
 }
