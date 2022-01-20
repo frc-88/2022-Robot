@@ -21,18 +21,25 @@ import frc.robot.Constants;
 
 public class RapidReactTrajectories
 {
-  private static final Translation2d RED_01 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d RED_02 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_03 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d RED_04 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_05 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d RED_06 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_07 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_08 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d RED_09 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_10 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d RED_11 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
-  private static final Translation2d BLUE_12 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  // CARGO starting locations for reference
+  // constants indicate starting locations on the respective color side of the field
+  // index numbers go clockwise (right to left from driver station view)
+  private static final Translation2d RED_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  private static final Translation2d RED_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d RED_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d RED_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  private static final Translation2d RED_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d RED_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+
+  private static final Translation2d BLUE_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d BLUE_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  private static final Translation2d BLUE_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  private static final Translation2d BLUE_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d BLUE_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  private static final Translation2d BLUE_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+
+  private static final Translation2d RED_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  private static final Translation2d BLUE_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
 
   public RapidReactTrajectories() {
   }
