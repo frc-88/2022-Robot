@@ -35,13 +35,12 @@ public class RobotContainer {
 
   private final TJController m_driverController = new TJController(0);
 
-  private final Command m_testTrajectory = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory());
-
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the button bindings
     configureDriverController();
     configureDefaultCommands();
+    configureDashboardCommands();
   }
 
   private void configureDriverController() {
@@ -65,6 +64,12 @@ public class RobotContainer {
     m_teleopDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
         arcadeDriveShiftSupplier, arcadeDriveMaxSpeedSupplier);
     SmartDashboard.putData("Teleop Drive", m_teleopDrive);
+  }
+
+  private void configureDashboardCommands() {
+    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
   }
 
   private void configureDefaultCommands() {
