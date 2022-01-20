@@ -7,7 +7,9 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.sensors.MagnetFieldStrength;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -58,6 +60,8 @@ public class Drive extends SubsystemBase {
   private double m_rightCommandedSpeed = 0;
   private double m_maxSpeed = Constants.MAX_SPEED_HIGH;
 
+  private boolean m_isHighGearSet = false;
+
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
   private Pose2d m_pose;
@@ -83,6 +87,12 @@ public class Drive extends SubsystemBase {
   private DifferentialDrivetrainSim m_driveSim;
   private SimDouble m_gyroSim;
   private Field2d m_field;
+
+  public enum Gear {
+    LOW,
+    NEUTRAL,
+    HIGH
+  }
 
   public Drive(Sensors sensors) {
     m_sensors = sensors;
@@ -249,20 +259,60 @@ public class Drive extends SubsystemBase {
     m_leftShifter.set(Value.kForward);
     m_rightShifter.set(Value.kForward);
 
-    m_leftTransmission.shiftToLow();
-    m_rightTransmission.shiftToLow();
+    m_isHighGearSet = false;
   }
 
   public void shiftToHigh() {
     m_leftShifter.set(Value.kReverse);
     m_rightShifter.set(Value.kReverse);
 
-    m_leftTransmission.shiftToHigh();
-    m_rightTransmission.shiftToHigh();
+    m_isHighGearSet = true;
   }
 
-  public boolean isInHighGear() {
-    return m_leftTransmission.isInHighGear();
+  public boolean isLeftShifterSensorConnected() {
+    return m_leftShifterEncoder.getLastError() == ErrorCode.SensorNotPresent
+           || m_leftShifterEncoder.getMagnetFieldStrength() == MagnetFieldStrength.BadRange_RedLED
+           || m_leftShifterEncoder.getMagnetFieldStrength() == MagnetFieldStrength.Invalid_Unknown
+           || m_leftShifterEncoder.getAbsolutePosition() < Constants.LEFT_SHIFTER_ENCODER_MIN
+           || m_leftShifterEncoder.getAbsolutePosition() > Constants.LEFT_SHIFTER_ENCODER_MAX;
+  }
+
+  public boolean isRightShifterSensorConnected() {
+    return m_rightShifterEncoder.getLastError() == ErrorCode.SensorNotPresent
+           || m_rightShifterEncoder.getMagnetFieldStrength() == MagnetFieldStrength.BadRange_RedLED
+           || m_rightShifterEncoder.getMagnetFieldStrength() == MagnetFieldStrength.Invalid_Unknown
+           || m_rightShifterEncoder.getAbsolutePosition() < Constants.RIGHT_SHIFTER_ENCODER_MIN
+           || m_rightShifterEncoder.getAbsolutePosition() > Constants.RIGHT_SHIFTER_ENCODER_MAX;
+  }
+
+  private Gear getLeftGearFromEncoder() {
+    double encoderValue = m_leftShifterEncoder.getAbsolutePosition();
+    if (encoderValue <= Constants.LEFT_LOW_GEAR_ENCODER_THRESHOLD) {
+      return Gear.LOW;
+    } else if (encoderValue >= Constants.LEFT_HIGH_GEAR_ENCODER_THRESHOLD) {
+      return Gear.HIGH;
+    } else {
+      return Gear.NEUTRAL;
+    }
+  }
+
+  private Gear getRighGearFromEncoder() {
+    double encoderValue = m_rightShifterEncoder.getAbsolutePosition();
+    if (encoderValue <= Constants.RIGHT_LOW_GEAR_ENCODER_THRESHOLD) {
+      return Gear.LOW;
+    } else if (encoderValue >= Constants.RIGHT_HIGH_GEAR_ENCODER_THRESHOLD) {
+      return Gear.HIGH;
+    } else {
+      return Gear.NEUTRAL;
+    }
+  }
+
+  public Gear getLeftGear() {
+    
+  }
+
+  public Gear getRightGear() {
+
   }
 
   public void resetEncoderPositions() {

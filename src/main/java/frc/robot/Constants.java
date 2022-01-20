@@ -64,14 +64,14 @@ public final class Constants {
 	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 
-	public static final int LEFT_SHIFTER_ENCODER_MIN = 0;
-	public static final int LEFT_LOW_GEAR_ENCODER_THRESHOLD = 1000;
-	public static final int LEFT_HIGH_GEAR_ENCODER_THRESHOLD = 2000;
-	public static final int LEFT_SHIFTER_ENCODER_MAX = 4000;
-	public static final int RIGHT_SHIFTER_ENCODER_MIN = 0;
-	public static final int RIGHT_LOW_GEAR_ENCODER_THRESHOLD = 1000;
-	public static final int RIGHT_HIGH_GEAR_ENCODER_THRESHOLD = 2000;
-	public static final int RIGHT_SHIFTER_ENCODER_MAX = 4000;
+	public static final double LEFT_SHIFTER_ENCODER_MIN = 120;
+	public static final double LEFT_LOW_GEAR_ENCODER_THRESHOLD = 150;
+	public static final double LEFT_HIGH_GEAR_ENCODER_THRESHOLD = 210;
+	public static final double LEFT_SHIFTER_ENCODER_MAX = 240;
+	public static final double RIGHT_SHIFTER_ENCODER_MIN = 120;
+	public static final double RIGHT_LOW_GEAR_ENCODER_THRESHOLD = 150;
+	public static final double RIGHT_HIGH_GEAR_ENCODER_THRESHOLD = 210;
+	public static final double RIGHT_SHIFTER_ENCODER_MAX = 240;
 
 	public static final int DRIVE_SPEED_EXP = 2;
 	public static final int DRIVE_TURN_EXP = 2;
