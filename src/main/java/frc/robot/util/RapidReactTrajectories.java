@@ -21,6 +21,19 @@ import frc.robot.Constants;
 
 public class RapidReactTrajectories
 {
+  private static final Translation2d RED_01 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d RED_02 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_03 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d RED_04 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_05 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d RED_06 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_07 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_08 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d RED_09 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_10 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d RED_11 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+  private static final Translation2d BLUE_12 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0));
+
   public RapidReactTrajectories() {
   }
 
