@@ -57,8 +57,11 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 18;
-	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
+	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
+    public static final double MAX_TRAJ_VELOCITY = 0;
+    public static final double MAX_TRAJ_ACCELERATION = 0;
+    public static final double MAX_TRAJ_CENTRIP_ACC = 0;
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
