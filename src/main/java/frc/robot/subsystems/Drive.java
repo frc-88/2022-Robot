@@ -48,7 +48,6 @@ public class Drive extends SubsystemBase {
   private final WPI_CANCoder m_leftEncoder, m_rightEncoder;
   private ShiftingTransmission m_leftTransmission, m_rightTransmission;
   private SyncPIDController m_leftVelPID, m_rightVelPID;
-  private WrappingPIDController m_headingPID;
   private DriveConfiguration m_driveConfiguration;
   private DoubleSolenoid m_leftShifter, m_rightShifter;
 
@@ -67,8 +66,6 @@ public class Drive extends SubsystemBase {
   private DoublePreferenceConstant upshiftSpeed;
   private DoublePreferenceConstant commandDownshiftSpeed;
   private DoublePreferenceConstant commandDownshiftCommandValue;
-
-  private boolean isOnLimelightTarget = false;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -125,8 +122,6 @@ public class Drive extends SubsystemBase {
         Constants.SHIFTER_LEFT_IN);
     m_rightShifter = new DoubleSolenoid(Constants.SHIFTER_RIGHT_PCM, Constants.SHIFTER_RIGHT_PCM_TYPE, Constants.SHIFTER_RIGHT_OUT,
         Constants.SHIFTER_RIGHT_IN);
-
-    m_headingPID = new WrappingPIDController(180, -180, headingPIDConstants);
 
     m_driveSim = new DifferentialDrivetrainSim(
       DCMotor.getFalcon500(2),
@@ -214,15 +209,6 @@ public class Drive extends SubsystemBase {
     basicDriveLimited(leftSpeed, rightSpeed);
   }
 
-  public void turnToHeading(double heading) {
-    double turnRate = m_headingPID.calculateOutput(m_sensors.getYaw(), heading);
-    basicDrive(turnRate, -turnRate);
-  }
-
-  public void resetHeadingPID() {
-    m_headingPID.reset();
-  }
-
   public boolean autoshift(double commandedValue) {
     double currentSpeed = getStraightSpeed();
     if (isInHighGear() && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
@@ -295,14 +281,6 @@ public class Drive extends SubsystemBase {
 
   public void setMaxSpeed(double maxSpeed) {
     m_maxSpeed = maxSpeed;
-  }
-
-  public void setOnLimelightTarget(boolean onLimelightTarget) {
-    this.isOnLimelightTarget = onLimelightTarget;
-  }
-
-  public boolean isOnLimelightTarget() {
-    return this.isOnLimelightTarget;
   }
 
   public Pose2d getCurrentPose() {
@@ -404,7 +382,6 @@ public class Drive extends SubsystemBase {
     SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
     SmartDashboard.putBoolean("In High Gear?", isInHighGear());
     SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
-    SmartDashboard.putBoolean("LimelightHeadingOnTarget", isOnLimelightTarget);
 
     SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
     SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));
