@@ -21,8 +21,6 @@ import frc.robot.Constants;
 
 public class RapidReactTrajectories
 {
-  private static final TrajectoryConfig m_config = initializeConfig();
-
   public RapidReactTrajectories() {
   }
 
@@ -40,15 +38,19 @@ public class RapidReactTrajectories
   }
  
   public static Trajectory generateTestTrajectory() {
+    TrajectoryConfig config = initializeConfig();
+
     // drive ten feet forward, keep same facing
     ArrayList<Pose2d> waypoints = new ArrayList<>();
     waypoints.add(new Pose2d(Units.feetToMeters(0.0D), Units.feetToMeters(0.0D), new Rotation2d()));
     waypoints.add(new Pose2d(Units.feetToMeters(10.0D), Units.feetToMeters(0.0D), new Rotation2d()));
-    return TrajectoryGenerator.generateTrajectory(waypoints, m_config);
+    return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
   // Barrel runs from last year for testing and simulation
   public static Trajectory generateBarrelRunTrajectory() {
+    TrajectoryConfig config = initializeConfig();
+
     Pose2d start = new Pose2d(Units.feetToMeters(5.0D), Units.feetToMeters(7.5D), new Rotation2d());
 
     ArrayList<Translation2d> waypoints = new ArrayList<>();
@@ -66,10 +68,12 @@ public class RapidReactTrajectories
 
     Pose2d end = new Pose2d(Units.feetToMeters(0.0D), Units.feetToMeters(8.1D), Rotation2d.fromDegrees(180.0D));
 
-    return TrajectoryGenerator.generateTrajectory(start, waypoints, end, m_config);
+    return TrajectoryGenerator.generateTrajectory(start, waypoints, end, config);
   }
 
   public static Trajectory generateBarrelRun2Trajectory() {
+    TrajectoryConfig config = initializeConfig();
+
     ArrayList<Pose2d> waypoints = new ArrayList<>();
     waypoints.add(new Pose2d(Units.feetToMeters(3.9453125D), Units.feetToMeters(7.5D), new Rotation2d()));
     waypoints.add(new Pose2d(Units.feetToMeters(15.5D), Units.feetToMeters(5.0D), Rotation2d.fromDegrees(-90.0D)));
@@ -83,7 +87,7 @@ public class RapidReactTrajectories
     waypoints.add(new Pose2d(Units.feetToMeters(25.0D), Units.feetToMeters(8.0D), Rotation2d.fromDegrees(180.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(0.5D), Units.feetToMeters(7.5D), Rotation2d.fromDegrees(180.0D)));
 
-    return TrajectoryGenerator.generateTrajectory(waypoints, m_config);
+    return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
 }
