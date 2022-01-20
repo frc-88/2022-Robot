@@ -23,15 +23,12 @@ public class AutoFollowTrajectory extends CommandBase {
   private Timer m_timer = new Timer();
   private double m_duration;
   private int m_state;
-  private boolean m_trajReversed = false;
 
   public AutoFollowTrajectory(final Drive drive, final Sensors sensors, Trajectory trajectory) {
     m_drive = drive;
     m_sensors = sensors;
     m_trajectory = trajectory;
     m_duration = m_trajectory.getTotalTimeSeconds();
-
-    m_trajReversed = false;
 
     addRequirements(m_drive);
     addRequirements(m_sensors);
