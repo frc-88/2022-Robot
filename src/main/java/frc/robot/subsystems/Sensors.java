@@ -9,6 +9,7 @@ package frc.robot.subsystems;
 
 import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
@@ -33,6 +34,8 @@ public class Sensors extends SubsystemBase {
    * Creates a new Sensors subsystem
    */
   public Sensors() {
+    // start driver camera feed
+    CameraServer.startAutomaticCapture();
   }
 
   @Override
