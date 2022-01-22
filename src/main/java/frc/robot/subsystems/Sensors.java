@@ -46,6 +46,10 @@ public class Sensors extends SubsystemBase {
     CameraServer.startAutomaticCapture();
   }
 
+  public boolean amIBlueAlliance() {
+    return DriverStation.getAlliance() == DriverStation.Alliance.Blue;
+  }
+
   public double getStoragePressure() {
     if (Robot.isReal()) {
       return (m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL) - 0.3944) / 0.0396;
