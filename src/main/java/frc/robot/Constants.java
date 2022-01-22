@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 
 /**
@@ -69,8 +68,5 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
-
-	// Sensors
-	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
 }

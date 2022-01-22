@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.sensors.Limelight;
 import frc.robot.util.sensors.NavX;
+import frc.robot.util.sensors.REVColorSensor;
 
 /**
  * we gather data
@@ -27,8 +28,7 @@ import frc.robot.util.sensors.NavX;
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
   public final Limelight limelight = new Limelight();
-
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
+  public final REVColorSensor colorSensor = new REVColorSensor();
 
   /**
    * Creates a new Sensors subsystem
@@ -45,14 +45,6 @@ public class Sensors extends SubsystemBase {
     }
 
     navx.updateDashboard();
-
-    // Color Sensor data
-    Color detectedColor = m_colorSensor.getColor();
-    double IR = m_colorSensor.getIR();
-
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("IR", IR);
+    colorSensor.updateDashboard();
   }
 }
