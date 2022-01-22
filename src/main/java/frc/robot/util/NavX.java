@@ -9,13 +9,14 @@ package frc.robot.util;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Add your docs here.
  */
 public class NavX {
     private final AHRS m_ahrs;
-    private double yawOffset;
+    private double yawOffset = 0.0;
 
     public NavX() {
         m_ahrs = new AHRS(SPI.Port.kMXP);
@@ -49,5 +50,12 @@ public class NavX {
     public float getRoll() {
         //Standard method
         return m_ahrs.getRoll();
+    }
+
+    public void updateDashboard() {
+        SmartDashboard.putNumber("NavX Yaw", getYaw());
+        SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
+        SmartDashboard.putNumber("NavX Pitch", getPitch());
+        SmartDashboard.putNumber("NavX Roll", getRoll());
     }
 }

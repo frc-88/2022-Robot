@@ -22,10 +22,8 @@ import frc.robot.util.NavX;
  */
 
 public class Sensors extends SubsystemBase {
-  private final NavX m_navx = new NavX();
+  public final NavX navx = new NavX();
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
-
-  private double m_yawOffset = 0.0;
 
   /**
    * Creates a new Sensors subsystem
@@ -33,26 +31,10 @@ public class Sensors extends SubsystemBase {
   public Sensors() {
   }
 
-  public void zeroYaw() {
-    m_yawOffset = m_navx.getYaw();
-  }
-
-  public double getYaw() {
-    return m_navx.getYaw() - m_yawOffset;
-  }
-
-  public double getYawRate() {
-    return m_navx.getYawRate();
-  } 
-
   @Override
   public void periodic() {
-    // NavX data
-    SmartDashboard.putNumber("NavX Yaw", getYaw());
-    SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
-    SmartDashboard.putNumber("NavX Pitch", m_navx.getPitch());
-    SmartDashboard.putNumber("NavX Roll", m_navx.getRoll());
-
+    navx.updateDashboard();
+    
     // Color Sensor data
     Color detectedColor = m_colorSensor.getColor();
     double IR = m_colorSensor.getIR();
