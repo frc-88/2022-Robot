@@ -9,11 +9,13 @@ package frc.robot.subsystems;
 
 import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.util.NavX;
+import frc.robot.util.sensors.Limelight;
+import frc.robot.util.sensors.NavX;
 
 /**
  * we gather data
@@ -23,6 +25,8 @@ import frc.robot.util.NavX;
 
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
+  public final Limelight limelight = new Limelight();
+
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
 
   /**
@@ -33,8 +37,12 @@ public class Sensors extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (DriverStation.isDisabled()) {
+      limelight.ledOff();
+    }
+
     navx.updateDashboard();
-    
+
     // Color Sensor data
     Color detectedColor = m_colorSensor.getColor();
     double IR = m_colorSensor.getIR();
