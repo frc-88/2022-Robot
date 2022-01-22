@@ -72,5 +72,14 @@ public final class Constants {
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
+    
+	// Hopper
+	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
+	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
+    public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
+    public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
+	public static final double HOPPER_CENTRALIZER_SPEED = 0.5;
+    public static final double HOPPER_CHAMBER_SPEED = 0.5;
+
 
 }
