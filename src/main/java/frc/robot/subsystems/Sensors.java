@@ -16,18 +16,12 @@ import frc.robot.util.sensors.REVColorSensor;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.revrobotics.ColorSensorV3;
-
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.util.NavX;
 
 /**
  * we gather data
@@ -141,7 +135,7 @@ public class Sensors extends SubsystemBase {
       }
       m_storagePressureMeasurements.add(new Pair<Double,Double>(measurementTime, storagePressure));
     }
-    
+
     SmartDashboard.putNumber("Storage Pressure", storagePressure);
     SmartDashboard.putNumber("Working Pressure", workingPressure);
     SmartDashboard.putNumber("Leak Pressure Difference PSI", pressureDifference);
