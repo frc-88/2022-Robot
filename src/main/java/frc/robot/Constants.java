@@ -73,4 +73,7 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
+    public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
+    public static final double BLUE_CARGO_RED_THRESHOLD = 0;
+    public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
 }

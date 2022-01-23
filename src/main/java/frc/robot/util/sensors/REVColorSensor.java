@@ -5,10 +5,13 @@
 package frc.robot.util.sensors;
 
 import com.revrobotics.ColorSensorV3;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
+import frc.robot.Constants;
 
 public class REVColorSensor {
     private final ColorSensorV3 m_colorSensor;
@@ -20,6 +23,16 @@ public class REVColorSensor {
     public REVColorSensor(Port port) {
         m_colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
     }
+
+    public boolean isCargoOurs(){
+        Color detectedColor = m_colorSensor.getColor();
+
+        // TODO check beam break and return false if there is no cargo
+        return (DriverStation.getAlliance() == DriverStation.Alliance.Blue) ==
+            ((detectedColor.blue > Constants.BLUE_CARGO_BLUE_THRESHOLD) &&
+             (detectedColor.red < Constants.BLUE_CARGO_RED_THRESHOLD) &&
+            (detectedColor.green < Constants.BLUE_CARGO_GREEN_THRESHOLD));
+}
 
     public void updateDashboard() {
         // Color Sensor data
