@@ -52,7 +52,7 @@ public class Sensors extends SubsystemBase {
 
   public double getStoragePressure() {
     if (Robot.isReal()) {
-      return (m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL) - 0.3944) / 0.0396;
+      return (m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL) - 0.4132) / 0.0265;
     } else {
       return 120.;
     }
@@ -60,7 +60,7 @@ public class Sensors extends SubsystemBase {
 
   public double getWorkingPressure() {
     if (Robot.isReal()) {
-      return (m_pneumaticHub.getAnalogVoltage(Constants.WORKING_PRESSURE_SENSOR_CHANNEL) - 0.4132) / 0.0265;
+      return (m_pneumaticHub.getAnalogVoltage(Constants.WORKING_PRESSURE_SENSOR_CHANNEL) - 0.3944) / 0.0396;
     } else {
       return 60.;
     }
@@ -143,8 +143,8 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("Storage Pressure", storagePressure);
     SmartDashboard.putNumber("Working Pressure", workingPressure);
     SmartDashboard.putNumber("Leak Pressure Difference PSI", pressureDifference);
-    SmartDashboard.putNumber("Leak Rate PSI/minute", leakRatePSI);
-    SmartDashboard.putNumber("Leak Rate Percentage/minute", leakRatePercentage);
+    SmartDashboard.putNumber("Leak Rate PSI per minute", leakRatePSI);
+    SmartDashboard.putNumber("Leak Rate Percentage per minute", leakRatePercentage);
     SmartDashboard.putBoolean("Working Pressure Warning", workingPressure < Constants.WORKING_PRESSURE_WARNING);
     SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
     SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());

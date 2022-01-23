@@ -9,9 +9,10 @@ package frc.robot.util.drive;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-import frc.robot.util.transmission.Transmission;
+import frc.robot.util.transmission.ShiftingTransmission;
 
 /**
  * Add your docs here.
@@ -19,18 +20,17 @@ import frc.robot.util.transmission.Transmission;
 public class TJDriveModule extends WPI_TalonFX {
     private WPI_TalonFX followers[];
 
-    private Transmission m_transmission;
+    private ShiftingTransmission m_transmission;
 
-    public TJDriveModule(TJDriveModuleConfiguration config, Transmission transmission) {
+    public TJDriveModule(TJDriveModuleConfiguration config, ShiftingTransmission transmission) {
         super(config.master);
         this.configFactoryDefault();
         this.configAllSettings(config.masterConfiguration);
-        //this.enableCurrentLimit(config.enableCurrentLimit);
-        // TODO replace with configSupplyCurrentLimit
         this.enableVoltageCompensation(config.enableVoltageCompensation);
         this.setInverted(config.invertMotor);
         this.setSensorPhase(config.invertSensor);
         this.setNeutralMode(config.neutralMode);
+        this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
 
         followers = new WPI_TalonFX [config.followers.length];
         for (int i = 0; i < config.followers.length; i++) {
@@ -107,6 +107,20 @@ public class TJDriveModule extends WPI_TalonFX {
     public double getScaledSensorVelocity() {
         return m_transmission.convertSensorVelocityToOutput(
                 this.getSelectedSensorVelocity());
+    }
+
+    /**
+     * Get the velocity reading of the Falcon sensor assuming we are in low gear.
+     */
+    public double getFalconVelocityLowGear() {
+        return this.getSelectedSensorVelocity(1) * m_transmission.getLowInputToOutputRatio() * 10 / 2048;
+    }
+
+    /**
+     * Get the velocity reading of the Falcon sensor assuming we are in low gear.
+     */
+    public double getFalconVelocityHighGear() {
+        return this.getSelectedSensorVelocity(1) * m_transmission.getHighInputToOutputRatio() * 10 / 2048;
     }
 
 

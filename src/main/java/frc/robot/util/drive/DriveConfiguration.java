@@ -27,6 +27,7 @@ public class DriveConfiguration {
         _masterConfiguration = new TalonFXConfiguration();
 
         _masterConfiguration.primaryPID.selectedFeedbackSensor = FeedbackDevice.RemoteSensor0;
+        _masterConfiguration.auxiliaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
         _masterConfiguration.neutralDeadband = 0.00;
         _masterConfiguration.voltageCompSaturation = 12;
 

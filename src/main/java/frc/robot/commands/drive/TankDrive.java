@@ -36,6 +36,7 @@ public class TankDrive extends CommandBase {
   @Override
   public void execute() {
     drive.shiftToHigh();
+    drive.updateCurrentGear();
     drive.basicDrive(leftVelocity.getAsDouble(), rightVelocity.getAsDouble());
   }
 
