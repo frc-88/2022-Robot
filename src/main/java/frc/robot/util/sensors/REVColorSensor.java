@@ -34,7 +34,7 @@ public class REVColorSensor {
             (detectedColor.green < Constants.BLUE_CARGO_GREEN_THRESHOLD));
 }
 
-    public void updateDashboard() {
+    public void periodic() {
         // Color Sensor data
         Color detectedColor = m_colorSensor.getColor();
         double IR = m_colorSensor.getIR();

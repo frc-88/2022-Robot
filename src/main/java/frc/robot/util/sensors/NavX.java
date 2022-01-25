@@ -52,7 +52,7 @@ public class NavX {
         return m_ahrs.getRoll();
     }
 
-    public void updateDashboard() {
+    public void periodic() {
         SmartDashboard.putNumber("NavX Yaw", getYaw());
         SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
         SmartDashboard.putNumber("NavX Pitch", getPitch());
