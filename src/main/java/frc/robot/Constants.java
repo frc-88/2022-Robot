@@ -76,4 +76,7 @@ public final class Constants {
     public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
     public static final double BLUE_CARGO_RED_THRESHOLD = 0;
     public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
+
+	// Turret
+	public static final int TURRET_MOTOR_ID = 0;
 }
