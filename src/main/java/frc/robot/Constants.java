@@ -79,4 +79,5 @@ public final class Constants {
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 0;
+    public static final int TURRET_ENCODER_ID = 0;
 }
