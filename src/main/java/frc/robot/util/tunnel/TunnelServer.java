@@ -15,7 +15,7 @@ public class TunnelServer extends Thread {
 
     public static TunnelServer instance = null;
 
-    public TunnelServer(TunnelInterface tunnel_interface, int port, int data_relay_delay_ms)
+    public TunnelServer(TunnelInterface tunnel_interface, int port, int data_relay_delay_ms, boolean auto_start)
     {
         if (!Objects.isNull(instance)) {
             throw new RuntimeException("Only once instance of TunnelServer allowed");
@@ -26,6 +26,14 @@ public class TunnelServer extends Thread {
         this.port = port;
         this.tunnel_interface = tunnel_interface;
         this.data_relay_thread = new TunnelDataRelayThread(tunnel_interface, data_relay_delay_ms);
+
+        if (auto_start) {
+            this.start();
+        }
+    }
+
+    public TunnelServer(TunnelInterface tunnel_interface, int port, int data_relay_delay_ms) {
+        this(tunnel_interface, port, data_relay_delay_ms, true);
     }
 
     public static boolean anyClientsAlive()

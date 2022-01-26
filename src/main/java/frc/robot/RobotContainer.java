@@ -43,7 +43,6 @@ public class RobotContainer {
   public RobotContainer() {
     m_ros_interface = new ROSInterface(m_drive);
     m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
-    m_tunnel.start();
 
     configureDriverController();
     configureDefaultCommands();
