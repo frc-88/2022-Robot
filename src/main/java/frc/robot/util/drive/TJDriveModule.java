@@ -9,15 +9,15 @@ package frc.robot.util.drive;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import frc.robot.util.transmission.Transmission;
 
 /**
  * Add your docs here.
  */
-public class TJDriveModule extends TalonFX {
-    private TalonFX followers[];
+public class TJDriveModule extends WPI_TalonFX {
+    private WPI_TalonFX followers[];
 
     private Transmission m_transmission;
 
@@ -32,9 +32,9 @@ public class TJDriveModule extends TalonFX {
         this.setSensorPhase(config.invertSensor);
         this.setNeutralMode(config.neutralMode);
 
-        followers = new TalonFX [config.followers.length];
+        followers = new WPI_TalonFX [config.followers.length];
         for (int i = 0; i < config.followers.length; i++) {
-            followers[i] = new TalonFX(config.followers[i]);
+            followers[i] = new WPI_TalonFX(config.followers[i]);
             followers[i].configFactoryDefault();
             followers[i].configAllSettings(config.followerConfiguration);
             followers[i].follow(this);
@@ -51,7 +51,7 @@ public class TJDriveModule extends TalonFX {
      */
     public void brakeAll() {
         this.setNeutralMode(NeutralMode.Brake);
-        for (TalonFX follower : followers) {
+        for (WPI_TalonFX follower : followers) {
             follower.setNeutralMode(NeutralMode.Brake);
         }
     }
@@ -61,7 +61,7 @@ public class TJDriveModule extends TalonFX {
      */
     public void coastAll() {
         this.setNeutralMode(NeutralMode.Coast);
-        for (TalonFX follower : followers) {
+        for (WPI_TalonFX follower : followers) {
             follower.setNeutralMode(NeutralMode.Coast);
         }
     }
@@ -85,7 +85,7 @@ public class TJDriveModule extends TalonFX {
      */
     public double getTotalCurrent() {
         double total = this.getSupplyCurrent();
-        for (TalonFX follower : followers) {
+        for (WPI_TalonFX follower : followers) {
             total += follower.getSupplyCurrent();
         }
         return total;
@@ -121,10 +121,9 @@ public class TJDriveModule extends TalonFX {
      *                     of all the motors to draw
      */
     public void setVelocityCurrentLimited(double targetVelocity, double currentLimit) {
-        this.set(ControlMode.PercentOutput, 
-                m_transmission.getCurrentLimitedVoltage(
-                        targetVelocity, this.getSelectedSensorVelocity(), currentLimit)
-                    / 12.);
+        double percentOut = m_transmission.getCurrentLimitedVoltage(
+            targetVelocity, this.getSelectedSensorVelocity(), currentLimit) / 12.;
+        this.set(ControlMode.PercentOutput, Math.max(-1., Math.min(1., percentOut)));
     }
 
     /**

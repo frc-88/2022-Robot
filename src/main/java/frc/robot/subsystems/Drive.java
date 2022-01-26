@@ -8,21 +8,28 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.WPI_CANCoder;
 
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
+import edu.wpi.first.hal.SimDouble;
+import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.WrappingPIDController;
 import frc.robot.util.drive.DriveConfiguration;
@@ -40,7 +47,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private final Sensors m_sensors;
 
   private final TJDriveModule m_leftDrive, m_rightDrive;
-  private final CANCoder m_leftEncoder, m_rightEncoder;
+  private final WPI_CANCoder m_leftEncoder, m_rightEncoder;
   private ShiftingTransmission m_leftTransmission, m_rightTransmission;
   private SyncPIDController m_leftVelPID, m_rightVelPID;
   private WrappingPIDController m_headingPID;
@@ -74,6 +81,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private double m_prevTurn = 0; // The last turn value
   private double m_negInertialAccumulator = 0; // Accumulates our current inertia value
 
+  // Simulation
+  private DifferentialDrivetrainSim m_driveSim;
+  private SimDouble m_gyroSim;
+  private Field2d m_field;
+
   public Drive(Sensors sensors) {
     m_sensors = sensors;
 
@@ -100,12 +112,12 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_leftTransmission.setVelocityPID(m_leftVelPID);
     m_rightTransmission.setVelocityPID(m_rightVelPID);
 
-    m_leftEncoder = new CANCoder(Constants.LEFT_DRIVE_ENCODER_ID);
-    m_rightEncoder = new CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID);
+    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID);
+    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID);
 
     m_leftEncoder.configFactoryDefault();
     m_rightEncoder.configFactoryDefault();
-
+ 
     m_leftDrive = new TJDriveModule(m_driveConfiguration.left, m_leftTransmission);
     m_rightDrive = new TJDriveModule(m_driveConfiguration.right, m_rightTransmission);
 
@@ -118,6 +130,23 @@ public class Drive extends SubsystemBase implements ChassisInterface {
         Constants.SHIFTER_RIGHT_IN);
 
     m_headingPID = new WrappingPIDController(180, -180, headingPIDConstants);
+
+    m_driveSim = new DifferentialDrivetrainSim(
+      DCMotor.getFalcon500(2),
+      1. / Constants.LOW_GEAR_RATIO,
+      6., // Moment of Inertia in kg m^2, guessed
+      55., // 120lb robot, in kg
+      Units.inchesToMeters(Constants.WHEEL_DIAMETER / 2.),
+      Units.feetToMeters(Constants.WHEEL_BASE_WIDTH),
+      VecBuilder.fill(0.001, 0.001, 0.001, 0.01, 0.01, 0.005, 0.005) // measurement noise, stolen from wpilib docs
+    );
+
+    if (Robot.isSimulation()) {
+      m_gyroSim = new SimDouble(SimDeviceDataJNI.getSimValueHandle(SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]"), "Yaw"));
+    }
+
+    m_field = new Field2d();
+    SmartDashboard.putData(m_field);
 
     shiftToLow();
 
@@ -351,7 +380,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
   }
 
   @Override
@@ -363,6 +392,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     }
     
     updateOdometry();
+    m_field.setRobotPose(getCurrentPose());
 
     SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
     SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
@@ -374,6 +404,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
     SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
     SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
+    SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
     SmartDashboard.putBoolean("In High Gear?", isInHighGear());
     SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
     SmartDashboard.putBoolean("LimelightHeadingOnTarget", isOnLimelightTarget);
@@ -425,5 +456,31 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   @Override
   public ChassisSpeeds getChassisVelocity() {
     return getCurrentChassisSpeeds();
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    if (m_leftTransmission.isInHighGear()) {
+      m_driveSim.setCurrentGearing(1. / Constants.HIGH_GEAR_RATIO);
+    } else {
+      m_driveSim.setCurrentGearing(1. / Constants.LOW_GEAR_RATIO);
+    }
+
+    int leftInversion = m_leftDrive.getInverted() ? -1 : 1;
+    int rightInversion = m_rightDrive.getInverted() ? -1 : 1;
+
+    m_driveSim.setInputs(
+      m_leftDrive.getSimCollection().getMotorOutputLeadVoltage() * leftInversion, 
+      m_rightDrive.getSimCollection().getMotorOutputLeadVoltage() * rightInversion
+    );
+
+    m_driveSim.update(0.02);
+
+    m_leftEncoder.getSimCollection().setRawPosition((int)m_leftTransmission.convertOutputPositionToSensor(Units.metersToFeet(m_driveSim.getLeftPositionMeters()) * leftInversion));
+    m_rightEncoder.getSimCollection().setRawPosition((int)m_rightTransmission.convertOutputPositionToSensor(Units.metersToFeet(m_driveSim.getRightPositionMeters()) * rightInversion));
+    m_leftEncoder.getSimCollection().setVelocity(Math.max(-32767, Math.min(32767, (int)m_leftTransmission.convertOutputVelocityToSensor(Units.metersToFeet(m_driveSim.getLeftVelocityMetersPerSecond()) * leftInversion))));
+    m_rightEncoder.getSimCollection().setVelocity(Math.max(-32767, Math.min(32767, (int)m_rightTransmission.convertOutputVelocityToSensor(Units.metersToFeet(m_driveSim.getRightVelocityMetersPerSecond()) * rightInversion))));
+
+    m_gyroSim.set(m_driveSim.getHeading().getDegrees());
   }
 }
