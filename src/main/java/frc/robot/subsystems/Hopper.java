@@ -14,6 +14,7 @@ import frc.robot.Constants;
 public class Hopper extends SubsystemBase {
   private TalonFX centralizerMotor, chamberMotor;
   private DigitalInput centralizer, chamber;
+
   /** Creates a new Hopper. */
   public Hopper() {
     centralizerMotor = new TalonFX(Constants.HOPPER_CENTRALIZER_MOTOR_ID);
@@ -32,19 +33,27 @@ public class Hopper extends SubsystemBase {
 
   public void runCentralizer() {
     centralizerMotor.set(ControlMode.PercentOutput, Constants.HOPPER_CENTRALIZER_SPEED);
-    }
+  }
+
+  public void reverseCentralizer() {
+    centralizerMotor.set(ControlMode.PercentOutput, -Constants.HOPPER_CENTRALIZER_SPEED);
+  }
 
   public void stopCentralizer() {
-      centralizerMotor.set(ControlMode.PercentOutput, 0);
+    centralizerMotor.set(ControlMode.PercentOutput, 0);
   }
 
   public void runChamber() {
-    centralizerMotor.set(ControlMode.PercentOutput, Constants.HOPPER_CHAMBER_SPEED);
-    }
+    chamberMotor.set(ControlMode.PercentOutput, Constants.HOPPER_CHAMBER_SPEED);
+  }
+
+  public void reverseChamber() {
+    chamberMotor.set(ControlMode.PercentOutput, -Constants.HOPPER_CHAMBER_SPEED);
+  }
 
   public void stopChamber() {
-    centralizerMotor.set(ControlMode.PercentOutput, 0);
-    }
+    chamberMotor.set(ControlMode.PercentOutput, 0);
+  }
 
   @Override
   public void periodic() {
