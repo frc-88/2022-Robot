@@ -17,14 +17,13 @@ public class Turret extends SubsystemBase {
   private TalonFX m_turret;
   private CANCoder m_encoder;
 
-
   /** Creates a new Turret. */
   public Turret() {
     m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
     m_encoder = new CANCoder(Constants.TURRET_ENCODER_ID);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
-    config.primaryPID.selectedFeedbackSensor = FeedbackDevice.RemoteSensor0;
+    config.primaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
     config.nominalOutputForward = 0;
@@ -36,6 +35,8 @@ public class Turret extends SubsystemBase {
     // config.slot0.kF = 1.00000;
 
     m_turret.configAllSettings(config);
+
+    // TODO = use CANcoder to initialize TalonFX integrated sensor position
 }
 
   public void rawMotor(double percentOutput) {
