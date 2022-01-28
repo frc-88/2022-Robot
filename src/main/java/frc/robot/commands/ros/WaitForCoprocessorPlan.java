@@ -2,18 +2,19 @@ package frc.robot.commands.ros;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.util.tunnel.ROSInterface;
-import frc.robot.util.tunnel.ChassisInterface;
+import frc.robot.subsystems.Drive;
 import frc.robot.util.tunnel.TunnelServer;
 
 public class WaitForCoprocessorPlan extends CommandBase {
-    private final ChassisInterface chassis;
+    private final Drive drive;
     private final ROSInterface tunnel_interface;
     private boolean is_finished = false;
     
-    public WaitForCoprocessorPlan(ChassisInterface chassis, ROSInterface tunnel_interface)
+    public WaitForCoprocessorPlan(Drive drive, ROSInterface tunnel_interface)
     {
-        this.chassis = chassis;
+        this.drive = drive;
         this.tunnel_interface = tunnel_interface;
+        addRequirements(drive);
     }
 
     @Override
@@ -24,7 +25,7 @@ public class WaitForCoprocessorPlan extends CommandBase {
     @Override
     public void execute() {
         if (TunnelServer.anyClientsAlive() && tunnel_interface.isCommandActive()) {
-            chassis.drive(tunnel_interface.getCommand());
+            drive.drive(tunnel_interface.getCommand());
         }
         
         switch (tunnel_interface.getGoalStatus()) {
@@ -70,6 +71,6 @@ public class WaitForCoprocessorPlan extends CommandBase {
             System.out.println("WaitForCoprocessorPlan was interrupted. Cancelling goal.");
             cancelGoal();
         }
-        chassis.stop();
+        drive.stop();
     }
 }
