@@ -1,4 +1,4 @@
-package frc.robot.util.roswaypoints.commands;
+package frc.robot.commands.ros;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.util.tunnel.ROSInterface;
