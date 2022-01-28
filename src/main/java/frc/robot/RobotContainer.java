@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.TJController;
 import frc.robot.util.drive.DriveUtils;
@@ -27,6 +28,8 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Feeder m_centralizer = new Feeder(Constants.HOPPER_CENTRALIZER_MOTOR_ID, Constants.HOPPER_CENTRALIZER_BEAMBREAK, Constants.HOPPER_CENTRALIZER_SPEED);
+  private final Feeder m_chamber = new Feeder(Constants.HOPPER_CHAMBER_MOTOR_ID, Constants.HOPPER_CHAMBER_BEAMBREAK, Constants.HOPPER_CHAMBER_SPEED);
 
   private CommandBase m_teleopDrive;
   private final CommandBase m_autoCommand = new WaitCommand(15.0);

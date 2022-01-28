@@ -2,25 +2,24 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands.hopper;
+package frc.robot.commands.feeder;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Feeder;
 
-public class CentralizerAcceptCargo extends CommandBase {
-  private Hopper m_hopper;
+public class AcceptCargo extends CommandBase {
+  private Feeder m_feeder;
   /** Creates a new CentralizerAcceptCargo. */
-  public CentralizerAcceptCargo(Hopper hopper) {
-    m_hopper = hopper;
-    addRequirements(m_hopper);
+  public AcceptCargo(Feeder feeder) {
+    m_feeder = feeder;
+    addRequirements(m_feeder);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_hopper.stopChamber();
-    m_hopper.runCentralizer();
+    m_feeder.run();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -31,12 +30,12 @@ public class CentralizerAcceptCargo extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_hopper.stopCentralizer();
+    m_feeder.stop();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_hopper.isCargoInCentralizer();
+    return m_feeder.hasCargo();
   }
 }
