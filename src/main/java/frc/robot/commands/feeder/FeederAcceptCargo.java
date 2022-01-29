@@ -9,11 +9,10 @@ import frc.robot.subsystems.Feeder;
 
 public class FeederAcceptCargo extends CommandBase {
   private Feeder m_feeder;
-  /** Creates a new CentralizerAcceptCargo. */
+
   public FeederAcceptCargo(Feeder feeder) {
     m_feeder = feeder;
     addRequirements(m_feeder);
-    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
