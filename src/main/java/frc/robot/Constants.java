@@ -78,6 +78,7 @@ public final class Constants {
     public static final double HOPPER_CHAMBER_SPEED = 0.5;
 
 	// Sensors
+	// Pressure Sensor
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -85,7 +86,9 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
-    public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
-    public static final double BLUE_CARGO_RED_THRESHOLD = 0;
-    public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
+	// Color Sensor
+	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
+    public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
 }
