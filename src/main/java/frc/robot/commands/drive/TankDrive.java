@@ -36,7 +36,8 @@ public class TankDrive extends CommandBase {
   @Override
   public void execute() {
     drive.shiftToHigh();
-    drive.basicDriveLimited(leftVelocity.getAsDouble(), rightVelocity.getAsDouble());
+    drive.updateCurrentGear();
+    drive.basicDrive(leftVelocity.getAsDouble(), rightVelocity.getAsDouble());
   }
 
   // Called once the command ends or is interrupted.

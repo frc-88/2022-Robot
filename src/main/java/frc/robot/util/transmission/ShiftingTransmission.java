@@ -95,7 +95,7 @@ public class ShiftingTransmission extends Transmission {
      * Get the conversion factor from the output to the input while in low
      * gear.
      */
-    protected double getLowInputToOutputRatio() {
+    public double getLowInputToOutputRatio() {
         return m_lowInputToOutputRatio;
     }
 
@@ -103,7 +103,7 @@ public class ShiftingTransmission extends Transmission {
      * Get the conversion factor from the output to the input while in high
      * gear.
      */
-    protected double getHighInputToOutputRatio() {
+    public double getHighInputToOutputRatio() {
         return m_highInputToOutputRatio;
     }
 

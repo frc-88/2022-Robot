@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import frc.robot.util.drive.Shifter;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -35,14 +36,6 @@ public final class Constants {
 	public static final int RIGHT_FOLLOWER_DRIVE_ID = 14;
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
 	public static final int RIGHT_DRIVE_ENCODER_ID = 15;
-	public static final PneumaticsModuleType SHIFTER_LEFT_PCM_TYPE = PneumaticsModuleType.REVPH;
-	public static final int SHIFTER_LEFT_PCM = 1;
-	public static final int SHIFTER_LEFT_OUT = 2;
-	public static final int SHIFTER_LEFT_IN = 5;
-	public static final PneumaticsModuleType SHIFTER_RIGHT_PCM_TYPE = PneumaticsModuleType.REVPH;
-	public static final int SHIFTER_RIGHT_PCM = 1;
-	public static final int SHIFTER_RIGHT_OUT = 1;
-	public static final int SHIFTER_RIGHT_IN = 6;
 
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
@@ -66,6 +59,9 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 20, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 21, 120, 240, 150, 210);
+
 	public static final int DRIVE_SPEED_EXP = 2;
 	public static final int DRIVE_TURN_EXP = 2;
 	public static final double DRIVE_JOYSTICK_DEADBAND = 0.12;
@@ -77,4 +73,11 @@ public final class Constants {
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
+	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
+	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
+	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
+	public final static double WORKING_PRESSURE_WARNING = 50;
+	public final static double LEAK_WARNING = 0.01;
+	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
+	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
 }

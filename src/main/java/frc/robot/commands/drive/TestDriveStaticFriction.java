@@ -39,6 +39,7 @@ public class TestDriveStaticFriction extends CommandBase {
     } else {
       drive.shiftToLow();
     }
+    drive.updateCurrentGear();
     drive.basicDrive(SmartDashboard.getNumber("SetLeftSpeed", 0) / 12.,
         SmartDashboard.getNumber("SetRightSpeed", 0) / 12.);
   }
