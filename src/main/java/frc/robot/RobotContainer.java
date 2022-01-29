@@ -10,6 +10,7 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
@@ -76,13 +77,13 @@ public class RobotContainer {
   private void configureDashboardCommands() {
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
-    SmartDashboard.putData("Centralizer:Run", new FeederRun(m_centralizer));
-    SmartDashboard.putData("Centralizer:Reverse", new FeederReverse(m_centralizer));
-    SmartDashboard.putData("Centralizer:Stop", new FeederStop(m_centralizer));
+    SmartDashboard.putData("Centralizer:Run", new InstantCommand(m_centralizer::run, m_centralizer));
+    SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
+    SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
-    SmartDashboard.putData("Chamber:Run", new FeederRun(m_chamber));
-    SmartDashboard.putData("Chamber:Reverse", new FeederReverse(m_chamber));
-    SmartDashboard.putData("Chamber:Stop", new FeederStop(m_chamber));
+    SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
+    SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
+    SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
     
     // Trajectory testing commands
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
