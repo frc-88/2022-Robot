@@ -13,6 +13,10 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
+import frc.robot.commands.feeder.AcceptCargo;
+import frc.robot.commands.feeder.Reverse;
+import frc.robot.commands.feeder.Run;
+import frc.robot.commands.feeder.Stop;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Sensors;
@@ -70,6 +74,17 @@ public class RobotContainer {
   }
 
   private void configureDashboardCommands() {
+    // Centralizer and Chamber commmands
+    SmartDashboard.putData("Centralizer:AcceptCargo", new AcceptCargo(m_centralizer));
+    SmartDashboard.putData("Centralizer:Run", new Run(m_centralizer));
+    SmartDashboard.putData("Centralizer:Reverse", new Reverse(m_centralizer));
+    SmartDashboard.putData("Centralizer:Stop", new Stop(m_centralizer));
+    SmartDashboard.putData("Chamber:AcceptCargo", new AcceptCargo(m_chamber));
+    SmartDashboard.putData("Chamber:Run", new Run(m_chamber));
+    SmartDashboard.putData("Chamber:Reverse", new Reverse(m_chamber));
+    SmartDashboard.putData("Chamber:Stop", new Stop(m_chamber));
+    
+    // Trajectory testing commands
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
     SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
     SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
