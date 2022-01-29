@@ -7,10 +7,10 @@ package frc.robot.commands.feeder;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Feeder;
 
-public class AcceptCargo extends CommandBase {
+public class FeederAcceptCargo extends CommandBase {
   private Feeder m_feeder;
   /** Creates a new CentralizerAcceptCargo. */
-  public AcceptCargo(Feeder feeder) {
+  public FeederAcceptCargo(Feeder feeder) {
     m_feeder = feeder;
     addRequirements(m_feeder);
     // Use addRequirements() here to declare subsystem dependencies.

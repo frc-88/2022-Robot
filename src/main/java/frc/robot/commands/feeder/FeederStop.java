@@ -10,10 +10,10 @@ import frc.robot.subsystems.Feeder;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class Reverse extends InstantCommand {
+public class FeederStop extends InstantCommand {
   private Feeder m_feeder;
   /** Creates a new CentralizerAcceptCargo. */
-  public Reverse(Feeder feeder) {
+  public FeederStop(Feeder feeder) {
     m_feeder = feeder;
     addRequirements(m_feeder);
     // Use addRequirements() here to declare subsystem dependencies.
