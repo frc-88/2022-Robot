@@ -56,12 +56,12 @@ public class AutoFollowTrajectory extends CommandBase {
         break;
       case 1: // Check to make sure things are near zero
         if ((Math.abs(m_drive.getLeftPosition()) < 0.2) && (Math.abs(m_drive.getRightPosition()) < 0.2)
-            && (Math.abs(m_sensors.getYaw()) < 2.0)) {
+            && (Math.abs(m_sensors.navx.getYaw()) < 2.0)) {
           m_state++;
         }
         break;
       case 2: // Reset the odometry to the starting pose of the Trajectory
-        m_drive.resetOdometry(m_trajectory.getInitialPose(), Rotation2d.fromDegrees(m_sensors.getYaw()));
+        m_drive.resetOdometry(m_trajectory.getInitialPose(), Rotation2d.fromDegrees(m_sensors.navx.getYaw()));
         m_state++;
         break;
       case 3: // reset the timer and go!

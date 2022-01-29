@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.util.drive.Shifter;
 
@@ -71,8 +70,6 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Sensors
-	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
-
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -80,4 +77,7 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
+    public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
+    public static final double BLUE_CARGO_RED_THRESHOLD = 0;
+    public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
 }
