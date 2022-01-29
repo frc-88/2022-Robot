@@ -8,25 +8,26 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.util.drive.Shifter;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
- * globally (i.e. public static). Do not put anything functional in this class.
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean constants. This class should not be used for any other 
+ * purpose. All constants should be declared globally (i.e. public static). 
+ * Do not put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
 
-    /********************************************************************
-    * 
+	/********************************************************************
+	* 
     *                ____       _          
     *       --------/ __ \_____(_)   _____ 
     *      --------/ / / / ___/ / | / / _ \
     *     --------/ /_/ / /  / /| |/ /  __/
     *    --------/_____/_/  /_/ |___/\___/ 
-    * 
+	* 
 	*/
-	
+
 	// Drive CAN IDs
 	public static final int LEFT_MASTER_DRIVE_ID = 0;
 	public static final int LEFT_FOLLOWER_DRIVE_ID = 1;
@@ -40,9 +41,9 @@ public final class Constants {
 	public static final double WHEEL_DIAMETER = 5.84375;
 	public static final double LOW_GEAR_RATIO = (1. / 18.38);
 	public static final double HIGH_GEAR_RATIO = (1. / 8.50);
-	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER/12.) * Math.PI;
-	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER/12.) * Math.PI;
-	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER/12.) * Math.PI)) * 7.5;
+	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
+	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
+	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 7.5;
 	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
 	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
 	public static final double DRIVE_LEFT_LOW_EFFICIENCY = 1.025;
@@ -51,8 +52,11 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 16.5;
-	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
+	public static final double WHEEL_BASE_WIDTH = (25. + 5. / 16.) / 12.; // feet
+	public static final double MAX_TRAJ_VELOCITY = 16.0;
+	public static final double MAX_TRAJ_ACCELERATION = 8.0;
+	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
 	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 20, 120, 240, 150, 210);
 	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 21, 120, 240, 150, 210);

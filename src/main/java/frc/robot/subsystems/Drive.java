@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
-import frc.robot.util.WrappingPIDController;
 import frc.robot.util.drive.DriveConfiguration;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
@@ -50,9 +49,9 @@ public class Drive extends SubsystemBase {
 
   private final TJDriveModule m_leftDrive, m_rightDrive;
   private final WPI_CANCoder m_leftEncoder, m_rightEncoder;
+
   private final ShiftingTransmission m_leftTransmission, m_rightTransmission;
   private final SyncPIDController m_leftVelPID, m_rightVelPID;
-  private final WrappingPIDController m_headingPID;
   private final DriveConfiguration m_driveConfiguration;
   private final Shifter m_leftShifter, m_rightShifter;
 
@@ -66,13 +65,10 @@ public class Drive extends SubsystemBase {
   private Pose2d m_pose;
 
   private PIDPreferenceConstants velPIDConstants;
-  private PIDPreferenceConstants headingPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
   private DoublePreferenceConstant upshiftSpeed;
   private DoublePreferenceConstant commandDownshiftSpeed;
   private DoublePreferenceConstant commandDownshiftCommandValue;
-
-  private boolean isOnLimelightTarget = false;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -93,7 +89,6 @@ public class Drive extends SubsystemBase {
     m_driveConfiguration = new DriveConfiguration();
 
     velPIDConstants = new PIDPreferenceConstants("Drive Vel", 1.0, 0.02, 0, 0, 2, 2, 0);
-    headingPIDConstants = new PIDPreferenceConstants("Heading", .01, .0005, 0, 0, 3, 1, 0.25);
     downshiftSpeed = new DoublePreferenceConstant("Downshift Speed", 4.5);
     upshiftSpeed = new DoublePreferenceConstant("UpshiftSpeed", 6);
     commandDownshiftSpeed = new DoublePreferenceConstant("Command Downshift Speed", 5);
@@ -127,8 +122,6 @@ public class Drive extends SubsystemBase {
 
     m_leftShifter = new Shifter(Constants.LEFT_SHIFTER_CONSTANTS, m_leftDrive);
     m_rightShifter = new Shifter(Constants.RIGHT_SHIFTER_CONSTANTS, m_rightDrive);
-
-    m_headingPID = new WrappingPIDController(180, -180, headingPIDConstants);
 
     m_driveSim = new DifferentialDrivetrainSim(
       DCMotor.getFalcon500(2),
@@ -214,15 +207,6 @@ public class Drive extends SubsystemBase {
 
     // Apply values
     basicDriveLimited(leftSpeed, rightSpeed);
-  }
-
-  public void turnToHeading(double heading) {
-    double turnRate = m_headingPID.calculateOutput(m_sensors.navx.getYaw(), heading);
-    basicDrive(turnRate, -turnRate);
-  }
-
-  public void resetHeadingPID() {
-    m_headingPID.reset();
   }
 
   public void updateCurrentGear() {
@@ -311,14 +295,6 @@ public class Drive extends SubsystemBase {
 
   public void setMaxSpeed(double maxSpeed) {
     m_maxSpeed = maxSpeed;
-  }
-
-  public void setOnLimelightTarget(boolean onLimelightTarget) {
-    this.isOnLimelightTarget = onLimelightTarget;
-  }
-
-  public boolean isOnLimelightTarget() {
-    return this.isOnLimelightTarget;
   }
 
   public Pose2d getCurrentPose() {
@@ -419,7 +395,6 @@ public class Drive extends SubsystemBase {
     SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
     SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
     SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
-    SmartDashboard.putBoolean("LimelightHeadingOnTarget", isOnLimelightTarget);
 
     SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
     SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));
