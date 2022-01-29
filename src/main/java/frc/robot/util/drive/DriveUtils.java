@@ -39,4 +39,8 @@ public class DriveUtils{
         return () -> cheesyTurn(speed.getAsDouble(), turnRate.getAsDouble(), minTurn, maxTurn);
     }
 
+    public static double mod(double base, int modulus) {
+        return (base < 0) ? (modulus - (Math.abs(base) % modulus)) % modulus : base % modulus;
+    }
+
 }

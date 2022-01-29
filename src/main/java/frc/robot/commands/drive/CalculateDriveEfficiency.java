@@ -67,10 +67,12 @@ public class CalculateDriveEfficiency extends CommandBase {
     double gearRatio;
     if (SmartDashboard.getBoolean("SetInHigh", false)) {
       drive.shiftToHigh();
+      drive.updateCurrentGear();
       staticFrictionVoltage = Constants.DRIVE_HIGH_STATIC_FRICTION_VOLTAGE;
       gearRatio = Constants.HIGH_DRIVE_RATIO;
     } else {
       drive.shiftToLow();
+      drive.updateCurrentGear();
       staticFrictionVoltage = Constants.DRIVE_LOW_STATIC_FRICTION_VOLTAGE;
       gearRatio = Constants.LOW_DRIVE_RATIO;
     }
