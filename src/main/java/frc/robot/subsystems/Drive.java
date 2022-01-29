@@ -209,6 +209,21 @@ public class Drive extends SubsystemBase {
     basicDriveLimited(leftSpeed, rightSpeed);
   }
 
+  public void updateCurrentGear() {
+    Gear leftGear = getLeftGear();
+    Gear rightGear = getRightGear();
+    if (leftGear == Gear.LOW) {
+      m_leftTransmission.shiftToLow();
+    } else if (leftGear == Gear.HIGH) {
+      m_leftTransmission.shiftToHigh();
+    }
+    if (rightGear == Gear.LOW) {
+      m_rightTransmission.shiftToLow();
+    } else if (rightGear == Gear.HIGH) {
+      m_rightTransmission.shiftToHigh();
+    }
+  }
+
   public boolean autoshift(double commandedValue) {
     double currentSpeed = getStraightSpeed();
     boolean inHighGear = getLeftGear() == Gear.HIGH;
