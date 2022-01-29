@@ -47,6 +47,7 @@ public class ArcadeDrive extends CommandBase {
     } else {
       drive.shiftToLow();
     }
+    drive.updateCurrentGear();
     drive.arcadeDrive(speed.getAsDouble(), turn.getAsDouble());
   }
 

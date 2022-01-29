@@ -7,13 +7,13 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.ColorSensorV3;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.util.NavX;
+import frc.robot.util.sensors.Limelight;
+import frc.robot.util.sensors.NavX;
+import frc.robot.util.sensors.REVColorSensor;
+import frc.robot.util.sensors.TJPneumaticHub;
 
 /**
  * we gather data
@@ -22,44 +22,32 @@ import frc.robot.util.NavX;
  */
 
 public class Sensors extends SubsystemBase {
-  private final NavX m_navx = new NavX();
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
-
-  private double m_yawOffset = 0.0;
+  public final NavX navx = new NavX();
+  public final Limelight limelight = new Limelight();
+  public final REVColorSensor colorSensor = new REVColorSensor();
+  public final TJPneumaticHub pneumaticHub = new TJPneumaticHub();
 
   /**
    * Creates a new Sensors subsystem
    */
   public Sensors() {
+    // start driver camera feed
+    CameraServer.startAutomaticCapture();
   }
 
-  public void zeroYaw() {
-    m_yawOffset = m_navx.getYaw();
+  public boolean amIBlueAlliance() {
+    return DriverStation.getAlliance() == DriverStation.Alliance.Blue;
   }
-
-  public double getYaw() {
-    return m_navx.getYaw() - m_yawOffset;
-  }
-
-  public double getYawRate() {
-    return m_navx.getYawRate();
-  } 
 
   @Override
   public void periodic() {
-    // NavX data
-    SmartDashboard.putNumber("NavX Yaw", getYaw());
-    SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
-    SmartDashboard.putNumber("NavX Pitch", m_navx.getPitch());
-    SmartDashboard.putNumber("NavX Roll", m_navx.getRoll());
+    if (DriverStation.isDisabled()) {
+      limelight.ledOff();
+    }
 
-    // Color Sensor data
-    Color detectedColor = m_colorSensor.getColor();
-    double IR = m_colorSensor.getIR();
+    navx.periodic();
+    colorSensor.periodic();
+    pneumaticHub.periodic();
 
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("IR", IR);
   }
 }
