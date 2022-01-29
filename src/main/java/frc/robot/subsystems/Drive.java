@@ -7,7 +7,9 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.sensors.MagnetFieldStrength;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -33,7 +35,9 @@ import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.WrappingPIDController;
 import frc.robot.util.drive.DriveConfiguration;
+import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
+import frc.robot.util.drive.Shifter.Gear;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
@@ -46,11 +50,11 @@ public class Drive extends SubsystemBase {
 
   private final TJDriveModule m_leftDrive, m_rightDrive;
   private final WPI_CANCoder m_leftEncoder, m_rightEncoder;
-  private ShiftingTransmission m_leftTransmission, m_rightTransmission;
-  private SyncPIDController m_leftVelPID, m_rightVelPID;
-  private WrappingPIDController m_headingPID;
-  private DriveConfiguration m_driveConfiguration;
-  private DoubleSolenoid m_leftShifter, m_rightShifter;
+  private final ShiftingTransmission m_leftTransmission, m_rightTransmission;
+  private final SyncPIDController m_leftVelPID, m_rightVelPID;
+  private final WrappingPIDController m_headingPID;
+  private final DriveConfiguration m_driveConfiguration;
+  private final Shifter m_leftShifter, m_rightShifter;
 
   private double m_currentLimit = Constants.DRIVE_CURRENT_LIMIT;
   private double m_leftCommandedSpeed = 0;
@@ -121,10 +125,8 @@ public class Drive extends SubsystemBase {
     m_leftDrive.configRemoteFeedbackFilter(m_leftEncoder, 0);
     m_rightDrive.configRemoteFeedbackFilter(m_rightEncoder, 0);
 
-    m_leftShifter = new DoubleSolenoid(Constants.SHIFTER_LEFT_PCM, Constants.SHIFTER_LEFT_PCM_TYPE, Constants.SHIFTER_LEFT_OUT,
-        Constants.SHIFTER_LEFT_IN);
-    m_rightShifter = new DoubleSolenoid(Constants.SHIFTER_RIGHT_PCM, Constants.SHIFTER_RIGHT_PCM_TYPE, Constants.SHIFTER_RIGHT_OUT,
-        Constants.SHIFTER_RIGHT_IN);
+    m_leftShifter = new Shifter(Constants.LEFT_SHIFTER_CONSTANTS, m_leftDrive);
+    m_rightShifter = new Shifter(Constants.RIGHT_SHIFTER_CONSTANTS, m_rightDrive);
 
     m_headingPID = new WrappingPIDController(180, -180, headingPIDConstants);
 
@@ -223,39 +225,53 @@ public class Drive extends SubsystemBase {
     m_headingPID.reset();
   }
 
+  public void updateCurrentGear() {
+    Gear leftGear = getLeftGear();
+    Gear rightGear = getRightGear();
+    if (leftGear == Gear.LOW) {
+      m_leftTransmission.shiftToLow();
+    } else if (leftGear == Gear.HIGH) {
+      m_leftTransmission.shiftToHigh();
+    }
+    if (rightGear == Gear.LOW) {
+      m_rightTransmission.shiftToLow();
+    } else if (rightGear == Gear.HIGH) {
+      m_rightTransmission.shiftToHigh();
+    }
+  }
+
   public boolean autoshift(double commandedValue) {
     double currentSpeed = getStraightSpeed();
-    if (isInHighGear() && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
+    boolean inHighGear = getLeftGear() == Gear.HIGH;
+    if (inHighGear && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
       return false;
-    } else if (!isInHighGear() && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
+    } else if (!inHighGear && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
       return true;
-    } else if (isInHighGear() && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
+    } else if (inHighGear && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
         && (Math.signum(commandedValue) != Math.signum(currentSpeed)
         || Math.abs(commandedValue) <= commandDownshiftCommandValue.getValue())) {
       return false;
     } else {
-      return isInHighGear();
+      return inHighGear;
     }
   }
 
   public void shiftToLow() {
-    m_leftShifter.set(Value.kForward);
-    m_rightShifter.set(Value.kForward);
-
-    m_leftTransmission.shiftToLow();
-    m_rightTransmission.shiftToLow();
+    m_leftShifter.shiftToLow();
+    m_rightShifter.shiftToLow();
   }
 
   public void shiftToHigh() {
-    m_leftShifter.set(Value.kReverse);
-    m_rightShifter.set(Value.kReverse);
-
-    m_leftTransmission.shiftToHigh();
-    m_rightTransmission.shiftToHigh();
+    m_leftShifter.shiftToHigh();
+    m_rightShifter.shiftToHigh();
   }
 
-  public boolean isInHighGear() {
-    return m_leftTransmission.isInHighGear();
+  public Gear getLeftGear() {
+    return m_leftShifter.getGear();
+  }
+
+  public Gear getRightGear() {
+    return m_rightShifter.getGear();
   }
 
   public void resetEncoderPositions() {
@@ -402,7 +418,6 @@ public class Drive extends SubsystemBase {
     SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
     SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
     SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
-    SmartDashboard.putBoolean("In High Gear?", isInHighGear());
     SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
     SmartDashboard.putBoolean("LimelightHeadingOnTarget", isOnLimelightTarget);
 
