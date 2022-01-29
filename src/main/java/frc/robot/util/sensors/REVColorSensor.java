@@ -21,7 +21,7 @@ public class REVColorSensor {
     }
 
     public REVColorSensor(Port port) {
-        m_colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+        m_colorSensor = new ColorSensorV3(port);
     }
 
     public boolean isCargoOurs(){
