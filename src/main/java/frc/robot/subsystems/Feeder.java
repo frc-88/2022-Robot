@@ -13,18 +13,17 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Feeder extends SubsystemBase {
   private TalonFX feederMotor;
-  private DigitalInput feeder;
+  private DigitalInput feederBeambreak;
   private double feederMotorSpeed;
 
-  /** Creates a new Feeder. */
   public Feeder(int feederMotorId, int feederSensorId, double feederMotorSpeed) {
     feederMotor = new TalonFX(feederMotorId);
-    feeder = new DigitalInput(feederSensorId);
+    feederBeambreak = new DigitalInput(feederSensorId);
     this.feederMotorSpeed = feederMotorSpeed;
   }
 
   public boolean hasCargo() {
-    return feeder.get();
+    return feederBeambreak.get();
   }
 
   public void run() {
@@ -41,7 +40,6 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    SmartDashboard.putBoolean("Centralizer Cargo?", hasCargo());
+    SmartDashboard.putBoolean("Feeder:" + feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
   }
 }
