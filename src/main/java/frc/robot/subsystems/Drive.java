@@ -52,7 +52,6 @@ public class Drive extends SubsystemBase {
 
   private final ShiftingTransmission m_leftTransmission, m_rightTransmission;
   private final SyncPIDController m_leftVelPID, m_rightVelPID;
-  private final WrappingPIDController m_headingPID;
   private final DriveConfiguration m_driveConfiguration;
   private final Shifter m_leftShifter, m_rightShifter;
 
