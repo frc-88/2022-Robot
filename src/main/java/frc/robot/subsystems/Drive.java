@@ -240,19 +240,18 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  public boolean autoshift(double commandedValue) {
-    double currentSpeed = getStraightSpeed();
-    boolean inHighGear = getLeftGear() == Gear.HIGH;
-    if (inHighGear && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
-      return false;
-    } else if (!inHighGear && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
-      return true;
-    } else if (inHighGear && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
-        && (Math.signum(commandedValue) != Math.signum(currentSpeed)
-        || Math.abs(commandedValue) <= commandDownshiftCommandValue.getValue())) {
-      return false;
-    } else {
-      return inHighGear;
+  public void autoshift(double commandedValue) {
+    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter.getCommandedGear(), getLeftSpeed());
+    autoshiftSide(commandedValue, getRightGear(), m_rightShifter.getCommandedGear(), getRightSpeed());
+  }
+
+  public void autoshiftSide(double commandValue, Gear currentGear, Gear currentCommandedGear, double currentSpeed) {
+    if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
+      shiftToLow();
+    } else if (currentGear == Gear.LOW && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
+      shiftToHigh();
+    } else if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()) {
+      shiftToLow();
     }
   }
 
