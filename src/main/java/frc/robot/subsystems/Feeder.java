@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,6 +25,9 @@ public class Feeder extends SubsystemBase {
     feederMotor = new TalonFX(feederMotorId);
     feederBeambreak = new DigitalInput(feederSensorId);
     this.feederMotorSpeed = feederMotorSpeed;
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    feederMotor.configAllSettings(config);
   }
 
   public boolean hasCargo() {
