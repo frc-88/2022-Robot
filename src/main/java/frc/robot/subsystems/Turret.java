@@ -107,7 +107,8 @@ public class Turret extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Turret:CANCoder", m_encoder.getAbsolutePosition());
+    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_encoder.getAbsolutePosition());
+    SmartDashboard.putNumber("Turret:CANCoder Position", m_encoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
   }
 }
