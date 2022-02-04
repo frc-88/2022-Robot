@@ -24,7 +24,7 @@ public class LongPreferenceConstant extends BasePreferenceConstant<Long> {
     public LongPreferenceConstant(String name, long defaultValue) {
         this.name = Objects.requireNonNull(name);
         this.defaultValue = Objects.requireNonNull(defaultValue);
-        if (!Preferences.getInstance().containsKey(name)) {
+        if (!Preferences.containsKey(name)) {
             this.setValue(defaultValue);
         } else {
             update();
@@ -33,12 +33,12 @@ public class LongPreferenceConstant extends BasePreferenceConstant<Long> {
 
     @Override
     protected Long getFromPreferences() {
-        return Preferences.getInstance().getLong(name, defaultValue);
+        return Preferences.getLong(name, defaultValue);
     }
 
     @Override
     protected void setInPreferences(Long value) {
-        Preferences.getInstance().putLong(name, value);
+        Preferences.setLong(name, value);
     }
 
 }
