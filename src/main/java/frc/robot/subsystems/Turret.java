@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.CANCoderConfiguration;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -18,7 +19,9 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 public class Turret extends SubsystemBase {
   private TalonFX m_turret;
   private CANCoder m_encoder;
-  private DoublePreferenceConstant m_turretZeroPositionPref = new DoublePreferenceConstant("Turret Zero", 0.0);
+  private DoublePreferenceConstant m_turretZeroPositionPref = new DoublePreferenceConstant("Turret Zero",  Constants.TURRET_DEFAULT_ZERO);
+  private DoublePreferenceConstant m_turretForwardLimitPref = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_DEFAULT_FWD_LIMIT);
+  private DoublePreferenceConstant m_turretReverseLimitPref = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_DEFAULT_REV_LIMIT);
   private boolean m_tracking = false;
 
   /** Creates a new Turret. */
@@ -29,6 +32,10 @@ public class Turret extends SubsystemBase {
     // TODO - better config, cancoder config?
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
+    config.forwardSoftLimitThreshold = m_turretForwardLimitPref.getValue();
+    config.forwardSoftLimitEnable = true;
+    config.reverseSoftLimitThreshold = m_turretReverseLimitPref.getValue();
+    config.reverseSoftLimitEnable = true;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
     config.nominalOutputForward = 0;
@@ -38,8 +45,10 @@ public class Turret extends SubsystemBase {
     // config.slot0.kI = 0.00000;
     // config.slot0.kD = 0.00000;
     // config.slot0.kF = 1.00000;
-
     m_turret.configAllSettings(config);
+
+    CANCoderConfiguration encConfig = new CANCoderConfiguration();
+    m_encoder.configAllSettings(encConfig);
 
     // initialize internal sensor to correct absolute position when we wake up
     m_turret.setSelectedSensorPosition(encoderPostionToTurretFacing(m_encoder.getAbsolutePosition()));
