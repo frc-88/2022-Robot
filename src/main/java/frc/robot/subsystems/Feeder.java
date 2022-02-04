@@ -11,12 +11,14 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.CargoSource;
+import frc.robot.util.CargoTarget;
 
 /*
  * TODO: haiku
  */
 
-public class Feeder extends SubsystemBase {
+public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
   private double m_feederMotorSpeed;
@@ -30,10 +32,6 @@ public class Feeder extends SubsystemBase {
     m_feederMotor.configAllSettings(config);
   }
 
-  public boolean hasCargo() {
-    return m_feederBeambreak.get();
-  }
-
   public void run() {
     m_feederMotor.set(ControlMode.PercentOutput, m_feederMotorSpeed);
   }
@@ -44,6 +42,16 @@ public class Feeder extends SubsystemBase {
 
   public void stop() {
     m_feederMotor.set(ControlMode.PercentOutput, 0);
+  }
+
+  @Override
+  public boolean hasCargo() {
+    return m_feederBeambreak.get();
+  }
+
+  @Override
+  public boolean wantsCargo() {
+    return !hasCargo();
   }
 
   @Override
