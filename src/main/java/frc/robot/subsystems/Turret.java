@@ -4,8 +4,8 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
@@ -22,30 +22,34 @@ public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
   private CANCoder m_encoder = new CANCoder(Constants.TURRET_ENCODER_ID);
   // Preferences
-  private DoublePreferenceConstant m_turretZeroPositionPref = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_DEFAULT_ZERO);
-  private DoublePreferenceConstant m_turretForwardLimitPref = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_DEFAULT_FWD_LIMIT);
-  private DoublePreferenceConstant m_turretReverseLimitPref = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_DEFAULT_REV_LIMIT);
+  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_DEFAULT_ZERO);
+  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_DEFAULT_FWD_LIMIT);
+  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_DEFAULT_REV_LIMIT);
+  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_DEFAULT_P);
+  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_DEFAULT_I);
+  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_DEFAULT_D);
+  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_DEFAULT_F);
   // 
   private boolean m_tracking = false;
 
   /** Creates a new Turret. */
   public Turret() {
-    // TODO - better TalonFX config
+    // configure TalonFX
     TalonFXConfiguration config = new TalonFXConfiguration();
-    config.primaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
-    config.forwardSoftLimitThreshold = m_turretForwardLimitPref.getValue();
+    config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+    config.slot0.kP = p_turretP.getValue();
+    config.slot0.kI = p_turretI.getValue();
+    config.slot0.kD = p_turretD.getValue();
+    config.slot0.kF = p_turretF.getValue();
+    config.forwardSoftLimitThreshold = p_forwardLimit.getValue();
     config.forwardSoftLimitEnable = true;
-    config.reverseSoftLimitThreshold = m_turretReverseLimitPref.getValue();
+    config.reverseSoftLimitThreshold = p_reverseLimit.getValue();
     config.reverseSoftLimitEnable = true;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
     config.nominalOutputForward = 0;  // TODO - determine nominal value to overcome static friction
     config.nominalOutputReverse = 0;  // TODO - determine nominal value to overcome static friction
     config.neutralDeadband = 0.001;
-    // config.slot0.kP = 0.00000;
-    // config.slot0.kI = 0.00000;
-    // config.slot0.kD = 0.00000;
-    // config.slot0.kF = 1.00000;
     m_turret.configAllSettings(config);
 
     // configure CANCoder
@@ -64,7 +68,7 @@ public class Turret extends SubsystemBase {
 
     m_encoder.configAllSettings(encConfig);
 
-    // initialize internal sensor to correct absolute position when we wake up
+    // initialize TalonFX to correct absolute position when we wake up
     m_turret.setSelectedSensorPosition(encoderPostionToTurretFacing(m_encoder.getAbsolutePosition()));
   }
 
@@ -97,11 +101,11 @@ public class Turret extends SubsystemBase {
   }
 
   private double encoderPostionToTurretFacing(double encPosition) {
-    return (encPosition - m_turretZeroPositionPref.getValue()) * Constants.TURRET_CANCODER_CONV;
+    return (encPosition - p_zeroPosition.getValue()) * Constants.TURRET_CANCODER_CONV;
   }
 
   private double turretFacingToEncoderPostion(double turretFacing) {
-    return turretFacing / Constants.TURRET_CANCODER_CONV + m_turretZeroPositionPref.getValue();
+    return turretFacing / Constants.TURRET_CANCODER_CONV + p_zeroPosition.getValue();
   }
 
   @Override
