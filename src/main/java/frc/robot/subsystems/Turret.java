@@ -19,6 +19,7 @@ public class Turret extends SubsystemBase {
   private TalonFX m_turret;
   private CANCoder m_encoder;
   private DoublePreferenceConstant m_turretZeroPositionPref = new DoublePreferenceConstant("Turret Zero", 0.0);
+  private boolean m_tracking = false;
 
   /** Creates a new Turret. */
   public Turret() {
@@ -59,6 +60,18 @@ public class Turret extends SubsystemBase {
   public boolean isSynchronized() {
     return Math.abs(getPosition() - encoderPostionToTurretFacing(m_encoder.getAbsolutePosition())) < 
        Constants.TURRET_SYNCRONIZATION_THRESHOLD;
+  }
+
+  public void startTracking() {
+    m_tracking = true;
+  }
+
+  public void stopTracking() {
+    m_tracking = false;
+  }
+
+  public boolean isTracking() {
+    return m_tracking;
   }
 
   private double encoderPostionToTurretFacing (double encPosition) {

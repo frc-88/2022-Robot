@@ -10,9 +10,11 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
+import frc.robot.commands.turret.TurretTrack;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
@@ -72,10 +74,15 @@ public class RobotContainer {
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
     SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
     SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+
+    // Turret test commands
+    SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
+    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
   }
 
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
+    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
   }
 
   /**
