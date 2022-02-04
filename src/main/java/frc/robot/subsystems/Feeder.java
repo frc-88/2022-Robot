@@ -17,37 +17,37 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  */
 
 public class Feeder extends SubsystemBase {
-  private TalonFX feederMotor;
-  private DigitalInput feederBeambreak;
-  private double feederMotorSpeed;
+  private TalonFX m_feederMotor;
+  private DigitalInput m_feederBeambreak;
+  private double m_feederMotorSpeed;
 
   public Feeder(int feederMotorId, int feederSensorId, double feederMotorSpeed) {
-    feederMotor = new TalonFX(feederMotorId);
-    feederBeambreak = new DigitalInput(feederSensorId);
-    this.feederMotorSpeed = feederMotorSpeed;
+    m_feederMotor = new TalonFX(feederMotorId);
+    m_feederBeambreak = new DigitalInput(feederSensorId);
+    m_feederMotorSpeed = feederMotorSpeed;
 
     TalonFXConfiguration config = new TalonFXConfiguration();
-    feederMotor.configAllSettings(config);
+    m_feederMotor.configAllSettings(config);
   }
 
   public boolean hasCargo() {
-    return feederBeambreak.get();
+    return m_feederBeambreak.get();
   }
 
   public void run() {
-    feederMotor.set(ControlMode.PercentOutput, feederMotorSpeed);
+    m_feederMotor.set(ControlMode.PercentOutput, m_feederMotorSpeed);
   }
 
   public void reverse() {
-    feederMotor.set(ControlMode.PercentOutput, -feederMotorSpeed);
+    m_feederMotor.set(ControlMode.PercentOutput, -m_feederMotorSpeed);
   }
 
   public void stop() {
-    feederMotor.set(ControlMode.PercentOutput, 0);
+    m_feederMotor.set(ControlMode.PercentOutput, 0);
   }
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Feeder:" + feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
+    SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
   }
 }
