@@ -13,11 +13,12 @@ import com.ctre.phoenix.sensors.CANCoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Turret extends SubsystemBase {
   private TalonFX m_turret;
   private CANCoder m_encoder;
-  private double m_turrentZeroPosition = 0.0;
+  private DoublePreferenceConstant m_turretZeroPositionPref = new DoublePreferenceConstant("Turret Zero", 0.0);
 
   /** Creates a new Turret. */
   public Turret() {
@@ -61,11 +62,11 @@ public class Turret extends SubsystemBase {
   }
 
   private double encoderPostionToTurretFacing (double encPosition) {
-    return (encPosition - m_turrentZeroPosition) * Constants.TURRET_CANCODER_CONV;
+    return (encPosition - m_turretZeroPositionPref.getValue()) * Constants.TURRET_CANCODER_CONV;
   }
 
   private double turretFacingToEncoderPostion (double turretFacing) {
-    return turretFacing / Constants.TURRET_CANCODER_CONV + m_turrentZeroPosition;
+    return turretFacing / Constants.TURRET_CANCODER_CONV + m_turretZeroPositionPref.getValue();
   }
 
   @Override
