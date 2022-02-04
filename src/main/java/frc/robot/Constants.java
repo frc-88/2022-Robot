@@ -89,4 +89,8 @@ public final class Constants {
 	public static final double TURRET_DEFAULT_ZERO = 0;
 	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
 	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
+    public static final double TURRET_DEFAULT_I = 0.0;
+    public static final double TURRET_DEFAULT_P = 0.0;
+    public static final double TURRET_DEFAULT_D = 0.0;
+    public static final double TURRET_DEFAULT_F = 1.0;
 }
