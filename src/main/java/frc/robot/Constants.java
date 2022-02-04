@@ -85,4 +85,5 @@ public final class Constants {
 	public static final int TURRET_MOTOR_ID = 0;
     public static final int TURRET_ENCODER_ID = 0;
     public static final double TURRET_CANCODER_CONV = 1.0;
+    public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
 }

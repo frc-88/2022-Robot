@@ -39,6 +39,7 @@ public class Turret extends SubsystemBase {
 
     m_turret.configAllSettings(config);
 
+    // initialize internal sensor to correct absolute position when we wake up
     m_turret.setSelectedSensorPosition(encoderPostionToTurretFacing(m_encoder.getAbsolutePosition()));
   }
 
@@ -46,11 +47,24 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
-  public double encoderPostionToTurretFacing (double encPosition) {
+  public void goToPosition(double position) {
+    m_turret.set(TalonFXControlMode.MotionMagic, position);
+  }
+
+  public double getPosition() {
+    return m_turret.getSelectedSensorPosition();
+  }
+
+  public boolean isSynchronized() {
+    return Math.abs(getPosition() - encoderPostionToTurretFacing(m_encoder.getAbsolutePosition())) < 
+       Constants.TURRET_SYNCRONIZATION_THRESHOLD;
+  }
+
+  private double encoderPostionToTurretFacing (double encPosition) {
     return (encPosition - m_turrentZeroPosition) * Constants.TURRET_CANCODER_CONV;
   }
 
-  public double turretFacingToEncoderPostion (double turretFacing) {
+  private double turretFacingToEncoderPostion (double turretFacing) {
     return turretFacing / Constants.TURRET_CANCODER_CONV + m_turrentZeroPosition;
   }
 
@@ -58,7 +72,7 @@ public class Turret extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Turret:CANCoder", m_encoder.getAbsolutePosition());
-    SmartDashboard.putNumber("Turret:Position", m_turret.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Turret:Position", getPosition());
   }
 }
 
