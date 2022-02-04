@@ -15,6 +15,7 @@ import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
+import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.TJController;
@@ -24,6 +25,7 @@ public class RobotContainer {
   // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Turret m_turret = new Turret();
 
   // Commands
   private CommandBase m_arcadeDrive;
