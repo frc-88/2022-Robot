@@ -21,14 +21,11 @@ public class Limelight {
     private NetworkTableEntry m_tx;
     private NetworkTableEntry m_ty;
     private NetworkTableEntry m_ts;
-    private NetworkTableEntry m_camtran;
     private NetworkTableEntry m_ledMode;
     private NetworkTableEntry m_stream;
     private NetworkTableEntry m_camMode;
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
-
-    private boolean m_ledOn;
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -47,11 +44,9 @@ public class Limelight {
         m_tx = m_table.getEntry("tx");
         m_ty = m_table.getEntry("ty");
         m_ts = m_table.getEntry("ts");
-        m_camtran = m_table.getEntry("camtran");
         m_ledMode = m_table.getEntry("ledMode");
         m_stream = m_table.getEntry("stream");
         m_camMode = m_table.getEntry("camMode");
-        m_ledOn = false;
 
         m_stream.setNumber(0);
         setPipeline(0);
@@ -72,7 +67,7 @@ public class Limelight {
      * @return True if the Limelight has a recognized target.
      */
     public boolean hasTarget() {
-        return m_ledOn && (m_tv.getDouble(0.0) == 1.0);
+        return isLightOn() && (m_tv.getDouble(0.0) == 1.0);
     }
 
     /**
@@ -120,7 +115,6 @@ public class Limelight {
     }
 
     public void ledOff() {
-        m_ledOn = false;
         m_ledMode.setNumber(1);
     }
 
@@ -129,8 +123,11 @@ public class Limelight {
     }
 
     public void ledOn() {
-        m_ledOn = true;
         m_ledMode.setNumber(3);
+    }
+
+    public boolean isLightOn() {
+        return (m_ledMode.getDouble(1.0) != 1.0);
     }
 
     // camera feed control
