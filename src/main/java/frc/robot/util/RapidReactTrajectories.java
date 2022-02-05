@@ -24,22 +24,23 @@ public class RapidReactTrajectories
   // CARGO starting locations for reference
   // constants indicate starting locations on the respective color side of the field
   // index numbers go clockwise (right to left from driver station view)
-  private static final Translation2d RED_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
-  private static final Translation2d RED_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d RED_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d RED_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
-  private static final Translation2d RED_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d RED_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // TODO real numbers for below if we ever feel the need to have this information
+  // private static final Translation2d RED_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d RED_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d RED_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d RED_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d RED_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d RED_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
 
-  private static final Translation2d BLUE_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d BLUE_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
-  private static final Translation2d BLUE_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
-  private static final Translation2d BLUE_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d BLUE_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
-  private static final Translation2d BLUE_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d BLUE_1 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d BLUE_2 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d BLUE_3 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d BLUE_4 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d BLUE_5 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d BLUE_6 =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
 
-  private static final Translation2d RED_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
-  private static final Translation2d BLUE_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
+  // private static final Translation2d RED_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Red CARGO
+  // private static final Translation2d BLUE_TERMINAL =  new Translation2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0)); // Blue CARGO
 
   public RapidReactTrajectories() {
   }

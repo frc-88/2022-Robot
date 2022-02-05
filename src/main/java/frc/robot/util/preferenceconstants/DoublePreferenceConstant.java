@@ -24,7 +24,7 @@ public class DoublePreferenceConstant extends BasePreferenceConstant<Double> {
     public DoublePreferenceConstant(String name, double defaultValue) {
         this.name = Objects.requireNonNull(name);
         this.defaultValue = Objects.requireNonNull(defaultValue);
-        if (!Preferences.getInstance().containsKey(name)) {
+        if (!Preferences.containsKey(name)) {
             this.setValue(defaultValue);
         } else {
             update();
@@ -33,12 +33,12 @@ public class DoublePreferenceConstant extends BasePreferenceConstant<Double> {
 
     @Override
     protected Double getFromPreferences() {
-        return Preferences.getInstance().getDouble(name, defaultValue);
+        return Preferences.getDouble(name, defaultValue);
     }
 
     @Override
     protected void setInPreferences(Double value) {
-        Preferences.getInstance().putDouble(name, value);
+        Preferences.setDouble(name, value);
     }
 
 }

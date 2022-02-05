@@ -24,7 +24,7 @@ public class BooleanPreferenceConstant extends BasePreferenceConstant<Boolean> {
     public BooleanPreferenceConstant(String name, boolean defaultValue) {
         this.name = Objects.requireNonNull(name);
         this.defaultValue = Objects.requireNonNull(defaultValue);
-        if (!Preferences.getInstance().containsKey(name)) {
+        if (!Preferences.containsKey(name)) {
             this.setValue(defaultValue);
         } else {
             update();
@@ -33,12 +33,12 @@ public class BooleanPreferenceConstant extends BasePreferenceConstant<Boolean> {
 
     @Override
     protected Boolean getFromPreferences() {
-        return Preferences.getInstance().getBoolean(name, defaultValue);
+        return Preferences.getBoolean(name, defaultValue);
     }
 
     @Override
     protected void setInPreferences(Boolean value) {
-        Preferences.getInstance().putBoolean(name, value);
+        Preferences.setBoolean(name, value);
     }
 
 }
