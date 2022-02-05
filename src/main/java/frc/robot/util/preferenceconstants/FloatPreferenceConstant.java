@@ -24,7 +24,7 @@ public class FloatPreferenceConstant extends BasePreferenceConstant<Float> {
     public FloatPreferenceConstant(String name, float defaultValue) {
         this.name = Objects.requireNonNull(name);
         this.defaultValue = Objects.requireNonNull(defaultValue);
-        if (!Preferences.getInstance().containsKey(name)) {
+        if (!Preferences.containsKey(name)) {
             this.setValue(defaultValue);
         } else {
             update();
@@ -33,12 +33,12 @@ public class FloatPreferenceConstant extends BasePreferenceConstant<Float> {
 
     @Override
     protected Float getFromPreferences() {
-        return Preferences.getInstance().getFloat(name, defaultValue);
+        return Preferences.getFloat(name, defaultValue);
     }
 
     @Override
     protected void setInPreferences(Float value) {
-        Preferences.getInstance().putFloat(name, value);
+        Preferences.setFloat(name, value);
     }
 
 }
