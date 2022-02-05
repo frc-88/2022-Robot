@@ -77,6 +77,7 @@ public final class Constants {
     public static final double SHOOTER_DEFAULT_D = 0.0;
     public static final double SHOOTER_DEFAULT_F = 1.0;
     public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
+    public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 0;
@@ -114,4 +115,5 @@ public final class Constants {
     public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
 
+	// End
 }

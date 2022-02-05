@@ -14,12 +14,11 @@ import frc.robot.Constants;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
-import frc.robot.util.sensors.REVColorSensor;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID);
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID);
-  private Turret m_turret;
+  private Limelight m_limelight;
 
   // Preferences
   private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_DEFAULT_P);
@@ -28,8 +27,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_DEFAULT_F);
 
   /** Creates a new Shooter. */
-  public Shooter(Turret turret) {
-    m_turret = turret;
+  public Shooter(Limelight limelight) {
+    m_limelight = limelight;
     configureFlywheel();
 
     TalonFXConfiguration hoodCfg = new TalonFXConfiguration();
@@ -61,7 +60,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public boolean wantsCargo() {
-    return onTarget(); // && m_turret.onTarget();
+    return onTarget() && m_limelight.hasTarget() 
+      && (Math.abs(m_limelight.getTargetHorizontalOffsetAngle()) < Constants.SHOOTER_LIMELIGHT_THRESHOLD);
   }
   
   @Override
