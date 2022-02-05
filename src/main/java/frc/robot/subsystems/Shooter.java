@@ -11,11 +11,15 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.CargoTarget;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.sensors.Limelight;
+import frc.robot.util.sensors.REVColorSensor;
 
-public class Shooter extends SubsystemBase {
+public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID);
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID);
+  private Turret m_turret;
 
   // Preferences
   private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_DEFAULT_P);
@@ -24,7 +28,8 @@ public class Shooter extends SubsystemBase {
   private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_DEFAULT_F);
 
   /** Creates a new Shooter. */
-  public Shooter() {
+  public Shooter(Turret turret) {
+    m_turret = turret;
     configureFlywheel();
 
     TalonFXConfiguration hoodCfg = new TalonFXConfiguration();
@@ -50,6 +55,15 @@ public class Shooter extends SubsystemBase {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
+  public boolean onTarget() {
+    return Math.abs(m_flywheel.getClosedLoopError()) < Constants.SHOOTER_FLYWHEEL_ERROR_THRESHOLD;
+  }
+
+  @Override
+  public boolean wantsCargo() {
+    return onTarget(); // && m_turret.onTarget();
+  }
+  
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

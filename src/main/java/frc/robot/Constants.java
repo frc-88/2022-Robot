@@ -72,10 +72,11 @@ public final class Constants {
 	// Shooter
 	public static final int SHOOTER_FLYWHEEL_ID = 0;
     public static final int SHOOTER_HOOD_ID = 0;
-    public static final double SHOOTER_DEFAULT_P = 0;
-    public static final double SHOOTER_DEFAULT_I = 0;
-    public static final double SHOOTER_DEFAULT_D = 0;
-    public static final double SHOOTER_DEFAULT_F = 0;
+    public static final double SHOOTER_DEFAULT_P = 0.0;
+    public static final double SHOOTER_DEFAULT_I = 0.0;
+    public static final double SHOOTER_DEFAULT_D = 0.0;
+    public static final double SHOOTER_DEFAULT_F = 1.0;
+    public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 0;
