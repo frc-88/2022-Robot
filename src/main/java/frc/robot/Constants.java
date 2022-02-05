@@ -69,7 +69,16 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
+	// Hopper
+	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
+	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
+    public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
+    public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
+	public static final double HOPPER_CENTRALIZER_SPEED = 0.5;
+    public static final double HOPPER_CHAMBER_SPEED = 0.5;
+
 	// Sensors
+	// Pressure Sensor
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -77,9 +86,6 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
-    public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
-    public static final double BLUE_CARGO_RED_THRESHOLD = 0;
-    public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
     
 	// Shooter
 	public static final int SHOOTER_FLYWHEEL_ID = 0;
@@ -88,4 +94,9 @@ public final class Constants {
     public static final double SHOOTER_DEFAULT_I = 0;
     public static final double SHOOTER_DEFAULT_D = 0;
     public static final double SHOOTER_DEFAULT_F = 0;
+	// Color Sensor
+	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
+    public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
 }

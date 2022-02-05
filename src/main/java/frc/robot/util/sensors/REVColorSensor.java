@@ -21,28 +21,33 @@ public class REVColorSensor {
     }
 
     public REVColorSensor(Port port) {
-        m_colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+        m_colorSensor = new ColorSensorV3(port);
     }
 
-    public boolean isCargoOurs(){
+    public boolean hasCargo() {
+        return (m_colorSensor.getProximity() < Constants.COLOR_SENSOR_PROXIMITY_THRESHOLD);
+    }
+
+    public boolean isCargoOurs() {
         Color detectedColor = m_colorSensor.getColor();
 
-        // TODO check beam break and return false if there is no cargo
-        return (DriverStation.getAlliance() == DriverStation.Alliance.Blue) ==
-            ((detectedColor.blue > Constants.BLUE_CARGO_BLUE_THRESHOLD) &&
-             (detectedColor.red < Constants.BLUE_CARGO_RED_THRESHOLD) &&
-            (detectedColor.green < Constants.BLUE_CARGO_GREEN_THRESHOLD));
-}
+        return hasCargo() && ((DriverStation.getAlliance() == DriverStation.Alliance.Blue) == 
+            ((detectedColor.blue > Constants.COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD) &&
+             (detectedColor.red < Constants.COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD) &&
+             (detectedColor.green < Constants.COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD)));
+    }
 
     public void periodic() {
         // Color Sensor data
         Color detectedColor = m_colorSensor.getColor();
-        double IR = m_colorSensor.getIR();
+        SmartDashboard.putNumber("ColorSensor:Red", detectedColor.red);
+        SmartDashboard.putNumber("ColorSensor:Green", detectedColor.green);
+        SmartDashboard.putNumber("ColorSensor:Blue", detectedColor.blue);
+        SmartDashboard.putNumber("ColorSensor:IR", m_colorSensor.getIR());
+        SmartDashboard.putNumber("ColorSensor:Proximity", m_colorSensor.getProximity());
 
-        SmartDashboard.putNumber("Red", detectedColor.red);
-        SmartDashboard.putNumber("Green", detectedColor.green);
-        SmartDashboard.putNumber("Blue", detectedColor.blue);
-        SmartDashboard.putNumber("IR", IR);
+        SmartDashboard.putBoolean("ColorSensor:HasCargo?", hasCargo());
+        SmartDashboard.putBoolean("ColorSensor:IsCargoOurs?", isCargoOurs());
     }
 
 }
