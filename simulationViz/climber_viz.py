@@ -28,7 +28,7 @@ lines = plt.plot(
 def generate_hook(start_x, start_y, top_angle):
     top_angle = -top_angle + 90
     
-    x = np.linspace(-HOOK_RADIUS, HOOK_RADIUS, num=5000, endpoint=False)
+    x = np.linspace(-HOOK_RADIUS, HOOK_RADIUS, num=50, endpoint=False)
     y = np.sqrt(HOOK_RADIUS**2 - x**2)
     
     x = np.concatenate((x, x[::-1]))
@@ -75,5 +75,5 @@ def update(_):
     fig.gca().autoscale_view()
     return lines
 
-animation = FuncAnimation(fig, update, frames=10)
+animation = FuncAnimation(fig, update, interval=10)
 plt.show()

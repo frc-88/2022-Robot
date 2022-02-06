@@ -96,4 +96,9 @@ public class Climber extends SubsystemBase {
         }
         SmartDashboard.putBoolean("Coast Button", !coastButton.get());
     }
+
+    @Override
+    public void simulationPeriodic() {
+        allArms.forEach(ClimberArm::simulate);
+    }
 }
