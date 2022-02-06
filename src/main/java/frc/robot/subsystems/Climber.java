@@ -56,6 +56,9 @@ public class Climber extends SubsystemBase {
     @Override
     public void periodic() {
         allArms.forEach(ClimberArm::publishData);
+
+        SmartDashboard.putBoolean("All Climbers Calibrated", isCalibrated());
+
         if (!coastButton.get()) {
             allArms.forEach(ClimberArm::coast);
         }

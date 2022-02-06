@@ -3,6 +3,8 @@ package frc.robot.util.climber;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import frc.robot.Robot;
+
 public class ClimberCalibrationProcedure {
     
     private final ClimberArm m_arm;
@@ -36,6 +38,11 @@ public class ClimberCalibrationProcedure {
     }
 
     public void runCalibration() {
+        if (Robot.isSimulation()) {
+            m_arm.finishCalibration();
+            m_state = State.CALIBRATED;
+        }
+
         switch (m_state) {
             case UNCALIBRATED:
             case PUSHING_PIVOT:

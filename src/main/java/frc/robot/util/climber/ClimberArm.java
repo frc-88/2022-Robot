@@ -11,6 +11,8 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.util.Vector2D;
+import frc.robot.util.WrappedAngle;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class ClimberArm {
@@ -162,10 +164,16 @@ public class ClimberArm {
         return convertTelescopeMotorVelocityToActual(m_telescope.getSelectedSensorVelocity());
     }
 
+    public Vector2D getPositionVector() {
+        return Vector2D.createPolarCoordinates(getTelescopeHeight(), new WrappedAngle(-getPivotAngle() + 90));
+    }
+
 
     public void publishData() {
         SmartDashboard.putNumber(m_positionLabel + " Climber Pivot Angle", getPivotAngle());
         SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Height", getTelescopeHeight());
+        SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
+        SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
         SmartDashboard.putBoolean(m_positionLabel + " Climber Is Calibrated", isCalibrated());
     }
 
@@ -179,7 +187,7 @@ public class ClimberArm {
     }
 
     protected void finishCalibration() {
-    m_pivot.setSelectedSensorPosition(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
+        m_pivot.setSelectedSensorPosition(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
         m_telescope.setSelectedSensorPosition(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
 
         m_pivot.configForwardSoftLimitEnable(true);
@@ -202,10 +210,6 @@ public class ClimberArm {
         return convertActualPositiontoMotorPosition(actualPosition, PIVOT_RATIO);
     }
 
-    private double convertPivotActualVelocityToMotor(double actualVelocity) {
-        return convertActualVelocityToMotorVelocity(actualVelocity, PIVOT_RATIO);
-    }
-
 
     private double convertTelescopeMotorPositionToActual(double motorPosition) {
         return convertMotorPositionToActualPosition(motorPosition, TELESCOPE_RATIO);
@@ -219,10 +223,6 @@ public class ClimberArm {
         return convertActualPositiontoMotorPosition(actualPosition, TELESCOPE_RATIO);
     }
 
-    private double convertTelescopeActualVelocityToMotor(double actualVelocity) {
-        return convertActualVelocityToMotorVelocity(actualVelocity, TELESCOPE_RATIO);
-    }
-
 
     private double convertMotorPositionToActualPosition(double motorPosition, double ratio) {
         return motorPosition * ratio;
@@ -234,9 +234,5 @@ public class ClimberArm {
 
     private double convertActualPositiontoMotorPosition(double actualPosition, double ratio) {
         return actualPosition / ratio;
-    }
-
-    private double convertActualVelocityToMotorVelocity(double actualVelocity, double ratio) {
-        return convertActualPositiontoMotorPosition(actualVelocity, ratio) * 0.1;
     }
 }
