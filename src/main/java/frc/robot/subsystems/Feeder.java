@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 /*
  * TODO: haiku
@@ -21,23 +22,23 @@ import frc.robot.util.CargoTarget;
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
-  private double m_feederMotorSpeed;
+  private DoublePreferenceConstant p_feederMotorSpeed;
 
-  public Feeder(int feederMotorId, int feederSensorId, double feederMotorSpeed) {
+  public Feeder(int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
     m_feederMotor = new TalonFX(feederMotorId);
     m_feederBeambreak = new DigitalInput(feederSensorId);
-    m_feederMotorSpeed = feederMotorSpeed;
+    p_feederMotorSpeed = feederMotorSpeedPref;
 
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
   }
 
   public void run() {
-    m_feederMotor.set(ControlMode.PercentOutput, m_feederMotorSpeed);
+    m_feederMotor.set(ControlMode.PercentOutput, p_feederMotorSpeed.getValue());
   }
 
   public void reverse() {
-    m_feederMotor.set(ControlMode.PercentOutput, -m_feederMotorSpeed);
+    m_feederMotor.set(ControlMode.PercentOutput, -p_feederMotorSpeed.getValue());
   }
 
   public void stop() {
