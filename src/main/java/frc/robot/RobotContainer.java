@@ -18,6 +18,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.RapidReactTrajectories;
+import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
@@ -36,6 +37,7 @@ public class RobotContainer {
   private CommandBase m_calibrateClimber;
   private CommandBase m_manualModeClimber;
   private CommandBase m_climberTestMotionMagic;
+  private CommandBase m_climberMotionMagicJoystick;
 
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
@@ -47,6 +49,7 @@ public class RobotContainer {
     m_calibrateClimber = new RunCommand(m_climber::calibrate, m_climber).withInterrupt(m_climber::isCalibrated).beforeStarting(m_climber::resetCalibration).withName("calibrateClimber");
     m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
     m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
+    m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
 
     configureDriverController();
     configureDefaultCommands();
@@ -85,6 +88,7 @@ public class RobotContainer {
     SmartDashboard.putData(m_calibrateClimber);
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
+    SmartDashboard.putData(m_climberMotionMagicJoystick);
 
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
     SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));

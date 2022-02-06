@@ -27,12 +27,12 @@ public class ManualModeClimber extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double LeftStickX = DriveUtils.deadbandExponential(m_tjController.getLeftStickX(), 3, 0.25);
-    double LeftStickY = DriveUtils.deadbandExponential(m_tjController.getLeftStickY(), 3, 0.25);
-    double RightStickX = DriveUtils.deadbandExponential(m_tjController.getRightStickX(), 3, 0.25);
-    double RightStickY = DriveUtils.deadbandExponential(m_tjController.getRightStickY(), 3, 0.25);
-    m_climber.setInnerPercentOutput(LeftStickX, LeftStickY);
-    m_climber.setOuterPercentOutput(RightStickX, RightStickY);
+    double leftStickX = DriveUtils.deadbandExponential(m_tjController.getLeftStickX(), 3, 0.25);
+    double leftStickY = DriveUtils.deadbandExponential(m_tjController.getLeftStickY(), 3, 0.25);
+    double rightStickX = DriveUtils.deadbandExponential(m_tjController.getRightStickX(), 3, 0.25);
+    double rightStickY = DriveUtils.deadbandExponential(m_tjController.getRightStickY(), 3, 0.25);
+    m_climber.setInnerPercentOutput(leftStickX, leftStickY);
+    m_climber.setOuterPercentOutput(rightStickX, rightStickY);
   }
 
   // Called once the command ends or is interrupted.
