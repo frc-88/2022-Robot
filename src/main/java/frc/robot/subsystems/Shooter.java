@@ -22,10 +22,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
 
   // Preferences
-  private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_DEFAULT_P);
-  private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_DEFAULT_I);
-  private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_DEFAULT_D);
-  private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_DEFAULT_F);
+  private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_P_DFT);
+  private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_I_DFT);
+  private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_D_DFT);
+  private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_F_DFT);
+  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
 
   /** Creates a new Shooter. */
   public Shooter(Limelight limelight) {
@@ -42,6 +43,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.slot0.kD = p_shooterD.getValue();
     config.slot0.kF = p_shooterF.getValue();
     config.neutralDeadband = 0.001;
+    config.peakOutputForward = 1.0;
+    config.peakOutputReverse = -1.0;
+    config.nominalOutputForward = 0;
+    config.nominalOutputReverse = 0;
+
     m_flywheel.configAllSettings(config);
   }
 
@@ -49,6 +55,10 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
     config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, 20, 25, 1.0);
+    config.peakOutputForward = 1.0;
+    config.peakOutputReverse = -1.0;
+    config.nominalOutputForward = 0;
+    config.nominalOutputReverse = 0;
     m_hood.configAllSettings(config);
   }
 
@@ -62,6 +72,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public boolean onTarget() {
     return Math.abs(m_flywheel.getClosedLoopError()) < Constants.SHOOTER_FLYWHEEL_ERROR_THRESHOLD;
+  }
+
+  public void raiseHood() {
+    m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue());
+  }
+
+  public void lowerHood() {
+    m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
   }
 
   @Override
