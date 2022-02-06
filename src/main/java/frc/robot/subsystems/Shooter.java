@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -30,9 +31,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public Shooter(Limelight limelight) {
     m_limelight = limelight;
     configureFlywheel();
-
-    TalonFXConfiguration hoodCfg = new TalonFXConfiguration();
-    m_hood.configAllSettings(hoodCfg);
+    configureHood();
   }
 
   private void configureFlywheel() {
@@ -44,6 +43,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.slot0.kF = p_shooterF.getValue();
     config.neutralDeadband = 0.001;
     m_flywheel.configAllSettings(config);
+  }
+
+  private void configureHood() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, 20, 25, 1.0);
+    m_hood.configAllSettings(config);
   }
 
   public void setFlywheelSpeed(double speed) {
