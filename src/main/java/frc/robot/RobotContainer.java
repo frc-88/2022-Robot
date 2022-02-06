@@ -24,14 +24,15 @@ import frc.robot.util.RapidReactTrajectories;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.TJController;
 import frc.robot.util.drive.DriveUtils;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class RobotContainer {
   // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
-  private final Feeder m_centralizer = new Feeder(Constants.HOPPER_CENTRALIZER_MOTOR_ID, Constants.HOPPER_CENTRALIZER_BEAMBREAK, Constants.HOPPER_CENTRALIZER_SPEED);
-  private final Feeder m_chamber = new Feeder(Constants.HOPPER_CHAMBER_MOTOR_ID, Constants.HOPPER_CHAMBER_BEAMBREAK, Constants.HOPPER_CHAMBER_SPEED);
   private final Turret m_turret = new Turret();
+  private final Feeder m_centralizer = new Feeder(Constants.HOPPER_CENTRALIZER_MOTOR_ID, Constants.HOPPER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.HOPPER_CENTRALIZER_SPEED_DFT));
+  private final Feeder m_chamber = new Feeder(Constants.HOPPER_CHAMBER_MOTOR_ID, Constants.HOPPER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.HOPPER_CHAMBER_SPEED_DFT));
 
   // Commands
   private CommandBase m_arcadeDrive;

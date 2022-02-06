@@ -98,8 +98,8 @@ public final class Constants {
 	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
     public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
     public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
-	public static final double HOPPER_CENTRALIZER_SPEED = 0.5;
-    public static final double HOPPER_CHAMBER_SPEED = 0.5;
+	public static final double HOPPER_CENTRALIZER_SPEED_DFT = 0.5;
+    public static final double HOPPER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Sensors
 	// Pressure Sensor
