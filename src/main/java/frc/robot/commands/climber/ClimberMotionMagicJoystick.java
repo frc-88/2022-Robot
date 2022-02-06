@@ -11,7 +11,7 @@ public class ClimberMotionMagicJoystick extends CommandBase {
     private TJController m_controller;
 
     private static final double PIVOT_SPEED = 5;
-    private static final double TELESCOPE_SPEED = 0.2;
+    private static final double TELESCOPE_SPEED = 2;
     
     public ClimberMotionMagicJoystick(Climber climber, TJController controller) {
         m_climber = climber;

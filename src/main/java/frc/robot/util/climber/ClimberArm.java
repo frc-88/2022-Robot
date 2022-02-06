@@ -42,8 +42,8 @@ public class ClimberArm {
 
     private static final double PIVOT_MIN_ANGLE = -50;
     private static final double PIVOT_MAX_ANGLE = 29;
-    protected static final double TELESCOPE_MIN_HEIGHT = 26.25;
-    private static final double TELESCOPE_MAX_HEIGHT = 56.25;
+    protected static final double TELESCOPE_MIN_HEIGHT = 27;
+    private static final double TELESCOPE_MAX_HEIGHT = 57;
 
     private static class MotorPreferences {
         private final DoublePreferenceConstant triggerCurrent;
