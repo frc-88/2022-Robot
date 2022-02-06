@@ -22,9 +22,9 @@ public class ClimberCalibrationProcedure {
     private static final double TELESCOPE_CALIBRATION_OUTPUT = -0.1;
 
     private static final double PIVOT_POSITION_EPSILON = 0.5;
-    private static final double TELESCOPE_POSITION_EPSILON = 0.5;
+    private static final double TELESCOPE_POSITION_EPSILON = 0.25;
 
-    private static final int POSITIONS_TO_COLLECT = 20;
+    private static final int POSITIONS_TO_COLLECT = 40;
 
     public ClimberCalibrationProcedure(ClimberArm arm) {
         m_arm = arm;
@@ -59,6 +59,7 @@ public class ClimberCalibrationProcedure {
                 if (m_telescopePositions.size() >= POSITIONS_TO_COLLECT
                         && Math.abs(currentTelescopePosition - m_telescopePositions.poll()) < TELESCOPE_POSITION_EPSILON) {
                     m_arm.finishCalibration();
+                    m_arm.setPercentOutput(0, 0);
                     m_state = State.CALIBRATED;
                 } else {
                     m_telescopePositions.add(currentTelescopePosition);

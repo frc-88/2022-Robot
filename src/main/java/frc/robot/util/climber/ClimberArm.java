@@ -25,10 +25,10 @@ public class ClimberArm {
     private static final double PIVOT_RATIO = 360. / (100. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
 
-    private static final double PIVOT_MIN_ANGLE = -45;
-    private static final double PIVOT_MAX_ANGLE = 30;
-    protected static final double TELESCOPE_MIN_HEIGHT = 24;
-    private static final double TELESCOPE_MAX_HEIGHT = 48;
+    private static final double PIVOT_MIN_ANGLE = -50;
+    private static final double PIVOT_MAX_ANGLE = 29;
+    protected static final double TELESCOPE_MIN_HEIGHT = 26.25;
+    private static final double TELESCOPE_MAX_HEIGHT = 56.25;
 
     private static class PreferenceCurrentLimit {
         private final DoublePreferenceConstant triggerCurrent;
@@ -131,6 +131,16 @@ public class ClimberArm {
         m_calibration.runCalibration();
     }
 
+    public void coast() {
+        m_pivot.setNeutralMode(NeutralMode.Coast);
+        m_telescope.setNeutralMode(NeutralMode.Coast);
+    }
+
+    public void brake() {
+        m_pivot.setNeutralMode(NeutralMode.Brake);
+        m_telescope.setNeutralMode(NeutralMode.Brake);
+    }
+
     public boolean isCalibrated() {
         return Objects.nonNull(m_calibration) && m_calibration.isCalibrated();
     }
@@ -169,8 +179,8 @@ public class ClimberArm {
     }
 
     protected void finishCalibration() {
-        m_pivot.setSelectedSensorPosition(PIVOT_MAX_ANGLE);
-        m_telescope.setSelectedSensorPosition(TELESCOPE_MIN_HEIGHT);
+    m_pivot.setSelectedSensorPosition(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
+        m_telescope.setSelectedSensorPosition(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
 
         m_pivot.configForwardSoftLimitEnable(true);
         m_pivot.configReverseSoftLimitEnable(true);
