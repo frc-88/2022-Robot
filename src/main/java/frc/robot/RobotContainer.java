@@ -7,9 +7,12 @@ package frc.robot;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix.music.Orchestra;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
@@ -21,6 +24,7 @@ import frc.robot.util.TJController;
 import frc.robot.util.drive.DriveUtils;
 
 public class RobotContainer {
+  private Orchestra m_orchestra = new Orchestra();
   // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
@@ -33,6 +37,7 @@ public class RobotContainer {
   private final TJController m_driverController = new TJController(0);
 
   public RobotContainer() {
+    m_orchestra.loadMusic("Moveslikejagger.chrp");
     configureDriverController();
     configureDefaultCommands();
     configureDashboardCommands();
@@ -70,6 +75,8 @@ public class RobotContainer {
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
     SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
     SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+
+    SmartDashboard.putData("Music", new InstantCommand(m_orchestra::play));
   }
 
   private void configureDefaultCommands() {
