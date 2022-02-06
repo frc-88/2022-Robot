@@ -43,6 +43,7 @@ public class Climber extends SubsystemBase {
         return allArms.stream().allMatch(ClimberArm::isCalibrated);
     }
 
+
     public void setInnerPercentOutput(double innerPivotOutput, double innerTelescopeOutput) {
         this.innerLeftArm.setPercentOutput(innerPivotOutput, innerTelescopeOutput);
         this.innerRightArm.setPercentOutput(innerPivotOutput, innerTelescopeOutput);
@@ -52,6 +53,34 @@ public class Climber extends SubsystemBase {
         this.outerLeftArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
         this.outerRightArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
     }
+
+    public void setInnerMotionMagic(double pivotAngle, double telescopeHeight) {
+        this.innerLeftArm.setMotionMagic(pivotAngle, telescopeHeight);
+        this.innerRightArm.setMotionMagic(pivotAngle, telescopeHeight);
+    }
+
+    public void setOuterMotionMagic(double pivotAngle, double telescopeHeight) {
+        this.outerLeftArm.setMotionMagic(pivotAngle, telescopeHeight);
+        this.outerRightArm.setMotionMagic(pivotAngle, telescopeHeight);
+    }
+
+
+    public double getAverageInnerPivotAngle() {
+        return (innerLeftArm.getPivotAngle() + innerRightArm.getPivotAngle()) / 2.;
+    }
+
+    public double getAverageInnerTelescopeHeight() {
+        return (innerLeftArm.getTelescopeHeight() + innerRightArm.getTelescopeHeight()) / 2.;
+    }
+
+    public double getAverageOuterPivotAngle() {
+        return (outerLeftArm.getPivotAngle() + outerRightArm.getPivotAngle()) / 2.;
+    }
+
+    public double getAverageOuterTelescopeHeight() {
+        return (outerLeftArm.getTelescopeHeight() + outerRightArm.getTelescopeHeight()) / 2.;
+    }
+
 
     @Override
     public void periodic() {

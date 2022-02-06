@@ -3,6 +3,7 @@ package frc.robot.util.climber;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -14,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.Vector2D;
 import frc.robot.util.WrappedAngle;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class ClimberArm {
     
@@ -32,49 +34,73 @@ public class ClimberArm {
     protected static final double TELESCOPE_MIN_HEIGHT = 26.25;
     private static final double TELESCOPE_MAX_HEIGHT = 56.25;
 
-    private static class PreferenceCurrentLimit {
+    private static class MotorPreferences {
         private final DoublePreferenceConstant triggerCurrent;
         private final DoublePreferenceConstant triggerDuration;
         private final DoublePreferenceConstant continuousCurrent;
+        private final DoublePreferenceConstant maxVelocity;
+        private final DoublePreferenceConstant maxAcceleration;
+        private final PIDPreferenceConstants pid;
 
         private List<WPI_TalonFX> motors;
 
-        public PreferenceCurrentLimit(String prefix) {
+        double ratio;
+
+        public MotorPreferences(String prefix, double ratio) {
+            this.ratio = ratio;
+
             triggerCurrent = new DoublePreferenceConstant(prefix + " Trigger Current", 80);
             triggerDuration = new DoublePreferenceConstant(prefix + " Trigger Duration", 0.002);
             continuousCurrent = new DoublePreferenceConstant(prefix + " Continuous Current", 10);
+            maxVelocity = new DoublePreferenceConstant(prefix + " Max Velocity", 0);
+            maxAcceleration = new DoublePreferenceConstant(prefix + " Max Acceleration", 0);
+            pid = new PIDPreferenceConstants(prefix + " PID", 0, 0, 0, 0, 0, 0, 0);
 
-            triggerCurrent.addChangeHandler((Double unused) -> updateCurrentLimit());
-            triggerDuration.addChangeHandler((Double unused) -> updateCurrentLimit());
-            continuousCurrent.addChangeHandler((Double unused) -> updateCurrentLimit());
+            Consumer<Double> handler = (Double unused) -> updateController();
+            triggerCurrent.addChangeHandler(handler);
+            triggerDuration.addChangeHandler(handler);
+            continuousCurrent.addChangeHandler(handler);
+            maxVelocity.addChangeHandler(handler);
+            maxAcceleration.addChangeHandler(handler);
+            pid.addChangeHandler(handler);
 
             motors = new LinkedList<>();
         }
 
         public void registerMotor(WPI_TalonFX motor) {
             motors.add(motor);
-            updateCurrentLimit();
+            updateController();
         }
 
-        private void updateCurrentLimit() {
+        private void updateController() {
             StatorCurrentLimitConfiguration config = new StatorCurrentLimitConfiguration(
                 true,
                 continuousCurrent.getValue(),
                 triggerCurrent.getValue(),
                 triggerDuration.getValue()
             );
-            motors.forEach((WPI_TalonFX motor) -> motor.configStatorCurrentLimit(config));
+            motors.forEach((WPI_TalonFX motor) -> {
+                motor.configStatorCurrentLimit(config);
+                motor.configMotionCruiseVelocity(convertActualVelocitytoMotorVelocity(maxVelocity.getValue(), ratio));
+                motor.configMotionAcceleration(convertActualVelocitytoMotorVelocity(maxAcceleration.getValue(), ratio));
+                motor.config_kP(0, pid.getKP().getValue());
+                motor.config_kI(0, pid.getKI().getValue());
+                motor.config_kD(0, pid.getKD().getValue());
+                motor.config_kF(0, pid.getKF().getValue());
+                motor.config_IntegralZone(0, pid.getIZone().getValue());
+                motor.configMaxIntegralAccumulator(0, pid.getIMax().getValue());
+            });
         }
     }
 
-    private static PreferenceCurrentLimit pivotCurrentLimit;
-    private static PreferenceCurrentLimit telescopeCurrentLimit;
+    private static MotorPreferences pivotPreferences;
+    private static MotorPreferences telescopePreferences;
 
     private static boolean staticInitialized = false;
 
     private void staticInit() {
-        pivotCurrentLimit = new PreferenceCurrentLimit("Pivot");
-        telescopeCurrentLimit = new PreferenceCurrentLimit("Telescope");
+        pivotPreferences = new MotorPreferences("Climber Pivot", PIVOT_RATIO);
+        telescopePreferences = new MotorPreferences("Climber Telescope", TELESCOPE_RATIO);
 
         staticInitialized = true;
     }
@@ -102,14 +128,19 @@ public class ClimberArm {
         m_telescope.configReverseSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
         m_telescope.configForwardSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MAX_HEIGHT));
 
-        pivotCurrentLimit.registerMotor(m_pivot);
-        telescopeCurrentLimit.registerMotor(m_telescope);
+        pivotPreferences.registerMotor(m_pivot);
+        telescopePreferences.registerMotor(m_telescope);
     }
 
 
     public void setPercentOutput(double pivotPercent, double telescopePercent) {
         m_pivot.set(TalonFXControlMode.PercentOutput, pivotPercent);
         m_telescope.set(TalonFXControlMode.PercentOutput, telescopePercent);
+    }
+
+    public void setMotionMagic(double pivotAngle, double telescopeHeight) {
+        m_pivot.set(TalonFXControlMode.MotionMagic, convertPivotActualPositionToMotor(pivotAngle));
+        m_telescope.set(TalonFXControlMode.MotionMagic, convertTelescopeActualPositionToMotor(telescopeHeight));
     }
 
 
@@ -198,41 +229,45 @@ public class ClimberArm {
 
 
 
-    private double convertPivotMotorPositionToActual(double motorPosition) {
+    private static double convertPivotMotorPositionToActual(double motorPosition) {
         return convertMotorPositionToActualPosition(motorPosition, PIVOT_RATIO);
     }
 
-    private double convertPivotMotorVelocityToActual(double motorVelocity) {
+    private static double convertPivotMotorVelocityToActual(double motorVelocity) {
         return convertMotorVelocityToActualVelocity(motorVelocity, PIVOT_RATIO);
     }
 
-    private double convertPivotActualPositionToMotor(double actualPosition) {
+    private static double convertPivotActualPositionToMotor(double actualPosition) {
         return convertActualPositiontoMotorPosition(actualPosition, PIVOT_RATIO);
     }
 
 
-    private double convertTelescopeMotorPositionToActual(double motorPosition) {
+    private static double convertTelescopeMotorPositionToActual(double motorPosition) {
         return convertMotorPositionToActualPosition(motorPosition, TELESCOPE_RATIO);
     }
 
-    private double convertTelescopeMotorVelocityToActual(double motorVelocity) {
+    private static double convertTelescopeMotorVelocityToActual(double motorVelocity) {
         return convertMotorVelocityToActualVelocity(motorVelocity, TELESCOPE_RATIO);
     }
 
-    private double convertTelescopeActualPositionToMotor(double actualPosition) {
+    private static double convertTelescopeActualPositionToMotor(double actualPosition) {
         return convertActualPositiontoMotorPosition(actualPosition, TELESCOPE_RATIO);
     }
 
 
-    private double convertMotorPositionToActualPosition(double motorPosition, double ratio) {
+    private static double convertMotorPositionToActualPosition(double motorPosition, double ratio) {
         return motorPosition * ratio;
     }
 
-    private double convertMotorVelocityToActualVelocity(double motorVelocity, double ratio) {
+    private static double convertMotorVelocityToActualVelocity(double motorVelocity, double ratio) {
         return convertMotorPositionToActualPosition(motorVelocity, ratio) * 10.;
     }
 
-    private double convertActualPositiontoMotorPosition(double actualPosition, double ratio) {
+    private static double convertActualPositiontoMotorPosition(double actualPosition, double ratio) {
         return actualPosition / ratio;
+    }
+
+    private static double convertActualVelocitytoMotorVelocity(double actualVelocity, double ratio) {
+        return convertActualPositiontoMotorPosition(actualVelocity, ratio) * 0.1;
     }
 }
