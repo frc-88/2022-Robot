@@ -43,7 +43,7 @@ public class ClimberArm {
     private static final double PIVOT_MIN_ANGLE = -50;
     private static final double PIVOT_MAX_ANGLE = 29;
     protected static final double TELESCOPE_MIN_HEIGHT = 27;
-    private static final double TELESCOPE_MAX_HEIGHT = 57;
+    private static final double TELESCOPE_MAX_HEIGHT = 60;
 
     private static class MotorPreferences {
         private final DoublePreferenceConstant triggerCurrent;
@@ -85,7 +85,7 @@ public class ClimberArm {
 
         private void updateController() {
             StatorCurrentLimitConfiguration config = new StatorCurrentLimitConfiguration(
-                true,
+                false,
                 continuousCurrent.getValue(),
                 triggerCurrent.getValue(),
                 triggerDuration.getValue()
@@ -116,7 +116,7 @@ public class ClimberArm {
         staticInitialized = true;
     }
 
-    public ClimberArm(String positionLabel, int pivotID, int telescopeID) {
+    public ClimberArm(String positionLabel, int pivotID, int telescopeID, boolean pivotInverted) {
         if (!staticInitialized) {
             staticInit();
         }
@@ -128,8 +128,13 @@ public class ClimberArm {
         m_pivot.configFactoryDefault();
         m_telescope.configFactoryDefault();
 
-        m_pivot.setInverted(InvertType.InvertMotorOutput);
-        m_telescope.setInverted(InvertType.None);
+        if (pivotInverted) {
+            m_pivot.setInverted(InvertType.InvertMotorOutput);
+            m_telescope.setInverted(InvertType.None);
+        } else {
+            m_pivot.setInverted(InvertType.None);
+            m_telescope.setInverted(InvertType.InvertMotorOutput);
+        }
 
         m_pivot.setNeutralMode(NeutralMode.Brake);
         m_telescope.setNeutralMode(NeutralMode.Brake);
