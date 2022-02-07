@@ -71,7 +71,7 @@ def update(_):
     hooks[2].set_data(*generate_hook(INNER_RIGHT_OFFSET + sb.getNumber("Inner Right Climber X", 0), sb.getNumber("Inner Right Climber Y", DEFAULT_Y), sb.getNumber("Inner Right Climber Pivot Angle", 0)))
     hooks[3].set_data(*generate_hook(OUTER_RIGHT_OFFSET + sb.getNumber("Outer Right Climber X", 0), sb.getNumber("Outer Right Climber Y", DEFAULT_Y), sb.getNumber("Outer Right Climber Pivot Angle", 0)))
     
-    fig.gca().set(xlim=[-36, 36], ylim=[-12, 60])
+    fig.gca().set(xlim=[-36, 36], ylim=[-6, 66])
     fig.gca().autoscale_view()
     return lines
 

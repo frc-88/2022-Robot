@@ -85,7 +85,7 @@ public class ClimberArm {
 
         private void updateController() {
             StatorCurrentLimitConfiguration config = new StatorCurrentLimitConfiguration(
-                false,
+                true,
                 continuousCurrent.getValue(),
                 triggerCurrent.getValue(),
                 triggerDuration.getValue()
@@ -128,7 +128,7 @@ public class ClimberArm {
         m_pivot.configFactoryDefault();
         m_telescope.configFactoryDefault();
 
-        if (pivotInverted) {
+        if (pivotInverted || Robot.isSimulation()) {
             m_pivot.setInverted(InvertType.InvertMotorOutput);
             m_telescope.setInverted(InvertType.None);
         } else {
