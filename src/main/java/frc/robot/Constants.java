@@ -69,6 +69,11 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
+	// Intake
+
+	public static final int INTAKE_ROLLER_ID = 6;
+	public static final int INTAKE_ARM_ID = 7;
+
 	// Sensors
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
