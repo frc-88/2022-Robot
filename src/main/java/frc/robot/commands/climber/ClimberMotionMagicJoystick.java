@@ -1,8 +1,10 @@
 package frc.robot.commands.climber;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Climber;
 import frc.robot.util.TJController;
+import frc.robot.util.climber.ClimberArm;
 import frc.robot.util.drive.DriveUtils;
 
 public class ClimberMotionMagicJoystick extends CommandBase {
@@ -13,7 +15,7 @@ public class ClimberMotionMagicJoystick extends CommandBase {
     private static final double PIVOT_SPEED = 5;
     private static final double TELESCOPE_SPEED = 2;
 
-    private static final double BUMPER_MULTIPLIER = 5;
+    private static final double BUMPER_MULTIPLIER = 20;
     
     public ClimberMotionMagicJoystick(Climber climber, TJController controller) {
         m_climber = climber;
@@ -23,18 +25,33 @@ public class ClimberMotionMagicJoystick extends CommandBase {
 
     @Override
     public void execute() {
-        double leftStickX = DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25);
-        double leftStickY = DriveUtils.deadbandExponential(m_controller.getLeftStickY(), 3, 0.25);
-        double rightStickX = DriveUtils.deadbandExponential(m_controller.getRightStickX(), 3, 0.25);
-        double rightStickY = DriveUtils.deadbandExponential(m_controller.getRightStickY(), 3, 0.25);
+        double innerPivot = DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25) * PIVOT_SPEED;
+        double innerTelescope = DriveUtils.deadbandExponential(m_controller.getLeftStickY(), 3, 0.25) * TELESCOPE_SPEED;
+        double outerPivot = DriveUtils.deadbandExponential(m_controller.getRightStickX(), 3, 0.25) * PIVOT_SPEED;
+        double outerTelescope = DriveUtils.deadbandExponential(m_controller.getRightStickY(), 3, 0.25) * TELESCOPE_SPEED;
 
         if (m_controller.buttonRightBumper.get()) {
-            leftStickY *= BUMPER_MULTIPLIER;
-            rightStickY *= BUMPER_MULTIPLIER;
+            innerTelescope *= BUMPER_MULTIPLIER;
+            outerTelescope *= BUMPER_MULTIPLIER;
         }
 
-        m_climber.setInnerMotionMagic(m_climber.getAverageInnerPivotAngle() + leftStickX * PIVOT_SPEED, m_climber.getAverageInnerTelescopeHeight() + leftStickY * TELESCOPE_SPEED);
-        m_climber.setOuterMotionMagic(m_climber.getAverageOuterPivotAngle() + rightStickX * PIVOT_SPEED, m_climber.getAverageOuterTelescopeHeight() + rightStickY * TELESCOPE_SPEED);
+        innerPivot += m_climber.getAverageInnerPivotAngle();
+        innerTelescope += m_climber.getAverageInnerTelescopeHeight();
+        outerPivot += m_climber.getAverageOuterPivotAngle();
+        outerTelescope += m_climber.getAverageOuterTelescopeHeight();
+
+        Pair<Double, Double> limitedInner = ClimberArm.getNearestValidPosition(innerPivot, innerTelescope);
+        Pair<Double, Double> limitedOuter = ClimberArm.getNearestValidPosition(outerPivot, outerTelescope);
+
+        if (ClimberArm.isPositionInvalid(innerPivot, innerTelescope)) {
+            System.out.println("Inner Invalid");
+        }
+        if (ClimberArm.isPositionInvalid(outerPivot, outerTelescope)) {
+            System.out.println("Outer Invalid");
+        }
+
+        m_climber.setInnerMotionMagic(limitedInner.getFirst(), limitedInner.getSecond());
+        m_climber.setOuterMotionMagic(limitedOuter.getFirst(), limitedOuter.getSecond());
     }
 
     @Override

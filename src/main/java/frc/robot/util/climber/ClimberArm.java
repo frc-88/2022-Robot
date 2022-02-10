@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -44,6 +45,14 @@ public class ClimberArm {
     private static final double PIVOT_MAX_ANGLE = 29;
     protected static final double TELESCOPE_MIN_HEIGHT = 27;
     private static final double TELESCOPE_MAX_HEIGHT = 60;
+
+    private static final Vector2D PIVOT_LOCATION = Vector2D.createCartesianCoordinates(0, 13.123);
+    private static final Vector2D HOOK_TOP_CENTER = Vector2D.createCartesianCoordinates(1.773, 0.754);
+    private static final double HOOK_TOP_RADIUS = 2.154;
+
+    private static final double HEIGHT_LIMIT = 66;
+    private static final double FRONT_LIMIT = 32;
+    private static final double BACK_LIMIT = -28;
 
     private static class MotorPreferences {
         private final DoublePreferenceConstant triggerCurrent;
@@ -215,7 +224,80 @@ public class ClimberArm {
     }
 
     public Vector2D getPositionVector() {
-        return Vector2D.createPolarCoordinates(getTelescopeHeight(), new WrappedAngle(-getPivotAngle() + 90));
+        return getPositionVector(getPivotAngle(), getTelescopeHeight());
+    }
+
+    private static Vector2D getPositionVector(double pivotAngle, double telescopeHeight) {
+        return Vector2D.createPolarCoordinates(telescopeHeight, new WrappedAngle(-pivotAngle + 90));
+    }
+
+
+    public static boolean isPositionInvalid(double pivotAngle, double telescopeHeight) {
+        return doesPositionViolatePivotMin(pivotAngle, telescopeHeight)
+                || doesPositionViolatePivotMax(pivotAngle, telescopeHeight)
+                || doesPositionViolateTelescopeMin(pivotAngle, telescopeHeight)
+                || doesPositionViolateTelescopeMax(pivotAngle, telescopeHeight)
+                || doesPositionViolateHeightLimit(pivotAngle, telescopeHeight)
+                || doesPositionViolateFrontExtension(pivotAngle, telescopeHeight)
+                || doesPositionViolateBackExtension(pivotAngle, telescopeHeight);
+    }
+
+    public static Pair<Double, Double> getNearestValidPosition(double pivotAngle, double telescopeHeight) {
+        if (doesPositionViolatePivotMin(pivotAngle, telescopeHeight)) {
+            pivotAngle = PIVOT_MIN_ANGLE;
+        }
+        if (doesPositionViolatePivotMax(pivotAngle, telescopeHeight)) {
+            pivotAngle = PIVOT_MAX_ANGLE;
+        }
+        if (doesPositionViolateTelescopeMin(pivotAngle, telescopeHeight)) {
+            telescopeHeight = TELESCOPE_MIN_HEIGHT;
+        }
+        if (doesPositionViolateTelescopeMax(pivotAngle, telescopeHeight)) {
+            telescopeHeight = TELESCOPE_MAX_HEIGHT;
+        }
+        // if (doesPositionViolateHeightLimit(pivotAngle, telescopeHeight)) {
+        //     telescopeHeight = HEIGHT_LIMIT - HOOK_TOP_RADIUS - PIVOT_LOCATION.getX() .plus(HOOK_TOP_CENTER.rotate(-pivotAngle)).getY();
+        // }
+        // if (doesPositionViolateFrontExtension(pivotAngle, telescopeHeight)) {
+        //     telescopeHeight = (FRONT_LIMIT - HOOK_TOP_RADIUS - PIVOT_LOCATION.plus(HOOK_TOP_CENTER.rotate(-pivotAngle)).getX()) / Math.cos(Math.toRadians(-pivotAngle + 90));
+        // }
+        // if (doesPositionViolateBackExtension(pivotAngle, telescopeHeight)) {
+        //     telescopeHeight = (-BACK_LIMIT - HOOK_TOP_RADIUS + PIVOT_LOCATION.plus(HOOK_TOP_CENTER).rotate(-pivotAngle).getX()) / Math.abs(Math.cos(Math.toRadians(-pivotAngle + 90)));
+        // }
+        return new Pair<Double,Double>(pivotAngle, telescopeHeight);
+    }
+
+    private static boolean doesPositionViolatePivotMin(double pivotAngle, double telescopeHeight) {
+        return pivotAngle < PIVOT_MIN_ANGLE;
+    }
+
+    private static boolean doesPositionViolatePivotMax(double pivotAngle, double telescopeHeight) {
+        return pivotAngle > PIVOT_MAX_ANGLE;
+    }
+
+    private static boolean doesPositionViolateTelescopeMin(double pivotAngle, double telescopeHeight) {
+        return telescopeHeight < TELESCOPE_MIN_HEIGHT;
+    }
+
+    private static boolean doesPositionViolateTelescopeMax(double pivotAngle, double telescopeHeight) {
+        return telescopeHeight > TELESCOPE_MAX_HEIGHT;
+    }
+
+    private static boolean doesPositionViolateHeightLimit(double pivotAngle, double telescopeHeight) {
+        return getHookTopCenterFromCenterGround(pivotAngle, telescopeHeight).getY() + HOOK_TOP_RADIUS > HEIGHT_LIMIT;
+    }
+
+    private static boolean doesPositionViolateFrontExtension(double pivotAngle, double telescopeHeight) {
+        return getHookTopCenterFromCenterGround(pivotAngle, telescopeHeight).getX() + HOOK_TOP_RADIUS > FRONT_LIMIT;
+    }
+
+    private static boolean doesPositionViolateBackExtension(double pivotAngle, double telescopeHeight) {
+        return getHookTopCenterFromCenterGround(pivotAngle, telescopeHeight).getX() - HOOK_TOP_RADIUS < BACK_LIMIT;
+    }
+
+
+    private static Vector2D getHookTopCenterFromCenterGround(double pivotAngle, double telescopeHeight) {
+        return PIVOT_LOCATION.plus(getPositionVector(pivotAngle, telescopeHeight).plus(HOOK_TOP_CENTER.rotate(-pivotAngle)));
     }
 
 
@@ -224,6 +306,7 @@ public class ClimberArm {
         SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Height", getTelescopeHeight());
         SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
         SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
+        SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
         SmartDashboard.putBoolean(m_positionLabel + " Climber Is Calibrated", isCalibrated());
     }
 
