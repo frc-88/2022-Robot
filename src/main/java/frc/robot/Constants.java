@@ -10,8 +10,8 @@ import frc.robot.util.drive.Shifter;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
- * numerical or boolean constants. This class should not be used for any other 
- * purpose. All constants should be declared globally (i.e. public static). 
+ * numerical or boolean constants. This class should not be used for any other
+ * purpose. All constants should be declared globally (i.e. public static).
  * Do not put anything functional in this class.
  *
  * It is advised to statically import this class (or one of its inner classes)
@@ -32,10 +32,10 @@ public final class Constants {
 	// Drive CAN IDs
 	public static final int LEFT_MASTER_DRIVE_ID = 0;
 	public static final int LEFT_FOLLOWER_DRIVE_ID = 1;
-	public static final int RIGHT_MASTER_DRIVE_ID = 15;
-	public static final int RIGHT_FOLLOWER_DRIVE_ID = 14;
+	public static final int RIGHT_MASTER_DRIVE_ID = 19;
+	public static final int RIGHT_FOLLOWER_DRIVE_ID = 18;
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
-	public static final int RIGHT_DRIVE_ENCODER_ID = 15;
+	public static final int RIGHT_DRIVE_ENCODER_ID = 19;
 
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
@@ -53,12 +53,12 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 16.5;
+	public static final double WHEEL_BASE_WIDTH = 25.75 / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 	
 	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
 	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
 
-  public static final double WHEEL_BASE_WIDTH = (25. + 5. / 16.) / 12.; // feet
 	public static final double MAX_TRAJ_VELOCITY = 16.0;
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
@@ -74,9 +74,36 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
+	// Hopper
+	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
+	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
+    public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
+    public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
+	public static final double HOPPER_CENTRALIZER_SPEED_DFT = 0.5;
+    public static final double HOPPER_CHAMBER_SPEED_DFT = 0.5;
+
+	// Intake
+	public static final int INTAKE_ROLLER_ID = 6;
+	public static final int INTAKE_ARM_ID = 7;
+
+	// Climber
+	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;
+	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 3;
+	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 17;
+	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 16;
+	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 4;
+	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 5;
+	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 15;
+	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 14;
+
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
+	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
+	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 20.0;
+	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
+	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
+	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -84,4 +111,25 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
+
+	// Turret
+	public static final int TURRET_MOTOR_ID = 0;
+	public static final int TURRET_ENCODER_ID = 0;
+	public static final double TURRET_CANCODER_CONV = 1.0;
+	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
+	public static final double TURRET_DEFAULT_ZERO = 0;
+	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
+	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
+    public static final double TURRET_DEFAULT_I = 0.0;
+    public static final double TURRET_DEFAULT_P = 0.0;
+    public static final double TURRET_DEFAULT_D = 0.0;
+    public static final double TURRET_DEFAULT_F = 1.0;
+
+	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
+    public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
+    public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
+    
+	// Field constants
+	public static final double FIELD_VISION_TARGET_HEIGHT = 0;
 }

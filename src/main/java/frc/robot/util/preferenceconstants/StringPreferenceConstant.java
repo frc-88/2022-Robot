@@ -24,7 +24,7 @@ public class StringPreferenceConstant extends BasePreferenceConstant<String> {
     public StringPreferenceConstant(String name, String defaultValue) {
         this.name = Objects.requireNonNull(name);
         this.defaultValue = Objects.requireNonNull(defaultValue);
-        if (!Preferences.getInstance().containsKey(name)) {
+        if (!Preferences.containsKey(name)) {
             this.setValue(defaultValue);
         } else {
             update();
@@ -33,12 +33,12 @@ public class StringPreferenceConstant extends BasePreferenceConstant<String> {
 
     @Override
     protected String getFromPreferences() {
-        return Preferences.getInstance().getString(name, defaultValue);
+        return Preferences.getString(name, defaultValue);
     }
 
     @Override
     protected void setInPreferences(String value) {
-        Preferences.getInstance().putString(name, value);
+        Preferences.setString(name, value);
     }
 
 }
