@@ -55,6 +55,10 @@ public final class Constants {
 	public static final double MAX_SPEED_HIGH = 16.5;
 	public static final double WHEEL_BASE_WIDTH = 25.75 / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
+	
+	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
+	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
+
 	public static final double MAX_TRAJ_VELOCITY = 16.0;
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;

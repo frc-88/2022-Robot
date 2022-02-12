@@ -21,6 +21,8 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Sensors;
+import frc.robot.util.tunnel.ROSInterface;
+import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -54,7 +56,14 @@ public class RobotContainer {
   private final TJController m_driverController = new TJController(0);
   private final TJController m_testController = new TJController(2);
 
+  // ROS tunnel interfaces
+  private TunnelServer m_tunnel;
+  private ROSInterface m_ros_interface;
+
+  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    m_ros_interface = new ROSInterface(m_drive);
+    m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
     m_calibrateClimber = new RunCommand(m_climber::calibrate, m_climber).withInterrupt(m_climber::isCalibrated).beforeStarting(m_climber::resetCalibration).withName("calibrateClimber");
     m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
     m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
