@@ -55,8 +55,9 @@ public class RobotContainer {
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
   // Controllers
-  private final TJController m_driverController = new TJController(0);
-  private final TJController m_testController = new TJController(2);
+  private final TJController m_driverController = new TJController(Constants.DRIVER_CONTROLLER_ID);
+  private final TJController m_buttonBox = new TJController(Constants.BUTTON_BOX_ID);
+  private final TJController m_testController = new TJController(Constants.TEST_CONTROLLER_ID);
 
   // ROS tunnel interfaces
   private TunnelServer m_tunnel;
