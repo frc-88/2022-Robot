@@ -31,10 +31,10 @@ public final class Constants {
 	// Drive CAN IDs
 	public static final int LEFT_MASTER_DRIVE_ID = 0;
 	public static final int LEFT_FOLLOWER_DRIVE_ID = 1;
-	public static final int RIGHT_MASTER_DRIVE_ID = 15;
-	public static final int RIGHT_FOLLOWER_DRIVE_ID = 14;
+	public static final int RIGHT_MASTER_DRIVE_ID = 19;
+	public static final int RIGHT_FOLLOWER_DRIVE_ID = 18;
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
-	public static final int RIGHT_DRIVE_ENCODER_ID = 15;
+	public static final int RIGHT_DRIVE_ENCODER_ID = 19;
 
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
@@ -70,11 +70,25 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Intake
-
 	public static final int INTAKE_ROLLER_ID = 6;
 	public static final int INTAKE_ARM_ID = 7;
 
+	// Climber
+	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;
+	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 3;
+	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 17;
+	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 16;
+	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 4;
+	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 5;
+	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 15;
+	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 14;
+
 	// Sensors
+	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
+	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 20.0;
+	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
+	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
+	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -82,7 +96,11 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
-    public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
+    
+	public static final double BLUE_CARGO_BLUE_THRESHOLD = 0;
     public static final double BLUE_CARGO_RED_THRESHOLD = 0;
     public static final double BLUE_CARGO_GREEN_THRESHOLD = 0;
+
+	// Field constants
+	public static final double FIELD_VISION_TARGET_HEIGHT = 0;
 }

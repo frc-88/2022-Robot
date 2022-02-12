@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * This class holds all of the constants for the Swerve Library.
+ * This class holds all of the constants for this project.
  */
 public class PreferenceConstants {
 

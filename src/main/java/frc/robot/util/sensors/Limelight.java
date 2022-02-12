@@ -8,6 +8,8 @@
 package frc.robot.util.sensors;
 
 import edu.wpi.first.networktables.*;
+import frc.robot.Constants;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 /**
  * Limelight wrapper class
@@ -26,6 +28,11 @@ public class Limelight {
     private NetworkTableEntry m_camMode;
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
+
+    private final DoublePreferenceConstant m_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
+    private final DoublePreferenceConstant m_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
+    private final DoublePreferenceConstant m_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
+    private final DoublePreferenceConstant m_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -69,6 +76,22 @@ public class Limelight {
     public boolean hasTarget() {
         return isLightOn() && (m_tv.getDouble(0.0) == 1.0);
     }
+
+    public double getDistanceToTarget(boolean hoodUp) {
+        double distance = 0;
+        double height = hoodUp ? m_heightHoodUp.getValue() : m_heightHoodDown.getValue();
+        double angle = hoodUp ? m_angleHoodUp.getValue() : m_angleHoodDown.getValue();
+
+        if (isConnected() && hasTarget()) {
+            double ty = getTargetVerticalOffsetAngle();
+    
+          distance = (Constants.FIELD_VISION_TARGET_HEIGHT - height) / 
+             Math.tan(Math.toRadians(angle + ty));
+        }
+    
+        return distance;
+      }
+    
 
     /**
      * Get the horizontal offset angle of the target from the center of the camera
