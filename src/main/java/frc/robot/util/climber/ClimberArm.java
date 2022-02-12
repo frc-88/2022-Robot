@@ -166,6 +166,10 @@ public class ClimberArm {
     }
 
     public void setMotionMagic(double pivotAngle, double telescopeHeight) {
+        if (!isCalibrated()) {
+            System.err.println("Cannot use motion magic for " + m_positionLabel + " climber because it is not calibrated!");
+            return;
+        }
         m_pivot.set(TalonFXControlMode.MotionMagic, convertPivotActualPositionToMotor(pivotAngle));
         m_telescope.set(TalonFXControlMode.MotionMagic, convertTelescopeActualPositionToMotor(telescopeHeight));
     }
