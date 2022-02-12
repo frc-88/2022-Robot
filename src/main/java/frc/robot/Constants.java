@@ -10,8 +10,8 @@ import frc.robot.util.drive.Shifter;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
- * numerical or boolean constants. This class should not be used for any other 
- * purpose. All constants should be declared globally (i.e. public static). 
+ * numerical or boolean constants. This class should not be used for any other
+ * purpose. All constants should be declared globally (i.e. public static).
  * Do not put anything functional in this class.
  *
  * It is advised to statically import this class (or one of its inner classes)
@@ -107,6 +107,19 @@ public final class Constants {
 	public final static double LEAK_WARNING = 0.01;
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
+
+	// Turret
+	public static final int TURRET_MOTOR_ID = 0;
+	public static final int TURRET_ENCODER_ID = 0;
+	public static final double TURRET_CANCODER_CONV = 1.0;
+	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
+	public static final double TURRET_DEFAULT_ZERO = 0;
+	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
+	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
+    public static final double TURRET_DEFAULT_I = 0.0;
+    public static final double TURRET_DEFAULT_P = 0.0;
+    public static final double TURRET_DEFAULT_D = 0.0;
+    public static final double TURRET_DEFAULT_F = 1.0;
 
 	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
     public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
