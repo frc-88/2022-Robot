@@ -30,10 +30,10 @@ public final class Constants {
 	*/
 
 	// Drive CAN IDs
-	public static final int LEFT_MASTER_DRIVE_ID = 0;
-	public static final int LEFT_FOLLOWER_DRIVE_ID = 1;
-	public static final int RIGHT_MASTER_DRIVE_ID = 19;
-	public static final int RIGHT_FOLLOWER_DRIVE_ID = 18;
+	public static final int LEFT_MASTER_DRIVE_ID = 23;
+	public static final int LEFT_FOLLOWER_DRIVE_ID = 24;
+	public static final int RIGHT_MASTER_DRIVE_ID = 21;
+	public static final int RIGHT_FOLLOWER_DRIVE_ID = 22;
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
 	public static final int RIGHT_DRIVE_ENCODER_ID = 19;
 
@@ -71,8 +71,8 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Shooter
-	public static final int SHOOTER_FLYWHEEL_ID = 0;
-    public static final int SHOOTER_HOOD_ID = 0;
+	public static final int SHOOTER_FLYWHEEL_ID =30;
+    public static final int SHOOTER_HOOD_ID = 31;
     public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
     public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
     public static final double SHOOTER_P_DFT = 0.0;
@@ -82,7 +82,7 @@ public final class Constants {
     public static final double SHOOTER_HOOD_SPEED_DFT = 0;
 
 	// Turret
-	public static final int TURRET_MOTOR_ID = 0;
+	public static final int TURRET_MOTOR_ID = 28;
 	public static final int TURRET_ENCODER_ID = 0;
 	public static final double TURRET_CANCODER_CONV = 1.0;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
@@ -94,17 +94,17 @@ public final class Constants {
     public static final double TURRET_DEFAULT_D = 0.0;
     public static final double TURRET_DEFAULT_F = 1.0;
 
-	// Hopper
-	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
-	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
-    public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
-    public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
-	public static final double HOPPER_CENTRALIZER_SPEED_DFT = 0.5;
-    public static final double HOPPER_CHAMBER_SPEED_DFT = 0.5;
+	// Feeders
+	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 26;
+	public static final int FEEDER_CHAMBER_MOTOR_ID = 25;
+    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 0;
+    public static final int FEEDER_CHAMBER_BEAMBREAK = 1;
+	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
+    public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
-	public static final int INTAKE_ROLLER_ID = 6;
-	public static final int INTAKE_ARM_ID = 7;
+	public static final int INTAKE_ROLLER_ID = 29;
+	public static final int INTAKE_ARM_ID = 27;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;
@@ -132,7 +132,6 @@ public final class Constants {
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
 
-	// Color Sensor
 	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
     public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
