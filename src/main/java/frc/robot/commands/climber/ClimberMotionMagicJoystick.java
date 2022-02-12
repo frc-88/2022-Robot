@@ -2,21 +2,21 @@ package frc.robot.commands.climber;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Climber;
-import frc.robot.util.TJController;
 import frc.robot.util.climber.ClimberArm;
+import frc.robot.util.controllers.XboxController;
 import frc.robot.util.drive.DriveUtils;
 
 public class ClimberMotionMagicJoystick extends CommandBase {
     
     private Climber m_climber;
-    private TJController m_controller;
+    private XboxController m_controller;
 
     private static final double PIVOT_SPEED = 5;
     private static final double TELESCOPE_SPEED = 2;
 
     private static final double BUMPER_MULTIPLIER = 20;
     
-    public ClimberMotionMagicJoystick(Climber climber, TJController controller) {
+    public ClimberMotionMagicJoystick(Climber climber, XboxController controller) {
         m_climber = climber;
         m_controller = controller;
         addRequirements(m_climber);

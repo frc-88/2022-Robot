@@ -26,12 +26,13 @@ import frc.robot.util.tunnel.ROSInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
+import frc.robot.util.controllers.DriverController;
+import frc.robot.util.controllers.FrskyDriverController;
+import frc.robot.util.controllers.XboxController;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
-import frc.robot.util.TJController;
-import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class RobotContainer {
@@ -55,9 +56,9 @@ public class RobotContainer {
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
   // Controllers
-  private final TJController m_driverController = new TJController(Constants.DRIVER_CONTROLLER_ID);
-  private final TJController m_buttonBox = new TJController(Constants.BUTTON_BOX_ID);
-  private final TJController m_testController = new TJController(Constants.TEST_CONTROLLER_ID);
+  private final DriverController m_driverController = new FrskyDriverController(Constants.DRIVER_CONTROLLER_ID);
+  private final XboxController m_buttonBox = new XboxController(Constants.BUTTON_BOX_ID);
+  private final XboxController m_testController = new XboxController(Constants.TEST_CONTROLLER_ID);
 
   // ROS tunnel interfaces
   private TunnelServer m_tunnel;
@@ -78,36 +79,20 @@ public class RobotContainer {
   }
 
   private void configureDriverController() {
-    BooleanSupplier arcadeDriveForceLowGear = () -> m_driverController.getRightTrigger() > 0.5;
-    DoubleSupplier arcadeDriveSpeedSupplier = DriveUtils.deadbandExponential(m_driverController::getLeftStickY,
-        Constants.DRIVE_SPEED_EXP, Constants.DRIVE_JOYSTICK_DEADBAND);
-    DoubleSupplier arcadeDriveCheesyDriveMinTurn = () -> arcadeDriveForceLowGear.getAsBoolean()
-        ? Constants.CHEESY_DRIVE_FORCE_LOW_MIN_TURN
-        : Constants.CHEESY_DRIVE_MIN_TURN;
-    DoubleSupplier arcadeDriveCheesyDriveMaxTurn = () -> arcadeDriveForceLowGear.getAsBoolean()
-        ? Constants.CHEESY_DRIVE_FORCE_LOW_MAX_TURN
-        : Constants.CHEESY_DRIVE_MAX_TURN;
-    DoubleSupplier arcadeDriveTurnSupplier = DriveUtils.cheesyTurn(arcadeDriveSpeedSupplier,
-        DriveUtils.deadbandExponential(m_driverController::getRightStickX, Constants.DRIVE_SPEED_EXP,
-            Constants.DRIVE_JOYSTICK_DEADBAND),
-        arcadeDriveCheesyDriveMinTurn.getAsDouble(), arcadeDriveCheesyDriveMaxTurn.getAsDouble());
     Runnable arcadeDriveShiftSupplier = () -> {
-      if (arcadeDriveForceLowGear.getAsBoolean()) {
+      if (m_driverController.getForceLowGear()) {
         m_drive.shiftToLow();
       } else {
-        m_drive.autoshift(arcadeDriveSpeedSupplier.getAsDouble());
+        m_drive.autoshift(m_driverController.getThrottle());
       }
     };
-    DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> arcadeDriveForceLowGear.getAsBoolean() ? Constants.MAX_SPEED_LOW
+    DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> m_driverController.getForceLowGear() ? Constants.MAX_SPEED_LOW
         : Constants.MAX_SPEED_HIGH;
 
-    m_arcadeDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
+    m_arcadeDrive = new ArcadeDrive(m_drive, m_driverController::getThrottle, m_driverController::getTurn,
         arcadeDriveShiftSupplier, arcadeDriveMaxSpeedSupplier);
 
-    CommandBase tankDrive = new TankDrive(m_drive, m_driverController::getLeftStickY, m_driverController::getRightStickY);
-
     SmartDashboard.putData("Arcade Drive", m_arcadeDrive);
-    SmartDashboard.putData("Tank Drive", tankDrive);
   }
 
   private void configureDashboardCommands() {
