@@ -52,7 +52,7 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 16.5;
-	public static final double WHEEL_BASE_WIDTH = (25. + 5./16.) / 12.; // feet
+	public static final double WHEEL_BASE_WIDTH = 25.75 / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 
 	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 20, 120, 240, 150, 210);
