@@ -69,7 +69,9 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
-
+	// Intake
+	public static final int INTAKE_ROLLER_ID = 6;
+	public static final int INTAKE_ARM_ID = 7;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;

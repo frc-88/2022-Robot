@@ -40,9 +40,6 @@ public class ClimberMotionMagicJoystick extends CommandBase {
         outerPivot += m_climber.getAverageOuterPivotAngle();
         outerTelescope += m_climber.getAverageOuterTelescopeHeight();
 
-        Pair<Double, Double> limitedInner = ClimberArm.getNearestValidPosition(innerPivot, innerTelescope);
-        Pair<Double, Double> limitedOuter = ClimberArm.getNearestValidPosition(outerPivot, outerTelescope);
-
         if (ClimberArm.isPositionInvalid(innerPivot, innerTelescope)) {
             System.out.println("Inner Invalid");
         }
@@ -50,8 +47,8 @@ public class ClimberMotionMagicJoystick extends CommandBase {
             System.out.println("Outer Invalid");
         }
 
-        m_climber.setInnerMotionMagic(limitedInner.getFirst(), limitedInner.getSecond());
-        m_climber.setOuterMotionMagic(limitedOuter.getFirst(), limitedOuter.getSecond());
+        m_climber.setInnerMotionMagic(innerPivot, innerTelescope);
+        m_climber.setOuterMotionMagic(outerPivot, outerTelescope);
     }
 
     @Override

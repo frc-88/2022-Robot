@@ -38,7 +38,7 @@ public class ClimberArm {
     private SingleJointedArmSim m_pivotSim;
     private ElevatorSim m_telescopeSim;
 
-    private static final double PIVOT_RATIO = 360. / (100. * 2048.); // Motor ticks to actual degrees
+    private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
 
     private static final double PIVOT_MIN_ANGLE = -50;
@@ -156,7 +156,7 @@ public class ClimberArm {
         pivotPreferences.registerMotor(m_pivot);
         telescopePreferences.registerMotor(m_telescope);
 
-        m_pivotSim = new SingleJointedArmSim(DCMotor.getFalcon500(1), 100., 0.15, Units.inchesToMeters(36), Units.degreesToRadians(PIVOT_MIN_ANGLE - 90), Units.degreesToRadians(PIVOT_MAX_ANGLE - 90), Units.lbsToKilograms(3), false);
+        m_pivotSim = new SingleJointedArmSim(DCMotor.getFalcon500(1), 196., 0.15, Units.inchesToMeters(36), Units.degreesToRadians(PIVOT_MIN_ANGLE - 90), Units.degreesToRadians(PIVOT_MAX_ANGLE - 90), Units.lbsToKilograms(3), false);
         m_telescopeSim = new ElevatorSim(DCMotor.getFalcon500(1), 25., Units.lbsToKilograms(2), Units.inchesToMeters(2.6), Units.inchesToMeters(TELESCOPE_MIN_HEIGHT), Units.inchesToMeters(TELESCOPE_MAX_HEIGHT));
     }
 
@@ -240,31 +240,6 @@ public class ClimberArm {
                 || doesPositionViolateHeightLimit(pivotAngle, telescopeHeight)
                 || doesPositionViolateFrontExtension(pivotAngle, telescopeHeight)
                 || doesPositionViolateBackExtension(pivotAngle, telescopeHeight);
-    }
-
-    public static Pair<Double, Double> getNearestValidPosition(double pivotAngle, double telescopeHeight) {
-        if (doesPositionViolatePivotMin(pivotAngle, telescopeHeight)) {
-            pivotAngle = PIVOT_MIN_ANGLE;
-        }
-        if (doesPositionViolatePivotMax(pivotAngle, telescopeHeight)) {
-            pivotAngle = PIVOT_MAX_ANGLE;
-        }
-        if (doesPositionViolateTelescopeMin(pivotAngle, telescopeHeight)) {
-            telescopeHeight = TELESCOPE_MIN_HEIGHT;
-        }
-        if (doesPositionViolateTelescopeMax(pivotAngle, telescopeHeight)) {
-            telescopeHeight = TELESCOPE_MAX_HEIGHT;
-        }
-        // if (doesPositionViolateHeightLimit(pivotAngle, telescopeHeight)) {
-        //     telescopeHeight = HEIGHT_LIMIT - HOOK_TOP_RADIUS - PIVOT_LOCATION.getX() .plus(HOOK_TOP_CENTER.rotate(-pivotAngle)).getY();
-        // }
-        // if (doesPositionViolateFrontExtension(pivotAngle, telescopeHeight)) {
-        //     telescopeHeight = (FRONT_LIMIT - HOOK_TOP_RADIUS - PIVOT_LOCATION.plus(HOOK_TOP_CENTER.rotate(-pivotAngle)).getX()) / Math.cos(Math.toRadians(-pivotAngle + 90));
-        // }
-        // if (doesPositionViolateBackExtension(pivotAngle, telescopeHeight)) {
-        //     telescopeHeight = (-BACK_LIMIT - HOOK_TOP_RADIUS + PIVOT_LOCATION.plus(HOOK_TOP_CENTER).rotate(-pivotAngle).getX()) / Math.abs(Math.cos(Math.toRadians(-pivotAngle + 90)));
-        // }
-        return new Pair<Double,Double>(pivotAngle, telescopeHeight);
     }
 
     private static boolean doesPositionViolatePivotMin(double pivotAngle, double telescopeHeight) {
