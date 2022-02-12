@@ -21,7 +21,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.util.NavX;
+import frc.robot.util.sensors.Limelight;
+import frc.robot.util.sensors.NavX;
 
 /**
  * we gather data
@@ -30,11 +31,10 @@ import frc.robot.util.NavX;
  */
 
 public class Sensors extends SubsystemBase {
-  private final NavX m_navx = new NavX();
+  public final NavX navx = new NavX();
+  public final Limelight limelight = new Limelight();
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
-
-  private double m_yawOffset = 0.0;
 
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
@@ -43,18 +43,6 @@ public class Sensors extends SubsystemBase {
    * Creates a new Sensors subsystem
    */
   public Sensors() {
-  }
-
-  public void zeroYaw() {
-    m_yawOffset = m_navx.getYaw();
-  }
-
-  public double getYaw() {
-    return m_navx.getYaw() - m_yawOffset;
-  }
-
-  public double getYawRate() {
-    return m_navx.getYawRate();
   }
 
   public double getStoragePressure() {
@@ -92,10 +80,10 @@ public class Sensors extends SubsystemBase {
   @Override
   public void periodic() {
     // NavX data
-    SmartDashboard.putNumber("NavX Yaw", getYaw());
-    SmartDashboard.putNumber("NavX Yaw Rate", getYawRate());
-    SmartDashboard.putNumber("NavX Pitch", m_navx.getPitch());
-    SmartDashboard.putNumber("NavX Roll", m_navx.getRoll());
+    SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
+    SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
+    SmartDashboard.putNumber("NavX Pitch", navx.getPitch());
+    SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
     // Color Sensor data
     Color detectedColor = m_colorSensor.getColor();
