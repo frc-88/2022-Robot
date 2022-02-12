@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.util.drive.Shifter;
 
@@ -52,8 +53,8 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 16.5;
+	public static final double WHEEL_BASE_WIDTH = 25.75 / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
-	public static final double WHEEL_BASE_WIDTH = (25. + 5. / 16.) / 12.; // feet
 	public static final double MAX_TRAJ_VELOCITY = 16.0;
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
@@ -84,6 +85,8 @@ public final class Constants {
 	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 14;
 
 	// Sensors
+	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
+
 	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
 	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 20.0;
 	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;

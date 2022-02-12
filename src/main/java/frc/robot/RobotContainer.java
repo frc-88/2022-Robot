@@ -70,8 +70,13 @@ public class RobotContainer {
         DriveUtils.deadbandExponential(m_driverController::getRightStickX, Constants.DRIVE_SPEED_EXP,
             Constants.DRIVE_JOYSTICK_DEADBAND),
         arcadeDriveCheesyDriveMinTurn.getAsDouble(), arcadeDriveCheesyDriveMaxTurn.getAsDouble());
-    BooleanSupplier arcadeDriveShiftSupplier = () -> !arcadeDriveForceLowGear.getAsBoolean()
-        && m_drive.autoshift(arcadeDriveSpeedSupplier.getAsDouble());
+    Runnable arcadeDriveShiftSupplier = () -> {
+      if (arcadeDriveForceLowGear.getAsBoolean()) {
+        m_drive.shiftToLow();
+      } else {
+        m_drive.autoshift(arcadeDriveSpeedSupplier.getAsDouble());
+      }
+    };
     DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> arcadeDriveForceLowGear.getAsBoolean() ? Constants.MAX_SPEED_LOW
         : Constants.MAX_SPEED_HIGH;
 
