@@ -10,34 +10,50 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.commands.drive.ArcadeDrive;
+import frc.robot.commands.drive.AutoFollowTrajectory;
+import frc.robot.commands.drive.TankDrive;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Sensors;
+import frc.robot.util.RapidReactTrajectories;
+import frc.robot.commands.climber.ClimberMotionMagicJoystick;
+import frc.robot.commands.climber.ClimberTestMotionMagic;
+import frc.robot.commands.climber.ManualModeClimber;
+import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.TJController;
 import frc.robot.util.drive.DriveUtils;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
+  // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Climber m_climber = new Climber();
 
-  private CommandBase m_teleopDrive;
+  // Commands
+  private CommandBase m_arcadeDrive;
+
+  private CommandBase m_calibrateClimber;
+  private CommandBase m_manualModeClimber;
+  private CommandBase m_climberTestMotionMagic;
+  private CommandBase m_climberMotionMagicJoystick;
+
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
+  // Controllers
   private final TJController m_driverController = new TJController(0);
+  private final TJController m_testController = new TJController(2);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // Configure the button bindings
+    m_calibrateClimber = new RunCommand(m_climber::calibrate, m_climber).withInterrupt(m_climber::isCalibrated).beforeStarting(m_climber::resetCalibration).withName("calibrateClimber");
+    m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
+    m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
+    m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
+
     configureDriverController();
     configureDefaultCommands();
+    configureDashboardCommands();
   }
 
   private void configureDriverController() {
@@ -63,13 +79,29 @@ public class RobotContainer {
     };
     DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> arcadeDriveForceLowGear.getAsBoolean() ? Constants.MAX_SPEED_LOW
         : Constants.MAX_SPEED_HIGH;
-    m_teleopDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
+
+    m_arcadeDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
         arcadeDriveShiftSupplier, arcadeDriveMaxSpeedSupplier);
-    SmartDashboard.putData("Teleop Drive", m_teleopDrive);
+
+    CommandBase tankDrive = new TankDrive(m_drive, m_driverController::getLeftStickY, m_driverController::getRightStickY);
+
+    SmartDashboard.putData("Arcade Drive", m_arcadeDrive);
+    SmartDashboard.putData("Tank Drive", tankDrive);
+  }
+
+  private void configureDashboardCommands() {
+    SmartDashboard.putData(m_calibrateClimber);
+    SmartDashboard.putData(m_manualModeClimber);
+    SmartDashboard.putData(m_climberTestMotionMagic);
+    SmartDashboard.putData(m_climberMotionMagicJoystick);
+
+    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
   }
 
   private void configureDefaultCommands() {
-    m_drive.setDefaultCommand(m_teleopDrive);
+    m_drive.setDefaultCommand(m_arcadeDrive);
   }
 
   /**
@@ -78,7 +110,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
 }
