@@ -21,8 +21,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.util.NavX;
 import frc.robot.util.sensors.Limelight;
+import frc.robot.util.sensors.NavX;
 
 /**
  * we gather data
