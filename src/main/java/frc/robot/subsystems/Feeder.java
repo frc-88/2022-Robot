@@ -47,7 +47,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   @Override
   public boolean hasCargo() {
-    return m_feederBeambreak.get();
+    return !m_feederBeambreak.get();
   }
 
   @Override

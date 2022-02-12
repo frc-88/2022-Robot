@@ -101,14 +101,15 @@ public final class Constants {
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 26;
 	public static final int FEEDER_CHAMBER_MOTOR_ID = 25;
-    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 0;
-    public static final int FEEDER_CHAMBER_BEAMBREAK = 1;
+    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 2;
+    public static final int FEEDER_CHAMBER_BEAMBREAK = 3;
 	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
     public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 29;
 	public static final int INTAKE_ARM_ID = 27;
+	public static final int INTAKE_BEAM_BREAK_ID = 1;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;
@@ -119,6 +120,7 @@ public final class Constants {
 	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 5;
 	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 15;
 	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 14;
+	public static final int CLIMBER_COAST_BUTTON_ID = 0;
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;

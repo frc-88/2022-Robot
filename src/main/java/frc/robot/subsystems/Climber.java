@@ -26,7 +26,7 @@ public class Climber extends SubsystemBase {
         innerLeftArm = new ClimberArm("Inner Left", Constants.INNER_LEFT_CLIMBER_PIVOT_ID, Constants.INNER_LEFT_CLIMBER_TELESCOPE_ID, false);
         innerRightArm = new ClimberArm("Inner Right", Constants.INNER_RIGHT_CLIMBER_PIVOT_ID, Constants.INNER_RIGHT_CLIMBER_TELESCOPE_ID, true);
 
-        coastButton = new DigitalInput(0);
+        coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
 
         allArms = Arrays.asList(new ClimberArm[]{outerLeftArm, outerRightArm, innerLeftArm, innerRightArm});
     }
