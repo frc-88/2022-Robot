@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.tunnel.ROSInterface;
 import frc.robot.util.tunnel.TunnelServer;
@@ -37,6 +38,7 @@ public class RobotContainer {
   // Subsystems
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
   private final Feeder m_chamber = new Feeder(Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
