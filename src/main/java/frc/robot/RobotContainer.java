@@ -36,8 +36,8 @@ public class RobotContainer {
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder(Constants.HOPPER_CENTRALIZER_MOTOR_ID, Constants.HOPPER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.HOPPER_CENTRALIZER_SPEED_DFT));
-  private final Feeder m_chamber = new Feeder(Constants.HOPPER_CHAMBER_MOTOR_ID, Constants.HOPPER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.HOPPER_CHAMBER_SPEED_DFT));
+  private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
+  private final Feeder m_chamber = new Feeder(Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
   private final Climber m_climber = new Climber();
 
   // Commands
