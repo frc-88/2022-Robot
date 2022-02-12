@@ -18,17 +18,17 @@ public class ArcadeDrive extends CommandBase {
   private Drive drive;
   private DoubleSupplier speed;
   private DoubleSupplier turn;
-  private BooleanSupplier inHighGear;
+  private Runnable shift;
   private DoubleSupplier maxSpeed;
 
   /**
    * Creates a new ArcadeDrive.
    */
-  public ArcadeDrive(Drive drive, DoubleSupplier speed, DoubleSupplier turn, BooleanSupplier inHighGear, DoubleSupplier maxSpeed) {
+  public ArcadeDrive(Drive drive, DoubleSupplier speed, DoubleSupplier turn, Runnable shift, DoubleSupplier maxSpeed) {
     this.turn = turn;
     this.drive = drive;
     this.speed = speed;
-    this.inHighGear = inHighGear;
+    this.shift = shift;
     this.maxSpeed = maxSpeed;
     addRequirements(drive);
   }
@@ -42,11 +42,7 @@ public class ArcadeDrive extends CommandBase {
   @Override
   public void execute() {
     drive.setMaxSpeed(maxSpeed.getAsDouble());
-    if (inHighGear.getAsBoolean()) {
-      drive.shiftToHigh();
-    } else {
-      drive.shiftToLow();
-    }
+    shift.run();
     drive.updateCurrentGear();
     drive.arcadeDrive(speed.getAsDouble(), turn.getAsDouble());
   }

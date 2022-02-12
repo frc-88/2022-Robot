@@ -51,7 +51,6 @@ public class Drive extends SubsystemBase {
   private final DriveConfiguration m_driveConfiguration;
   private final Shifter m_leftShifter, m_rightShifter;
 
-  private double m_currentLimit = Constants.DRIVE_CURRENT_LIMIT;
   private double m_leftCommandedSpeed = 0;
   private double m_rightCommandedSpeed = 0;
   private double m_maxSpeed = Constants.MAX_SPEED_HIGH;
@@ -65,6 +64,13 @@ public class Drive extends SubsystemBase {
   private DoublePreferenceConstant upshiftSpeed;
   private DoublePreferenceConstant commandDownshiftSpeed;
   private DoublePreferenceConstant commandDownshiftCommandValue;
+  private DoublePreferenceConstant lowStaticFriction;
+  private DoublePreferenceConstant highStaticFriction;
+  private DoublePreferenceConstant leftLowEfficiency;
+  private DoublePreferenceConstant rightLowEfficiency;
+  private DoublePreferenceConstant leftHighEfficiency;
+  private DoublePreferenceConstant rightHighEfficiency;
+  private DoublePreferenceConstant maxCurrent;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -89,15 +95,22 @@ public class Drive extends SubsystemBase {
     upshiftSpeed = new DoublePreferenceConstant("UpshiftSpeed", 6);
     commandDownshiftSpeed = new DoublePreferenceConstant("Command Downshift Speed", 5);
     commandDownshiftCommandValue = new DoublePreferenceConstant("Command Downshift Command Value", 0.1);
+    lowStaticFriction = new DoublePreferenceConstant("Drive Low Static Friction", Constants.DRIVE_LOW_STATIC_FRICTION_VOLTAGE);
+    highStaticFriction = new DoublePreferenceConstant("Drive High Static Friction", Constants.DRIVE_HIGH_STATIC_FRICTION_VOLTAGE);
+    leftLowEfficiency = new DoublePreferenceConstant("Drive Left Low Efficiency", Constants.DRIVE_LEFT_LOW_EFFICIENCY);
+    rightLowEfficiency = new DoublePreferenceConstant("Drive Right Low Efficiency", Constants.DRIVE_RIGHT_LOW_EFFICIENCY);
+    leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
+    rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
+    maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
-        Constants.DRIVE_LOW_STATIC_FRICTION_VOLTAGE, Constants.DRIVE_HIGH_STATIC_FRICTION_VOLTAGE,
-        Constants.DRIVE_LEFT_LOW_EFFICIENCY, Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
+        lowStaticFriction.getValue(), highStaticFriction.getValue(),
+        leftLowEfficiency.getValue(), leftHighEfficiency.getValue());
     m_rightTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
-        Constants.DRIVE_LOW_STATIC_FRICTION_VOLTAGE, Constants.DRIVE_HIGH_STATIC_FRICTION_VOLTAGE,
-        Constants.DRIVE_RIGHT_LOW_EFFICIENCY, Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
+        lowStaticFriction.getValue(), highStaticFriction.getValue(),
+        rightLowEfficiency.getValue(), rightHighEfficiency.getValue());
 
     m_leftVelPID = new SyncPIDController(velPIDConstants);
     m_rightVelPID = new SyncPIDController(velPIDConstants);
@@ -147,7 +160,7 @@ public class Drive extends SubsystemBase {
     // our starting pose is 1 meters along the long end of the field and in the
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
-    m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
+    m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.getYaw()), m_pose);
   }
 
   public void basicDrive(double leftSpeed, double rightSpeed) {
@@ -166,11 +179,11 @@ public class Drive extends SubsystemBase {
     double leftCurrentLimit;
     double rightCurrentLimit;
     if (totalExpectedCurrent == 0) {
-      leftCurrentLimit =  m_currentLimit / 2.;
-      rightCurrentLimit = m_currentLimit / 2.;
+      leftCurrentLimit =  maxCurrent.getValue() / 2.;
+      rightCurrentLimit = maxCurrent.getValue() / 2.;
     } else {
-      leftCurrentLimit = m_currentLimit * leftExpectedCurrent / totalExpectedCurrent;
-      rightCurrentLimit = m_currentLimit * rightExpectedCurrent / totalExpectedCurrent;
+      leftCurrentLimit = maxCurrent.getValue() * leftExpectedCurrent / totalExpectedCurrent;
+      rightCurrentLimit = maxCurrent.getValue() * rightExpectedCurrent / totalExpectedCurrent;
     }
 
     m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
@@ -220,19 +233,20 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  public boolean autoshift(double commandedValue) {
-    double currentSpeed = getStraightSpeed();
-    boolean inHighGear = getLeftGear() == Gear.HIGH;
-    if (inHighGear && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
-      return false;
-    } else if (!inHighGear && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
-      return true;
-    } else if (inHighGear && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
-        && (Math.signum(commandedValue) != Math.signum(currentSpeed)
-        || Math.abs(commandedValue) <= commandDownshiftCommandValue.getValue())) {
-      return false;
-    } else {
-      return inHighGear;
+  public void autoshift(double commandedValue) {
+    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter.getCommandedGear(), getLeftSpeed());
+    autoshiftSide(commandedValue, getRightGear(), m_rightShifter.getCommandedGear(), getRightSpeed());
+  }
+
+  public void autoshiftSide(double commandValue, Gear currentGear, Gear currentCommandedGear, double currentSpeed) {
+    if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
+      shiftToLow();
+    } else if (currentGear == Gear.LOW && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
+      shiftToHigh();
+    } else if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
+        && (Math.signum(commandValue) != Math.signum(currentSpeed)
+            || Math.abs(commandValue) <= commandDownshiftCommandValue.getValue())) {
+      shiftToLow();
     }
   }
 
@@ -351,7 +365,7 @@ public class Drive extends SubsystemBase {
   }
 
   public void zeroDrive() {
-    m_sensors.navx.zeroYaw();
+    m_sensors.zeroYaw();
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
   }
@@ -365,7 +379,7 @@ public class Drive extends SubsystemBase {
   }
 
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
   }
 
   @Override
