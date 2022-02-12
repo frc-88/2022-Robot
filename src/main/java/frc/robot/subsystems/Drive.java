@@ -163,7 +163,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // our starting pose is 1 meters along the long end of the field and in the
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
-    m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.getYaw()), m_pose);
+    m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
   }
 
   public void basicDrive(double leftSpeed, double rightSpeed) {
@@ -368,7 +368,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public void zeroDrive() {
-    m_sensors.zeroYaw();
+    m_sensors.navx.zeroYaw();
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
   }
@@ -382,7 +382,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
   }
 
   @Override
