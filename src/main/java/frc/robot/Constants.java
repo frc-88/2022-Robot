@@ -70,6 +70,30 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
+	// Shooter
+	public static final int SHOOTER_FLYWHEEL_ID = 0;
+    public static final int SHOOTER_HOOD_ID = 0;
+    public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
+    public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
+    public static final double SHOOTER_P_DFT = 0.0;
+    public static final double SHOOTER_I_DFT = 0.0;
+    public static final double SHOOTER_D_DFT = 0.0;
+    public static final double SHOOTER_F_DFT = 1.0;
+    public static final double SHOOTER_HOOD_SPEED_DFT = 0;
+
+	// Turret
+	public static final int TURRET_MOTOR_ID = 0;
+	public static final int TURRET_ENCODER_ID = 0;
+	public static final double TURRET_CANCODER_CONV = 1.0;
+	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
+	public static final double TURRET_DEFAULT_ZERO = 0;
+	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
+	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
+    public static final double TURRET_DEFAULT_I = 0.0;
+    public static final double TURRET_DEFAULT_P = 0.0;
+    public static final double TURRET_DEFAULT_D = 0.0;
+    public static final double TURRET_DEFAULT_F = 1.0;
+
 	// Hopper
 	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
 	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
@@ -108,19 +132,7 @@ public final class Constants {
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
 
-	// Turret
-	public static final int TURRET_MOTOR_ID = 0;
-	public static final int TURRET_ENCODER_ID = 0;
-	public static final double TURRET_CANCODER_CONV = 1.0;
-	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
-	public static final double TURRET_DEFAULT_ZERO = 0;
-	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
-	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
-    public static final double TURRET_DEFAULT_I = 0.0;
-    public static final double TURRET_DEFAULT_P = 0.0;
-    public static final double TURRET_DEFAULT_D = 0.0;
-    public static final double TURRET_DEFAULT_F = 1.0;
-
+	// Color Sensor
 	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
     public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
