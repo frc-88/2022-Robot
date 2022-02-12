@@ -1,6 +1,7 @@
 package frc.robot.util.preferenceconstants;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Collection of PreferenceConstants for gains and values that are typically
@@ -126,5 +127,20 @@ public class PIDPreferenceConstants {
      */
     public DoublePreferenceConstant getTolerance() {
         return tolerance;
+    }
+
+    /**
+     * Adds the given handler to all of the underlying preference constants.
+     * 
+     * @param handler The handler for all changes.
+     */
+    public void addChangeHandler(Consumer<Double> handler) {
+        this.kP.addChangeHandler(handler);
+        this.kI.addChangeHandler(handler);
+        this.kD.addChangeHandler(handler);
+        this.kF.addChangeHandler(handler);
+        this.iZone.addChangeHandler(handler);
+        this.iMax.addChangeHandler(handler);
+        this.tolerance.addChangeHandler(handler);
     }
 }
