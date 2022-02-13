@@ -5,6 +5,22 @@ import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 public class ButtonBox extends Joystick {
+
+    public enum ClimbBar {
+        LOW,
+        MID,
+        HIGH,
+        TRAVERSAL
+      }
+      public enum ClimbDirection {
+        FORWARDS,
+        BACKWARDS
+      }
+      public enum ClimbAction {
+        PREP,
+        RAISE,
+        CLIMB
+      }
 	
     private static int INTAKE = 1;
     private static int OUTGEST = 2;
@@ -18,6 +34,8 @@ public class ButtonBox extends Joystick {
     private static int PREP_CLIMBER = 10;
     private static int RAISE_CLIMBER = 11;
     private static int CLIMB = 12;
+
+    private ClimbBar m_currentClimbBar;
 	
 	public ButtonBox(int port) {
 		super(port);
@@ -26,15 +44,30 @@ public class ButtonBox extends Joystick {
 	public Button intakeButton = new JoystickButton(this, INTAKE);
     public Button outgestButton = new JoystickButton(this, OUTGEST);
     public Button shootButton = new JoystickButton(this, SHOOT);
-    public Button climbDirectionSwitch = new JoystickButton(this, CLIMB_DIRECTION);
-    public Button lowBarButton = new JoystickButton(this, LOW_BAR);
-    public Button midBarButton = new JoystickButton(this, MID_BAR);
-    public Button highBarButton = new JoystickButton(this, HIGH_BAR);
-    public Button traversalBarButton = new JoystickButton(this, TRAVERSAL_BAR);
     public Button stowClimberButton = new JoystickButton(this, STOW_CLIMBER);
     public Button prepClimberButton = new JoystickButton(this, PREP_CLIMBER);
     public Button raiseClimberButton = new JoystickButton(this, RAISE_CLIMBER);
     public Button climbButton = new JoystickButton(this, CLIMB);
+    public Button climbDirectionChange = new Button() {
+        private ClimbDirection lastState = ClimbDirection.FORWARDS;
+        @Override
+        public boolean get() {
+            ClimbDirection currentState = getClimbDirection();
+            boolean ret = currentState == lastState;
+            lastState = currentState;
+            return ret;
+        }
+    };
+    public Button climbBarChange = new Button() {
+        private ClimbBar lastState = ClimbBar.TRAVERSAL;
+        @Override
+        public boolean get() {
+            ClimbBar currentState = getClimbBar();
+            boolean ret = currentState == lastState;
+            lastState = currentState;
+            return ret;
+        }
+    };
 
 	public boolean isIntakeButtonPressed() {
 		return intakeButton.get();
@@ -48,25 +81,23 @@ public class ButtonBox extends Joystick {
 		return shootButton.get();
 	}
 
-    public boolean isClimbDirectionSwitchOn() {
-		return climbDirectionSwitch.get();
+    public ClimbDirection getClimbDirection() {
+		return getRawButton(CLIMB_DIRECTION) ? ClimbDirection.FORWARDS : ClimbDirection.BACKWARDS;
 	}
 
-    public boolean isLowBarButtonPressed() {
-		return lowBarButton.get();
-	}
+    public ClimbBar getClimbBar() {
+        if (getRawButton(TRAVERSAL_BAR)) {
+            m_currentClimbBar = ClimbBar.TRAVERSAL;
+        } else if (getRawButton(HIGH_BAR)) {
+            m_currentClimbBar = ClimbBar.HIGH;
+        } else if (getRawButton(MID_BAR)) {
+            m_currentClimbBar = ClimbBar.MID;
+        } else if (getRawButton(LOW_BAR)) {
+            m_currentClimbBar = ClimbBar.LOW;
+        }
 
-    public boolean isMidBarButtonPressed() {
-		return midBarButton.get();
-	}
-
-    public boolean isHighBarButtonPressed() {
-		return highBarButton.get();
-	}
-
-    public boolean isTraversalBarButtonPressed() {
-		return traversalBarButton.get();
-	}
+        return m_currentClimbBar;
+    }
 
     public boolean isStowClimberButtonPressed() {
 		return stowClimberButton.get();
