@@ -127,127 +127,6 @@ public class RobotContainer {
           .withName("calibrateClimber");
 
   private CommandBase m_stowClimber = new WaitCommand(1);
-  
-  private static class DirectionCommands {
-    private CommandBase m_prepCommand;
-    private CommandBase m_raiseCommand;
-    private CommandBase m_climbCommand;
-    
-    public DirectionCommands(CommandBase prepCommand, CommandBase raiseCommand, CommandBase climbCommand) {
-      m_prepCommand = prepCommand;
-      m_raiseCommand = raiseCommand;
-      m_climbCommand = climbCommand;
-    }
-
-    public CommandBase getCommand(ClimbAction action) {
-      switch (action) {
-        case PREP:
-          return m_prepCommand;
-        case RAISE:
-          return m_raiseCommand;
-        case CLIMB:
-          return m_climbCommand;
-        default:
-          return new WaitCommand(0);
-      }
-    }
-  }
-  public static class BarCommands {
-
-    private DirectionCommands m_forwards;
-    private DirectionCommands m_backwards;
-
-    public BarCommands(DirectionCommands forwards, DirectionCommands backwards) {
-      m_forwards = forwards;
-      m_backwards = backwards;
-    }
-
-    public CommandBase getCommand(ClimbDirection direction, ClimbAction action) {
-      switch (direction) {
-        case FORWARDS:
-          return m_forwards.getCommand(action);
-        case BACKWARDS:
-          return m_backwards.getCommand(action);
-        default:
-          return new WaitCommand(0);
-      }
-    }
-  }
-  private static class ClimbCommands {
-
-    private BarCommands m_low;
-    private BarCommands m_mid;
-    private BarCommands m_high;
-    private BarCommands m_traversal;
-
-    public ClimbCommands(BarCommands low, BarCommands mid, BarCommands high, BarCommands traversal) {
-      m_low = low;
-      m_mid = mid;
-      m_high = high;
-      m_traversal = traversal;
-    }
-
-    public CommandBase getCommand(ClimbBar bar, ClimbDirection direction, ClimbAction action) {
-      switch (bar) {
-        case LOW:
-          return m_low.getCommand(direction, action);
-        case MID:
-          return m_mid.getCommand(direction, action);
-        case HIGH:
-          return m_high.getCommand(direction, action);
-        case TRAVERSAL:
-          return m_traversal.getCommand(direction, action);
-        default:
-          return new WaitCommand(0);
-      }
-    }
-  }
-  private ClimbCommands m_climbCommands = new ClimbCommands(
-    new BarCommands(
-      new DirectionCommands(
-        new WaitCommand(1), // low, forwards, prep
-        new WaitCommand(1), // low, forwards, raise
-        new WaitCommand(1) // low, forwards, climb
-      ),
-      new DirectionCommands(
-        new WaitCommand(1), // low, backwards, prep
-        new WaitCommand(1), // low, backwards, raise
-        new WaitCommand(1) // low, backwards, climb
-      )
-    ), new BarCommands(
-      new DirectionCommands(
-        new WaitCommand(1), // mid, forwards, prep
-        new WaitCommand(1), // mid, forwards, raise
-        new WaitCommand(1) // mid, forwards, climb
-      ),
-      new DirectionCommands(
-        new WaitCommand(1), // mid, backwards, prep
-        new WaitCommand(1), // mid, backwards, raise
-        new WaitCommand(1) // mid, backwards, climb
-      )
-    ), new BarCommands(
-      new DirectionCommands(
-        new WaitCommand(1), // high, forwards, prep
-        new WaitCommand(1), // high, forwards, raise
-        new WaitCommand(1) // high, forwards, climb
-      ),
-      new DirectionCommands(
-        new WaitCommand(1), // high, backwards, prep
-        new WaitCommand(1), // high, backwards, raise
-        new WaitCommand(1) // high, backwards, climb
-      )
-    ), new BarCommands(
-      new DirectionCommands(
-        new WaitCommand(1), // traversal, forwards, prep
-        new WaitCommand(1), // traversal, forwards, raise
-        new WaitCommand(1) // traversal, forwards, climb
-      ),
-      new DirectionCommands(
-        new WaitCommand(1), // traversal, backwards, prep
-        new WaitCommand(1), // traversal, backwards, raise
-        new WaitCommand(1) // traversal, backwards, climb
-      )
-    ));
 
   private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
   private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
@@ -272,7 +151,9 @@ public class RobotContainer {
   }
 
   private void configureButtonBox() {
-    
+    m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
+    m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
+    m_buttonBox.shootButton.whileHeld(m_shoot);
   }
 
   private void configureDashboardCommands() {
@@ -303,7 +184,9 @@ public class RobotContainer {
 
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
+    m_intake.setDefaultCommand(m_stowIntake);
     m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_climber.setDefaultCommand(m_stowClimber);
   }
 
   /**
