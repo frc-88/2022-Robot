@@ -66,9 +66,12 @@ public final class Constants {
 	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 18, 120, 240, 150, 210);
 	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 1, 120, 240, 150, 210);
 
-	public static final int DRIVE_SPEED_EXP = 2;
-	public static final int DRIVE_TURN_EXP = 2;
-	public static final double DRIVE_JOYSTICK_DEADBAND = 0.12;
+	public static final int DRIVE_SPEED_EXP_XBOX = 2;
+	public static final int DRIVE_TURN_EXP_XBOX = 2;
+	public static final int DRIVE_SPEED_EXP_FRSKY = 2;
+	public static final int DRIVE_TURN_EXP_FRSKY = 2;
+	public static final double XBOX_DEADBAND = 0.12;
+	public static final double FRSKY_DEADBAND = 0.07;
 	public static final double CHEESY_DRIVE_MIN_TURN = 0.4;
 	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;

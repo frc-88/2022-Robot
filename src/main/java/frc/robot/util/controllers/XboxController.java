@@ -1,10 +1,10 @@
-package frc.robot.util;
+package frc.robot.util.controllers;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
-public class TJController extends Joystick {
+public class XboxController extends Joystick {
 	private static final int LEFT_HORIZ_AXIS = 0;
 	private static final int LEFT_VERT_AXIS = 1;
 	private static final int RIGHT_Z_AXIS = 3;
@@ -22,7 +22,7 @@ public class TJController extends Joystick {
 	private static final int BUTTON_LEFT_STICK = 9;
 	private static final int BUTTON_RIGHT_STICK = 10;
 	
-	public TJController(int port) {
+	public XboxController(int port) {
 		super(port);
 	}
 
