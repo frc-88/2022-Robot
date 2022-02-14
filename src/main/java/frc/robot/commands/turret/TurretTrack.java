@@ -12,6 +12,7 @@ public class TurretTrack extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
   private double m_targetOffset;
+  private boolean m_circumnavigating;
 
   /** Creates a new TurretTrack. */
   public TurretTrack(Turret turret, Limelight limelight) {
@@ -25,21 +26,26 @@ public class TurretTrack extends CommandBase {
   @Override
   public void initialize() {
     m_targetOffset = 0.0;
+    m_circumnavigating = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
-      
+
       // update m_targetOffset if there is one, follow the last offset if not
-      if(m_limelight.hasTarget()) {
+      if (m_limelight.hasTarget()) {
         m_targetOffset = m_limelight.getTargetHorizontalOffsetAngle();
       }
 
+      if (!m_turret.isPositionSafeRelative(m_targetOffset)) {
+        m_circumnavigating = true;
+      }
       // TODO if new target position in "dangerzone" do 360
-      
+
       m_turret.goToPositionRelative(m_targetOffset);
     } else { // not tracking
       // turn off the limelight and go to center position
@@ -50,7 +56,8 @@ public class TurretTrack extends CommandBase {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+  }
 
   // Returns true when the command should end.
   @Override

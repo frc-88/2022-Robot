@@ -98,6 +98,7 @@ public final class Constants {
     public static final double TURRET_NOMINAL_REV_DFT = -0.065;
 	public static final double TURRET_FWD_LIMIT_DFT = 10000;
 	public static final double TURRET_REV_LIMIT_DFT = -10000;
+	public static final double TURRET_LIMIT_BUFFER_DFT = 1000;
     public static final double TURRET_I_DFT = 0.0;
     public static final double TURRET_P_DFT = 0.0;
     public static final double TURRET_D_DFT = 0.0;

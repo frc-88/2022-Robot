@@ -27,6 +27,7 @@ public class Turret extends SubsystemBase {
   private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", Constants.TURRET_NOMINAL_REV_DFT);
   private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_FWD_LIMIT_DFT);
   private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_REV_LIMIT_DFT);
+  private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", Constants.TURRET_LIMIT_BUFFER_DFT);
   private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_P_DFT);
   private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_I_DFT);
   private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_D_DFT);
@@ -92,8 +93,17 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
-  public void goToPositionRelative(double position) {
-    m_turret.set(TalonFXControlMode.MotionMagic, getPosition() + position);
+  public void goToPositionRelative(double offset) {
+    goToPosition(getPosition() + offset);
+  }
+
+  public boolean isPositionSafe(double position) {
+    return (position < p_forwardLimit.getValue() - p_limitBuffer.getValue()) &&
+      (position > p_reverseLimit.getValue() + p_limitBuffer.getValue());
+  }
+
+  public boolean isPositionSafeRelative(double offset) {
+    return isPositionSafe(getPosition() + offset);
   }
 
   public double getPosition() {
@@ -131,4 +141,5 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putNumber("Turret:CANCoder Position", m_encoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
   }
+
 }
