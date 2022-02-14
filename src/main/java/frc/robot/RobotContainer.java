@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -20,47 +22,130 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
+import frc.robot.util.controllers.ButtonBox;
+import frc.robot.util.controllers.DriverController;
+import frc.robot.util.controllers.FrskyDriverController;
+import frc.robot.util.controllers.XboxController;
+import frc.robot.util.controllers.ButtonBox.ClimbAction;
+import frc.robot.util.controllers.ButtonBox.ClimbBar;
+import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
-import frc.robot.util.TJController;
-import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class RobotContainer {
-  // Subsystems
+  /////////////////////////////////////////////////////////////////////////////
+  //                              SUBSYSTEMS                                 //
+  /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder(Constants.HOPPER_CENTRALIZER_MOTOR_ID, Constants.HOPPER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.HOPPER_CENTRALIZER_SPEED_DFT));
-  private final Feeder m_chamber = new Feeder(Constants.HOPPER_CHAMBER_MOTOR_ID, Constants.HOPPER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.HOPPER_CHAMBER_SPEED_DFT));
+  private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
+  private final Feeder m_chamber = new Feeder(Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
   private final Climber m_climber = new Climber();
 
-  // Commands
-  private CommandBase m_arcadeDrive;
+  
 
-  private CommandBase m_calibrateClimber;
-  private CommandBase m_manualModeClimber;
-  private CommandBase m_climberTestMotionMagic;
-  private CommandBase m_climberMotionMagicJoystick;
+  /////////////////////////////////////////////////////////////////////////////
+  //                              CONTROLLERS                                //
+  /////////////////////////////////////////////////////////////////////////////
+  private final DriverController m_driverController = new FrskyDriverController(Constants.DRIVER_CONTROLLER_ID);
+  private final ButtonBox m_buttonBox = new ButtonBox(Constants.BUTTON_BOX_ID);
+  private final XboxController m_testController = new XboxController(Constants.TEST_CONTROLLER_ID);
+
+
+  
+  /////////////////////////////////////////////////////////////////////////////
+  //                                 ROS                                     //
+  /////////////////////////////////////////////////////////////////////////////
+  private ROSInterface m_ros_interface = new ROSInterface(m_drive);
+  private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  //                               COMMANDS                                  //
+  /////////////////////////////////////////////////////////////////////////////
+  
+
+  /////////////////////////////////////
+  //             DRIVE               //
+  /////////////////////////////////////
+
+  private CommandBase m_arcadeDrive =
+      new ArcadeDrive(m_drive, m_driverController::getThrottle, m_driverController::getTurn,
+          () -> {
+            if (m_driverController.getForceLowGear()) {
+              m_drive.shiftToLow();
+            } else {
+              m_drive.autoshift(m_driverController.getThrottle());
+            }
+          }, 
+          () -> m_driverController.getForceLowGear() ? Constants.MAX_SPEED_LOW : Constants.MAX_SPEED_HIGH);
+
+
+  /////////////////////////////////////
+  //          BALL HANDLING          //
+  /////////////////////////////////////
+
+  private CommandBase m_ingestCargo = new RunCommand(() -> {
+        m_intake.deploy();
+        m_intake.rollerIntake();
+      }, m_intake);
+  private CommandBase m_outgestCargo = new RunCommand(() -> {
+        m_intake.deploy();
+        m_intake.rollerOutgest();
+      }, m_intake);;
+  private CommandBase m_stowIntake = new RunCommand(() -> {
+        m_intake.stow();
+        m_intake.rollerStop();
+      }, m_intake);;
+
+  private CommandBase m_shoot = new WaitCommand(1);
+
+  private CommandBase m_turretTrackingMode = new InstantCommand(m_turret::startTracking);
+
+  private CommandBase m_stowShooter = new InstantCommand(m_turret::stopTracking);
+
+  /////////////////////////////////////
+  //             CLIMBER             //
+  /////////////////////////////////////
+
+  private CommandBase m_calibrateClimber = 
+      new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .beforeStarting(m_climber::resetCalibration)
+          .withName("calibrateClimber");
+
+  private CommandBase m_stowClimber = new WaitCommand(1);
+
+  private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
+  private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
+  private CommandBase m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
+
+  /////////////////////////////////////
+  //              AUTO               //
+  /////////////////////////////////////
 
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
-
-  // Controllers
-  private final TJController m_driverController = new TJController(0);
-  private final TJController m_testController = new TJController(2);
 
   // ROS tunnel interfaces
   private TunnelServer m_tunnel;
   private ThisRobotInterface m_ros_interface;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /////////////////////////////////////////////////////////////////////////////
+  //                                 SETUP                                   //
+  /////////////////////////////////////////////////////////////////////////////
+
   public RobotContainer() {
     m_ros_interface = new ThisRobotInterface(m_drive, m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm, m_turret);
     m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
@@ -69,42 +154,14 @@ public class RobotContainer {
     m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
     m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
 
-    configureDriverController();
     configureDefaultCommands();
     configureDashboardCommands();
   }
 
-  private void configureDriverController() {
-    BooleanSupplier arcadeDriveForceLowGear = () -> m_driverController.getRightTrigger() > 0.5;
-    DoubleSupplier arcadeDriveSpeedSupplier = DriveUtils.deadbandExponential(m_driverController::getLeftStickY,
-        Constants.DRIVE_SPEED_EXP, Constants.DRIVE_JOYSTICK_DEADBAND);
-    DoubleSupplier arcadeDriveCheesyDriveMinTurn = () -> arcadeDriveForceLowGear.getAsBoolean()
-        ? Constants.CHEESY_DRIVE_FORCE_LOW_MIN_TURN
-        : Constants.CHEESY_DRIVE_MIN_TURN;
-    DoubleSupplier arcadeDriveCheesyDriveMaxTurn = () -> arcadeDriveForceLowGear.getAsBoolean()
-        ? Constants.CHEESY_DRIVE_FORCE_LOW_MAX_TURN
-        : Constants.CHEESY_DRIVE_MAX_TURN;
-    DoubleSupplier arcadeDriveTurnSupplier = DriveUtils.cheesyTurn(arcadeDriveSpeedSupplier,
-        DriveUtils.deadbandExponential(m_driverController::getRightStickX, Constants.DRIVE_SPEED_EXP,
-            Constants.DRIVE_JOYSTICK_DEADBAND),
-        arcadeDriveCheesyDriveMinTurn.getAsDouble(), arcadeDriveCheesyDriveMaxTurn.getAsDouble());
-    Runnable arcadeDriveShiftSupplier = () -> {
-      if (arcadeDriveForceLowGear.getAsBoolean()) {
-        m_drive.shiftToLow();
-      } else {
-        m_drive.autoshift(arcadeDriveSpeedSupplier.getAsDouble());
-      }
-    };
-    DoubleSupplier arcadeDriveMaxSpeedSupplier = () -> arcadeDriveForceLowGear.getAsBoolean() ? Constants.MAX_SPEED_LOW
-        : Constants.MAX_SPEED_HIGH;
-
-    m_arcadeDrive = new ArcadeDrive(m_drive, arcadeDriveSpeedSupplier, arcadeDriveTurnSupplier,
-        arcadeDriveShiftSupplier, arcadeDriveMaxSpeedSupplier);
-
-    CommandBase tankDrive = new TankDrive(m_drive, m_driverController::getLeftStickY, m_driverController::getRightStickY);
-
-    SmartDashboard.putData("Arcade Drive", m_arcadeDrive);
-    SmartDashboard.putData("Tank Drive", tankDrive);
+  private void configureButtonBox() {
+    m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
+    m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
+    m_buttonBox.shootButton.whileHeld(m_shoot);
   }
 
   private void configureDashboardCommands() {
@@ -135,7 +192,9 @@ public class RobotContainer {
 
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
+    m_intake.setDefaultCommand(m_stowIntake);
     m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_climber.setDefaultCommand(m_stowClimber);
   }
 
   /**

@@ -6,14 +6,14 @@ package frc.robot.commands.climber;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Climber;
-import frc.robot.util.TJController;
+import frc.robot.util.controllers.XboxController;
 import frc.robot.util.drive.DriveUtils;
 
 public class ManualModeClimber extends CommandBase {
   private Climber m_climber;
-  private TJController m_tjController;
+  private XboxController m_tjController;
   /** Creates a new ManualModeClimber. */
-  public ManualModeClimber(Climber climber, TJController tjController) {
+  public ManualModeClimber(Climber climber, XboxController tjController) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_climber = climber;
     addRequirements(climber);

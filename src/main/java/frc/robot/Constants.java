@@ -30,10 +30,10 @@ public final class Constants {
 	*/
 
 	// Drive CAN IDs
-	public static final int LEFT_MASTER_DRIVE_ID = 0;
-	public static final int LEFT_FOLLOWER_DRIVE_ID = 1;
-	public static final int RIGHT_MASTER_DRIVE_ID = 19;
-	public static final int RIGHT_FOLLOWER_DRIVE_ID = 18;
+	public static final int LEFT_MASTER_DRIVE_ID = 19;
+	public static final int LEFT_FOLLOWER_DRIVE_ID = 18;
+	public static final int RIGHT_MASTER_DRIVE_ID = 0;
+	public static final int RIGHT_FOLLOWER_DRIVE_ID = 1;
 	public static final int LEFT_DRIVE_ENCODER_ID = 0;
 	public static final int RIGHT_DRIVE_ENCODER_ID = 19;
 
@@ -63,20 +63,23 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 20, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 21, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 18, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 1, 120, 240, 150, 210);
 
-	public static final int DRIVE_SPEED_EXP = 2;
-	public static final int DRIVE_TURN_EXP = 2;
-	public static final double DRIVE_JOYSTICK_DEADBAND = 0.12;
+	public static final int DRIVE_SPEED_EXP_XBOX = 2;
+	public static final int DRIVE_TURN_EXP_XBOX = 2;
+	public static final int DRIVE_SPEED_EXP_FRSKY = 2;
+	public static final int DRIVE_TURN_EXP_FRSKY = 2;
+	public static final double XBOX_DEADBAND = 0.12;
+	public static final double FRSKY_DEADBAND = 0.07;
 	public static final double CHEESY_DRIVE_MIN_TURN = 0.4;
 	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Shooter
-	public static final int SHOOTER_FLYWHEEL_ID = 0;
-    public static final int SHOOTER_HOOD_ID = 0;
+	public static final int SHOOTER_FLYWHEEL_ID = 8;
+    public static final int SHOOTER_HOOD_ID = 9;
     public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
     public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
     public static final double SHOOTER_P_DFT = 0.0;
@@ -86,8 +89,8 @@ public final class Constants {
     public static final double SHOOTER_HOOD_SPEED_DFT = 0;
 
 	// Turret
-	public static final int TURRET_MOTOR_ID = 0;
-	public static final int TURRET_ENCODER_ID = 0;
+	public static final int TURRET_MOTOR_ID = 13;
+	public static final int TURRET_ENCODER_ID = 13;
 	public static final double TURRET_CANCODER_CONV = 1.0;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
 	public static final double TURRET_DEFAULT_ZERO = 0;
@@ -98,27 +101,29 @@ public final class Constants {
     public static final double TURRET_DEFAULT_D = 0.0;
     public static final double TURRET_DEFAULT_F = 1.0;
 
-	// Hopper
-	public static final int HOPPER_CENTRALIZER_MOTOR_ID = 0;
-	public static final int HOPPER_CHAMBER_MOTOR_ID = 1;
-    public static final int HOPPER_CENTRALIZER_BEAMBREAK = 0;
-    public static final int HOPPER_CHAMBER_BEAMBREAK = 1;
-	public static final double HOPPER_CENTRALIZER_SPEED_DFT = 0.5;
-    public static final double HOPPER_CHAMBER_SPEED_DFT = 0.5;
+	// Feeders
+	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
+	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
+    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 2;
+    public static final int FEEDER_CHAMBER_BEAMBREAK = 3;
+	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
+    public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
-	public static final int INTAKE_ROLLER_ID = 6;
-	public static final int INTAKE_ARM_ID = 7;
+	public static final int INTAKE_ROLLER_ID = 11;
+	public static final int INTAKE_ARM_ID = 12;
+	public static final int INTAKE_BEAM_BREAK_ID = 1;
 
 	// Climber
-	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 2;
-	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 3;
-	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 17;
-	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 16;
-	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 4;
-	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 5;
-	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 15;
-	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 14;
+	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;
+	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 15;
+	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 5;
+	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 4;
+	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 16;
+	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 17;
+	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 3;
+	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 2;
+	public static final int CLIMBER_COAST_BUTTON_ID = 0;
 
 	// Sensors
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
@@ -136,11 +141,15 @@ public final class Constants {
 	public final static double PRESSURE_SENSOR_MIN_VOLTAGE = 0.4;
 	public final static double PRESSURE_SENSOR_MAX_VOLTAGE = 4;
 
-	// Color Sensor
 	public static final int COLOR_SENSOR_PROXIMITY_THRESHOLD = 1500;
     public static final double COLOR_SENSOR_BLUE_CARGO_BLUE_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
+
+	// Controllers
+	public static final int DRIVER_CONTROLLER_ID = 0;
+	public static final int BUTTON_BOX_ID = 1;
+	public static final int TEST_CONTROLLER_ID = 2;
     
 	// Field constants
 	public static final double FIELD_VISION_TARGET_HEIGHT = 0;
