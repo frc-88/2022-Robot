@@ -21,7 +21,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Sensors;
-import frc.robot.util.tunnel.ROSInterface;
+import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
@@ -58,11 +58,11 @@ public class RobotContainer {
 
   // ROS tunnel interfaces
   private TunnelServer m_tunnel;
-  private ROSInterface m_ros_interface;
+  private ThisRobotInterface m_ros_interface;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    m_ros_interface = new ROSInterface(m_drive);
+    m_ros_interface = new ThisRobotInterface(m_drive, m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm, m_turret);
     m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
     m_calibrateClimber = new RunCommand(m_climber::calibrate, m_climber).withInterrupt(m_climber::isCalibrated).beforeStarting(m_climber::resetCalibration).withName("calibrateClimber");
     m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);

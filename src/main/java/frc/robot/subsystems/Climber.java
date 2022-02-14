@@ -13,10 +13,10 @@ public class Climber extends SubsystemBase {
     
     private final DigitalInput coastButton;
 
-    private final ClimberArm outerLeftArm;
-    private final ClimberArm outerRightArm;
-    private final ClimberArm innerLeftArm;
-    private final ClimberArm innerRightArm;
+    public final ClimberArm outerLeftArm;
+    public final ClimberArm outerRightArm;
+    public final ClimberArm innerLeftArm;
+    public final ClimberArm innerRightArm;
 
     private List<ClimberArm> allArms;
 
