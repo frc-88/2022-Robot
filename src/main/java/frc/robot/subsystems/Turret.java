@@ -70,8 +70,18 @@ public class Turret extends SubsystemBase {
 
     m_encoder.configAllSettings(encConfig);
 
+    sync();
+  }
+
+  public void sync() {
     // initialize TalonFX to correct absolute position when we wake up
     m_turret.setSelectedSensorPosition(encoderPostionToTurretFacing(m_encoder.getAbsolutePosition()));
+  }
+
+  public void calibrate() {
+    // assume the turret has been physically moved to its center position
+    p_zeroPosition.setValue(m_encoder.getAbsolutePosition());
+    sync();
   }
 
   public void rawMotor(double percentOutput) {
