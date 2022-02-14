@@ -11,6 +11,7 @@ import frc.robot.util.sensors.Limelight;
 public class TurretTrack extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
+  private double m_targetOffset;
 
   /** Creates a new TurretTrack. */
   public TurretTrack(Turret turret, Limelight limelight) {
@@ -23,21 +24,27 @@ public class TurretTrack extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    m_targetOffset = 0.0;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // Turn on limelight
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
-    // if limelight has target, move towards it
-    // else if target never seen go to zero
-    // else move in direction target was last seen
-    // 
-    // if new target position in "dangerzone" do 360
-  } else {
+      
+      // update m_targetOffset if there is one, follow the last offset if not
+      if(m_limelight.hasTarget()) {
+        m_targetOffset = m_limelight.getTargetHorizontalOffsetAngle();
+      }
+
+      // TODO if new target position in "dangerzone" do 360
+      
+      m_turret.goToPositionRelative(m_targetOffset);
+    } else { // not tracking
+      // turn off the limelight and go to center position
       m_limelight.ledOff();
+      m_turret.goToPosition(0.0);
     }
   }
 

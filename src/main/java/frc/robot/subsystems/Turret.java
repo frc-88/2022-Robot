@@ -92,6 +92,10 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
+  public void goToPositionRelative(double position) {
+    m_turret.set(TalonFXControlMode.MotionMagic, getPosition() + position);
+  }
+
   public double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
