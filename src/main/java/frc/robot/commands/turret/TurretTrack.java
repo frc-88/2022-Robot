@@ -5,13 +5,14 @@
 package frc.robot.commands.turret;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.sensors.Limelight;
 
 public class TurretTrack extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
-  private double m_targetOffset;
+  private double m_target;
   private boolean m_circumnavigating;
 
   /** Creates a new TurretTrack. */
@@ -25,33 +26,35 @@ public class TurretTrack extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_targetOffset = 0.0;
+    m_target = 0.0;
     m_circumnavigating = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
-      // update m_targetOffset if there is one, follow the last offset if not
-      if (m_limelight.hasTarget()) {
-        m_targetOffset = m_limelight.getTargetHorizontalOffsetAngle();
-      }
+      if (m_circumnavigating) {
+        m_circumnavigating = Math.abs(m_turret.getPosition() - m_target) > Constants.TURRET_SPIN_THRESHOLD;
+      } else {
+        if (m_limelight.hasTarget()) {
+          m_target = m_turret.getPosition() + m_turret.turretDegreesToPosition(m_limelight.getTargetHorizontalOffsetAngle());
+        }
+        // TODO better behavior when we don't have a target
 
-      if (!m_turret.isPositionSafeRelative(m_targetOffset)) {
-        m_circumnavigating = true;
+        if (!m_turret.isPositionSafe(m_target)) {
+          m_circumnavigating = true;
+          m_target = Math.signum(m_target) * m_turret.turretDegreesToPosition(-360.0);
+        }
       }
-      // TODO if new target position in "dangerzone" do 360
-
-      m_turret.goToPositionRelative(m_targetOffset);
     } else { // not tracking
       // turn off the limelight and go to center position
       m_limelight.ledOff();
-      m_turret.goToPosition(0.0);
+      m_target = 0.0;
     }
+    m_turret.goToPosition(m_target);
   }
 
   // Called once the command ends or is interrupted.

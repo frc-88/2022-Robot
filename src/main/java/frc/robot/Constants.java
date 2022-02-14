@@ -90,9 +90,11 @@ public final class Constants {
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;
-	public static final int TURRET_ENCODER_ID = 13;
+	public static final int TURRET_CANCODER_ID = 13;
 	public static final double TURRET_CANCODER_CONV = 1.0;
+    public static final double TURRET_COUNTS_PER_REV = 10000;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
+	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
 	public static final double TURRET_ZERO_DFT = 0;
     public static final double TURRET_NOMINAL_FWD_DFT = 0.065;
     public static final double TURRET_NOMINAL_REV_DFT = -0.065;
