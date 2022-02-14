@@ -180,6 +180,8 @@ public class RobotContainer {
     // Turret test commands
     SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
+    SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
   }
 
   private void configureDefaultCommands() {
