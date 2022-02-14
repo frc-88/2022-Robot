@@ -22,13 +22,15 @@ public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
   private CANCoder m_encoder = new CANCoder(Constants.TURRET_ENCODER_ID);
   // Preferences
-  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_DEFAULT_ZERO);
-  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_DEFAULT_FWD_LIMIT);
-  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_DEFAULT_REV_LIMIT);
-  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_DEFAULT_P);
-  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_DEFAULT_I);
-  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_DEFAULT_D);
-  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_DEFAULT_F);
+  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
+  private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
+  private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", Constants.TURRET_NOMINAL_REV_DFT);
+  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_FWD_LIMIT_DFT);
+  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_REV_LIMIT_DFT);
+  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_P_DFT);
+  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_I_DFT);
+  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_D_DFT);
+  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_F_DFT);
   // 
   private boolean m_tracking = false;
 
@@ -47,8 +49,8 @@ public class Turret extends SubsystemBase {
     config.reverseSoftLimitEnable = true;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;  // TODO - determine nominal value to overcome static friction
-    config.nominalOutputReverse = 0;  // TODO - determine nominal value to overcome static friction
+    config.nominalOutputForward = p_nominalForward.getValue();
+    config.nominalOutputReverse = p_nominalReverse.getValue();
     config.neutralDeadband = 0.001;
     m_turret.configAllSettings(config);
 

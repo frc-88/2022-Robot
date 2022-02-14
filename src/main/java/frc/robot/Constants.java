@@ -93,13 +93,15 @@ public final class Constants {
 	public static final int TURRET_ENCODER_ID = 13;
 	public static final double TURRET_CANCODER_CONV = 1.0;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
-	public static final double TURRET_DEFAULT_ZERO = 0;
-	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
-	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
-    public static final double TURRET_DEFAULT_I = 0.0;
-    public static final double TURRET_DEFAULT_P = 0.0;
-    public static final double TURRET_DEFAULT_D = 0.0;
-    public static final double TURRET_DEFAULT_F = 1.0;
+	public static final double TURRET_ZERO_DFT = 0;
+    public static final double TURRET_NOMINAL_FWD_DFT = 0.065;
+    public static final double TURRET_NOMINAL_REV_DFT = -0.065;
+	public static final double TURRET_FWD_LIMIT_DFT = 10000;
+	public static final double TURRET_REV_LIMIT_DFT = -10000;
+    public static final double TURRET_I_DFT = 0.0;
+    public static final double TURRET_P_DFT = 0.0;
+    public static final double TURRET_D_DFT = 0.0;
+    public static final double TURRET_F_DFT = 0.045;
 
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
