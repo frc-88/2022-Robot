@@ -13,6 +13,7 @@ public class TurretTrack extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
   private double m_target;
+  private double m_offset;
   private boolean m_circumnavigating;
 
   /** Creates a new TurretTrack. */
@@ -40,9 +41,10 @@ public class TurretTrack extends CommandBase {
         m_circumnavigating = Math.abs(m_turret.getPosition() - m_target) > Constants.TURRET_SPIN_THRESHOLD;
       } else {
         if (m_limelight.hasTarget()) {
-          m_target = m_turret.getPosition() + m_turret.turretDegreesToPosition(m_limelight.getTargetHorizontalOffsetAngle());
+          // update offset if we have a target, otherwise, follow the last offset.
+          m_offset = m_turret.turretDegreesToPosition(m_limelight.getTargetHorizontalOffsetAngle());
         }
-        // TODO better behavior when we don't have a target
+        m_target = m_turret.getPosition() + m_offset;
 
         if (!m_turret.isPositionSafe(m_target)) {
           m_circumnavigating = true;
