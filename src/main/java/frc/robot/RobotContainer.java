@@ -67,7 +67,11 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   //                                 ROS                                     //
   /////////////////////////////////////////////////////////////////////////////
-  private ROSInterface m_ros_interface = new ROSInterface(m_drive);
+  private ThisRobotInterface m_ros_interface = new ThisRobotInterface(
+    m_drive,
+    m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm,
+    m_intake,
+    m_turret);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
 
@@ -138,22 +142,12 @@ public class RobotContainer {
 
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
 
-  // ROS tunnel interfaces
-  private TunnelServer m_tunnel;
-  private ThisRobotInterface m_ros_interface;
-
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer() {
-    m_ros_interface = new ThisRobotInterface(m_drive, m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm, m_turret);
-    m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
-    m_calibrateClimber = new RunCommand(m_climber::calibrate, m_climber).withInterrupt(m_climber::isCalibrated).beforeStarting(m_climber::resetCalibration).withName("calibrateClimber");
-    m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
-    m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
-    m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
-
+    configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
   }

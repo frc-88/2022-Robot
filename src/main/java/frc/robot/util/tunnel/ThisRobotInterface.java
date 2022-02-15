@@ -1,6 +1,7 @@
 package frc.robot.util.tunnel;
 
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.Vector2D;
 import frc.robot.util.climber.ClimberArm;
@@ -23,18 +24,20 @@ public class ThisRobotInterface extends ROSInterface {
     private ClimberArm innerLeftArm;
     private ClimberArm innerRightArm;
 
-    // private Intake intake;  // TODO add intake when that's ready
+    private Intake intake;
     private Turret turret;
     // private CameraTilter cameraTilter;  // TODO add camera tilter when that's ready
 
     public ThisRobotInterface(ChassisInterface chassis,
                               ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
+                              Intake intake,
                               Turret turret) {
         super(chassis);
         this.outerLeftArm = outerLeftArm;
         this.outerRightArm = outerRightArm;
         this.innerLeftArm = innerLeftArm;
         this.innerRightArm = innerRightArm;
+        this.intake = intake;
         this.turret = turret;
     }
 
@@ -97,10 +100,10 @@ public class ThisRobotInterface extends ROSInterface {
         );
 
         // intake
-        // TunnelServer.writePacket("joint",
-        //     intake_joint,
-        //     Math.toRadians(intake.getPosition())
-        // );
+        TunnelServer.writePacket("joint",
+            intake_joint,
+            Math.toRadians(intake.getArmPosition())
+        );
 
         // turret
         TunnelServer.writePacket("joint",
