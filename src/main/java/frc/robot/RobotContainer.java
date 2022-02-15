@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
+import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrack;
@@ -119,9 +120,12 @@ public class RobotContainer {
         m_intake.rollerStop();
       }, m_intake);;
 
+  private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
+  private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
+
   private CommandBase m_shoot = new WaitCommand(1);
 
-  private CommandBase m_turretTrackingMode = new InstantCommand(m_turret::startTracking);
+  private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
   private CommandBase m_stowShooter = new InstantCommand(m_turret::stopTracking);
 
@@ -180,15 +184,17 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Run", new InstantCommand(m_centralizer::run, m_centralizer));
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
+    SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
-    
+    SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
+
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
     SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
-    SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
+    SmartDashboard.putData("Turret Start Tracking", m_turretTrackingOn);
     SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
     SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
