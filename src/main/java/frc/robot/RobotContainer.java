@@ -186,8 +186,12 @@ public class RobotContainer {
     SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
     
     // Turret test commands
+    SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
+    SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
     SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
+    SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
@@ -198,14 +202,6 @@ public class RobotContainer {
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
-
-    // Turret test commands
-    SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
-    SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
-    SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
-    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
-    SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
-    SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
   }
 
   private void configureDefaultCommands() {
