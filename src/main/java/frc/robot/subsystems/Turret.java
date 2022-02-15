@@ -20,15 +20,18 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
-  private CANCoder m_encoder = new CANCoder(Constants.TURRET_ENCODER_ID);
+  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID);
   // Preferences
-  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_DEFAULT_ZERO);
-  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_DEFAULT_FWD_LIMIT);
-  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_DEFAULT_REV_LIMIT);
-  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_DEFAULT_P);
-  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_DEFAULT_I);
-  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_DEFAULT_D);
-  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_DEFAULT_F);
+  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
+  private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
+  private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", Constants.TURRET_NOMINAL_REV_DFT);
+  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_FWD_LIMIT_DFT);
+  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_REV_LIMIT_DFT);
+  private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", Constants.TURRET_LIMIT_BUFFER_DFT);
+  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_P_DFT);
+  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_I_DFT);
+  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_D_DFT);
+  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_F_DFT);
   // 
   private boolean m_tracking = false;
 
@@ -47,8 +50,8 @@ public class Turret extends SubsystemBase {
     config.reverseSoftLimitEnable = true;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;  // TODO - determine nominal value to overcome static friction
-    config.nominalOutputReverse = 0;  // TODO - determine nominal value to overcome static friction
+    config.nominalOutputForward = p_nominalForward.getValue();
+    config.nominalOutputReverse = p_nominalReverse.getValue();
     config.neutralDeadband = 0.001;
     m_turret.configAllSettings(config);
 
@@ -66,10 +69,20 @@ public class Turret extends SubsystemBase {
     // unitString = "deg"
     // sensorTimeBase = SensorTimeBase.PerSecond
 
-    m_encoder.configAllSettings(encConfig);
+    m_cancoder.configAllSettings(encConfig);
 
+    sync();
+  }
+
+  public void sync() {
     // initialize TalonFX to correct absolute position when we wake up
-    m_turret.setSelectedSensorPosition(encoderPostionToTurretFacing(m_encoder.getAbsolutePosition()));
+    m_turret.setSelectedSensorPosition(cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition()));
+  }
+
+  public void calibrate() {
+    // assume the turret has been physically moved to its center position
+    p_zeroPosition.setValue(m_cancoder.getAbsolutePosition());
+    sync();
   }
 
   public void rawMotor(double percentOutput) {
@@ -80,12 +93,17 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
+  public boolean isPositionSafe(double position) {
+    return (position < p_forwardLimit.getValue() - p_limitBuffer.getValue()) &&
+      (position > p_reverseLimit.getValue() + p_limitBuffer.getValue());
+  }
+
   public double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getPosition() - encoderPostionToTurretFacing(m_encoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
+    return Math.abs(getPosition() - cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
   }
 
   public void startTracking() {
@@ -100,19 +118,28 @@ public class Turret extends SubsystemBase {
     return m_tracking;
   }
 
-  private double encoderPostionToTurretFacing(double encPosition) {
+  private double cancoderPostionToTurretPosition(double encPosition) {
     return (encPosition - p_zeroPosition.getValue()) * Constants.TURRET_CANCODER_CONV;
   }
 
-  private double turretFacingToEncoderPostion(double turretFacing) {
-    return turretFacing / Constants.TURRET_CANCODER_CONV + p_zeroPosition.getValue();
+  private double turretPositionToCancoderPostion(double turretPosition) {
+    return turretPosition / Constants.TURRET_CANCODER_CONV + p_zeroPosition.getValue();
+  }
+
+  public double turretPositionToDegrees(double turretPosition) {
+    return turretPosition / Constants.TURRET_COUNTS_PER_REV * 360.0;
+  }
+
+  public double turretDegreesToPosition(double turretDegrees) {
+    return turretDegrees / 360.0 * Constants.TURRET_COUNTS_PER_REV;
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_encoder.getAbsolutePosition());
-    SmartDashboard.putNumber("Turret:CANCoder Position", m_encoder.getPosition());
+    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
+    SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
   }
+
 }
