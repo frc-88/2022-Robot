@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
+import frc.robot.commands.turret.TurretMotionMagicJoystick;
+import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrack;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.subsystems.Climber;
@@ -178,8 +180,12 @@ public class RobotContainer {
     SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
 
     // Turret test commands
+    SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
+    SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
     SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
+    SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
   }
 
   private void configureDefaultCommands() {
