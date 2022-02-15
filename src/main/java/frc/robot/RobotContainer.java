@@ -26,6 +26,7 @@ import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
+import frc.robot.subsystems.Shooter;
 import frc.robot.util.tunnel.ROSInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
@@ -49,6 +50,7 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Shooter m_shooter = new Shooter(m_sensors.limelight);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
@@ -72,6 +74,11 @@ public class RobotContainer {
   private ROSInterface m_ros_interface = new ROSInterface(m_drive);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
+
+  /////////////////////////////////////////////////////////////////////////////
+  //                              PREFERENCES                                //
+  /////////////////////////////////////////////////////////////////////////////
+  private DoublePreferenceConstant p_testSpeed = new DoublePreferenceConstant("Shooter Test Speed", 0.0);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -159,6 +166,15 @@ public class RobotContainer {
   }
 
   private void configureDashboardCommands() {
+    // Trajectory testing commands
+    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+
+    // Intake testing commands
+    SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
+    SmartDashboard.putData("Intake:Stow", m_stowIntake);
+
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
     SmartDashboard.putData("Centralizer:Run", new InstantCommand(m_centralizer::run, m_centralizer));
@@ -169,15 +185,19 @@ public class RobotContainer {
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
     
+    // Turret test commands
+    SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
+    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+
+    // Shooter testing commands
+    SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
+    SmartDashboard.putData("Shooter:Flywheel:Stop", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
+
+    // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
-
-    // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
-    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
-    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
 
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
@@ -191,7 +211,7 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
-    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
     m_climber.setDefaultCommand(m_stowClimber);
   }
 
