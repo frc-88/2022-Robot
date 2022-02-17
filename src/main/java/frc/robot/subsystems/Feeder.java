@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
@@ -31,6 +32,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
+    setStatusFrames();
   }
 
   public void run() {
@@ -58,5 +60,22 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
+
+    if (m_feederMotor.hasResetOccurred()) {
+      setStatusFrames();
+    }
+  }
+
+  private void setStatusFrames() {
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
   }
 }

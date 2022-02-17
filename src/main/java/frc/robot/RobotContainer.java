@@ -208,7 +208,7 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_climber.setDefaultCommand(m_stowClimber);
+    // m_climber.setDefaultCommand(m_stowClimber);
   }
 
   /**

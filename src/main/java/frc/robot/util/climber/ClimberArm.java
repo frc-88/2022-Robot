@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -135,6 +136,8 @@ public class ClimberArm {
 
         m_pivot.configFactoryDefault();
         m_telescope.configFactoryDefault();
+
+        setStatusFrames();
 
         if (pivotInverted || Robot.isSimulation()) {
             m_pivot.setInverted(InvertType.InvertMotorOutput);
@@ -300,6 +303,26 @@ public class ClimberArm {
         m_pivot.getSimCollection().setIntegratedSensorVelocity((int)convertPivotActualVelocityToMotor(Units.radiansToDegrees(m_pivotSim.getVelocityRadPerSec()) - 90));
         m_telescope.getSimCollection().setIntegratedSensorRawPosition((int)convertTelescopeActualPositionToMotor(Units.metersToInches(m_telescopeSim.getPositionMeters())));
         m_telescope.getSimCollection().setIntegratedSensorVelocity((int)convertTelescopeActualVelocityToMotor(Units.metersToInches(m_telescopeSim.getVelocityMetersPerSecond())));
+    }
+
+    public void setStatusFrames() {
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+        m_pivot.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+        m_telescope.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+    }
+
+    public boolean hasResetOccurred() {
+        return m_pivot.hasResetOccurred() || m_telescope.hasResetOccurred();
     }
 
 

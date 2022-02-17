@@ -422,6 +422,13 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     } else {
       this.setCoastMode();
     }
+
+    if (m_leftDrive.hasResetOccurred()) {
+      m_leftDrive.setStatusFrames();
+    }
+    if (m_rightDrive.hasResetOccurred()) {
+      m_rightDrive.setStatusFrames();
+    }
   }
 
   // ROS tunnel interfaces

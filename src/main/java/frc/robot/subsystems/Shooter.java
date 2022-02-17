@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -33,6 +34,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_limelight = limelight;
     configureFlywheel();
     configureHood();
+    setStatusFrames();
   }
 
   private void configureFlywheel() {
@@ -90,6 +92,26 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    if (m_flywheel.hasResetOccurred() || m_hood.hasResetOccurred()) {
+      setStatusFrames();
+    }
+  }
+
+  public void setStatusFrames() {
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
+
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
   }
 }

@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -70,6 +71,8 @@ public class Turret extends SubsystemBase {
     // sensorTimeBase = SensorTimeBase.PerSecond
 
     m_cancoder.configAllSettings(encConfig);
+
+    setStatusFrames();
 
     sync();
   }
@@ -140,6 +143,18 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
+
+    if (m_turret.hasResetOccurred()) {
+      setStatusFrames();
+    }
   }
 
+  private void setStatusFrames() {
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+  }
 }

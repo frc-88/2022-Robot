@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -96,6 +97,7 @@ public class Intake extends SubsystemBase implements CargoSource {
     m_roller.configFactoryDefault();
     m_arm.configFactoryDefault();
 
+    setStatusFrames();
     configCurrentLimit();
     configMotionMagic();
     configCurrentControl();
@@ -318,6 +320,10 @@ public class Intake extends SubsystemBase implements CargoSource {
     SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
 
     SmartDashboard.putString("Intake State", m_state.toString());
+
+    if (m_roller.hasResetOccurred() || m_arm.hasResetOccurred()) {
+      setStatusFrames();
+    }
   }
 
   private double convertMotorPositionToArm(double motorPosition) {
@@ -334,5 +340,24 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private double convertArmVelocityToMotor(double armVelocity) {
     return convertArmPositionToMotor(armVelocity) * 0.1;
+  }
+
+  private void setStatusFrames() {
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
+    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
+
+    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
+    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
+    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
+    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
+    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
   }
 }

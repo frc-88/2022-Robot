@@ -64,8 +64,8 @@ public class Shifter {
     public Shifter(ShifterParameters params, TJDriveModule drive) {
         m_drive = drive;
         m_solenoid = new DoubleSolenoid(params.pchId, params.pchType, params.outId, params.inId);
-        m_cancoder = new WPI_CANCoder(params.cancoderId);
-        m_cancoder.configFactoryDefault();
+        //m_cancoder = new WPI_CANCoder(params.cancoderId);
+        //m_cancoder.configFactoryDefault();
 
         m_adjustment = params.minPosition;
         m_lowThreshold = DriveUtils.mod(params.lowThreshold - m_adjustment, 360);
