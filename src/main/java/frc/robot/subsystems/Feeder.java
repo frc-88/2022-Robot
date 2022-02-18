@@ -17,7 +17,9 @@ import frc.robot.util.CargoTarget;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 /*
- * TODO: haiku
+ * feed me some cargo
+ * then I can pass it along
+ * I can cargolize!
  */
 
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
@@ -30,6 +32,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 
+    // basic config, stagger status frames we don't care about
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
     setStatusFrames();
