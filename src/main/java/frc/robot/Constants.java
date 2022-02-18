@@ -117,7 +117,7 @@ public final class Constants {
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
 	public static final int INTAKE_ARM_ID = 12;
-	public static final int INTAKE_BEAM_BREAK_ID = 1;
+	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;
