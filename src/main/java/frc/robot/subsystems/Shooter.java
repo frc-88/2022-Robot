@@ -84,7 +84,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public boolean wantsCargo() {
-    return onTarget() && m_limelight.hasTarget() 
+    // TODO
+    return false && onTarget() && m_limelight.hasTarget() 
       && (Math.abs(m_limelight.getTargetHorizontalOffsetAngle()) < Constants.SHOOTER_LIMELIGHT_THRESHOLD);
   }
   
