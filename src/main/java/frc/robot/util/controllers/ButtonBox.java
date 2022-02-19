@@ -35,6 +35,7 @@ public class ButtonBox extends Joystick {
     private static int RAISE_CLIMBER = 11;
     private static int CLIMB = 12;
 
+
     private ClimbBar m_currentClimbBar;
 	
 	public ButtonBox(int port) {
