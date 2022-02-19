@@ -170,7 +170,7 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private final CommandBase m_autoCommand = new WaitCommand(15.0);
+  private CommandBase m_autoCommand = new WaitCommand(15.0);
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -182,14 +182,30 @@ public class RobotContainer {
     configureDashboardCommands();
   }
 
+  public void disabledPeriodic() {
+    if (m_buttonBox.isShootButtonPressed()) {
+      m_autoCommand = new ParallelCommandGroup(
+        new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter),
+        new SequentialCommandGroup(
+          new WaitCommand(6),
+          new InstantCommand(m_centralizer::run, m_centralizer),
+          new InstantCommand(m_chamber::run, m_chamber),
+          new WaitCommand(0.5),
+          new InstantCommand(m_centralizer::stop, m_centralizer),
+          new InstantCommand(m_chamber::stop, m_chamber)
+        )
+      );
+    }
+  }
+
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
     m_buttonBox.shootButton.whenPressed(m_shoot);
     m_buttonBox.shooterButton.whenPressed(m_startFlywheel);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
-    m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
-    m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+    //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
+    //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
   }
 
   private void configureDashboardCommands() {
@@ -246,16 +262,14 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_climber.setDefaultCommand(new ConditionalCommand(
-      new ClimberMotionMagicJoystick(m_climber, m_testController), 
+    m_climber.setDefaultCommand( 
       new SequentialCommandGroup(
         new RunCommand(m_climber::calibrate, m_climber)
           .withInterrupt(m_climber::isCalibrated)
           .beforeStarting(m_climber::resetCalibration)
           .withName("calibrateClimber"),
         new ClimberMotionMagicJoystick(m_climber, m_testController)
-      ), 
-      m_climber::isCalibrated));
+      ));
   }
 
   /**
