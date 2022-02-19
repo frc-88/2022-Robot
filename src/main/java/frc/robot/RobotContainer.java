@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
@@ -245,7 +246,16 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    // m_climber.setDefaultCommand(m_stowClimber);
+    m_climber.setDefaultCommand(new ConditionalCommand(
+      new ClimberMotionMagicJoystick(m_climber, m_testController), 
+      new SequentialCommandGroup(
+        new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .beforeStarting(m_climber::resetCalibration)
+          .withName("calibrateClimber"),
+        new ClimberMotionMagicJoystick(m_climber, m_testController)
+      ), 
+      m_climber::isCalibrated));
   }
 
   /**
