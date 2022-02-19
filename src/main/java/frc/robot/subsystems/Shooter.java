@@ -22,14 +22,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
 
   // Preferences
-  private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Shooter Hood Continuous Current", 10);
-  private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Shooter Hood Trigger Current", 80);
-  private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Shooter Hood Trigger Current Duration", 0.002);
+  private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
+  private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
+  private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Hood Trigger Current Duration", 0.002);
+  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
+
   private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_P_DFT);
   private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_I_DFT);
   private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_D_DFT);
   private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_F_DFT);
-  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
 
   /** Creates a new Shooter. */
   public Shooter(Limelight limelight) {
@@ -64,10 +65,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
     config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(), 
       p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
-    config.peakOutputForward = 1.0;
-    config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;
-    config.nominalOutputReverse = 0;
     m_hood.configAllSettings(config);
   }
 

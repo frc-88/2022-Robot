@@ -161,9 +161,9 @@ public class RobotContainer {
 
   private void configureDashboardCommands() {
     // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
-    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
-    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+    // SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    // SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    // SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
@@ -175,6 +175,7 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
+    
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
@@ -192,6 +193,8 @@ public class RobotContainer {
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:Stop", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(() -> {m_shooter.raiseHood();}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(() -> {m_shooter.lowerHood();}, m_shooter));
 
     // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);
