@@ -108,12 +108,12 @@ public final class Constants {
     public static final double TURRET_F_DFT = 0.045;
 
 	// Feeders
-	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 6;
-    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 2;
+	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
+    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
 	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
 
-	public static final int FEEDER_CHAMBER_MOTOR_ID = 7;
-	public static final int FEEDER_CHAMBER_BEAMBREAK = 3;
+	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
+	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
     public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
