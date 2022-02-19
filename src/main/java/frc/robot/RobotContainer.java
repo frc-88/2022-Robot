@@ -116,7 +116,12 @@ public class RobotContainer {
       }, m_intake),
       new InstantCommand(m_centralizer::reverse, m_centralizer));
 
-  private CommandBase m_stowIntake = new ParallelCommandGroup(new RunCommand(() -> {
+  private CommandBase m_stowIntake = new RunCommand(() -> {
+        m_intake.stow();
+        m_intake.rollerStop();
+      }, m_intake);
+
+  private CommandBase m_stowIntake2 = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.stow();
         m_intake.rollerStop();
       }, m_intake),
@@ -188,7 +193,7 @@ public class RobotContainer {
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
-    SmartDashboard.putData("Intake:Stow", m_stowIntake);
+    SmartDashboard.putData("Intake:Stow", m_stowIntake2);
 
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
