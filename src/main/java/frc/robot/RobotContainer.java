@@ -16,6 +16,7 @@ import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
+import frc.robot.commands.feeder.FeederCargolizer;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
@@ -179,7 +180,7 @@ public class RobotContainer {
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
-    m_buttonBox.shootButton.whileHeld(m_shoot);
+    m_buttonBox.shootButton.whenPressed(m_shoot);
     m_buttonBox.shooterButton.whenPressed(m_startFlywheel);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
   }
