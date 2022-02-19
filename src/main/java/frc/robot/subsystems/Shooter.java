@@ -100,7 +100,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public boolean wantsCargo() {
-    return m_active && m_limelight.onTarget();
+    // return m_active && m_limelight.onTarget();
+    return m_active;
   }
   
   @Override
