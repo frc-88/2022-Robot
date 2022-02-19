@@ -24,7 +24,7 @@ import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
-import frc.robot.util.tunnel.ROSInterface;
+import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
@@ -65,7 +65,11 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   //                                 ROS                                     //
   /////////////////////////////////////////////////////////////////////////////
-  private ROSInterface m_ros_interface = new ROSInterface(m_drive);
+  private ThisRobotInterface m_ros_interface = new ThisRobotInterface(
+    m_drive,
+    m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm,
+    m_intake,
+    m_turret);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
 
@@ -156,8 +160,6 @@ public class RobotContainer {
   /////////////////////////////////////
 
   private final CommandBase m_autoCommand = new WaitCommand(15.0);
-
-
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //

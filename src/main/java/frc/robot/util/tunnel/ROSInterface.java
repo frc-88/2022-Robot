@@ -4,7 +4,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.Waypoint;
 
@@ -17,11 +18,8 @@ public class ROSInterface implements TunnelInterface {
     private MessageTimer goalStatusTimer = new MessageTimer(1_000_000);
 
     protected VelocityCommand command = new VelocityCommand();
-    
     protected Pose2d globalPose = new Pose2d();
-    
     protected GoalStatus goalStatus = GoalStatus.INVALID;
-
     private int num_sent_goals = 0;
 
     public ROSInterface(ChassisInterface chassis) {
@@ -77,6 +75,8 @@ public class ROSInterface implements TunnelInterface {
             pose.getX(), pose.getY(), pose.getRotation().getRadians(),
             velocity.vxMetersPerSecond, velocity.vyMetersPerSecond, velocity.omegaRadiansPerSecond
         );
+        sendMatchStatus(DriverStation.isAutonomous(), DriverStation.getMatchTime(), DriverStation.getAlliance());
+
     }
 
     /***
@@ -139,8 +139,16 @@ public class ROSInterface implements TunnelInterface {
         TunnelServer.writePacket("reset");
     }
 
-    public void sendMatchStatus(boolean motor_enabled, boolean is_autonomous, double match_timer) {
-        TunnelServer.writePacket("match", motor_enabled, is_autonomous, match_timer);
+    public void sendMatchStatus(boolean is_autonomous, double match_timer, DriverStation.Alliance team_color) {
+        String team_name = "";
+        if (team_color == Alliance.Red) {
+            team_name = "red";
+        }
+        else if (team_color == Alliance.Blue) {
+            team_name = "red";
+        }
+        
+        TunnelServer.writePacket("match", is_autonomous, match_timer, team_name);
     }
 
     public void setPoseEstimate(Pose2d poseEstimation) {
