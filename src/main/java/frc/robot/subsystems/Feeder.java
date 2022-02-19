@@ -16,16 +16,20 @@ import frc.robot.util.CargoTarget;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 /*
- * TODO: haiku
+ * feed me some cargo
+ * then I can pass it along
+ * I can cargolize!
  */
 
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
+  private String m_feederName;
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
   private DoublePreferenceConstant p_feederMotorSpeed;
 
-  public Feeder(int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
-    m_feederMotor = new TalonFX(feederMotorId);
+  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
+    m_feederName = feederName;
+    m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 
@@ -42,7 +46,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void stop() {
-    m_feederMotor.set(ControlMode.PercentOutput, 0);
+    m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
 
   @Override
@@ -57,6 +61,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
+    SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
   }
 }

@@ -4,26 +4,25 @@
 
 package frc.robot;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
-import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
-import frc.robot.commands.turret.TurretTrack;
+import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.turret.TurretMotionMagicJoystick;
+import frc.robot.commands.turret.TurretRawJoystick;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
+import frc.robot.subsystems.Shooter;
 import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
@@ -32,9 +31,6 @@ import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
-import frc.robot.util.controllers.ButtonBox.ClimbAction;
-import frc.robot.util.controllers.ButtonBox.ClimbBar;
-import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
@@ -47,10 +43,11 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Shooter m_shooter = new Shooter(m_sensors.limelight);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
-  private final Feeder m_chamber = new Feeder(Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
+  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
+  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
   private final Climber m_climber = new Climber();
 
   
@@ -74,6 +71,11 @@ public class RobotContainer {
     m_turret);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
+
+  /////////////////////////////////////////////////////////////////////////////
+  //                              PREFERENCES                                //
+  /////////////////////////////////////////////////////////////////////////////
+  private DoublePreferenceConstant p_testSpeed = new DoublePreferenceConstant("Shooter Test Speed", 0.0);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -101,22 +103,35 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new RunCommand(() -> {
+  private CommandBase m_ingestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
-      }, m_intake);
-  private CommandBase m_outgestCargo = new RunCommand(() -> {
+      }, m_intake),
+      new FeederAcceptCargo(m_centralizer));
+
+  private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerOutgest();
-      }, m_intake);;
-  private CommandBase m_stowIntake = new RunCommand(() -> {
+      }, m_intake),
+      new InstantCommand(m_centralizer::reverse, m_centralizer));
+
+  private CommandBase m_stowIntake = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.stow();
         m_intake.rollerStop();
-      }, m_intake);;
+      }, m_intake),
+      new InstantCommand(m_centralizer::stop, m_centralizer));
 
-  private CommandBase m_shoot = new WaitCommand(1);
+  private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
+  private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
 
-  private CommandBase m_turretTrackingMode = new InstantCommand(m_turret::startTracking);
+  private CommandBase m_startFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter);
+  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter);
+
+  private CommandBase m_shoot = new ParallelDeadlineGroup(new InstantCommand(m_centralizer::run, m_centralizer),
+    new InstantCommand(m_chamber::run, m_chamber),
+    new WaitCommand(5));
+
+  private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
   private CommandBase m_stowShooter = new InstantCommand(m_turret::stopTracking);
 
@@ -159,36 +174,59 @@ public class RobotContainer {
   }
 
   private void configureDashboardCommands() {
+    // Drive testing commands
+    SmartDashboard.putData("Drive forwards", new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW));
+
+    // Trajectory testing commands
+    // SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    // SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    // SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+
+    // Intake testing commands
+    SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
+    SmartDashboard.putData("Intake:Stow", m_stowIntake);
+
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
     SmartDashboard.putData("Centralizer:Run", new InstantCommand(m_centralizer::run, m_centralizer));
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
+    SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
+    
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
-    
+    SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
+
+    // Turret test commands
+    SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
+    SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
+    SmartDashboard.putData("Turret Start Tracking", m_turretTrackingOn);
+    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Calibrate", new InstantCommand(m_turret::calibrate, m_turret));
+    SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
+
+    // Shooter testing commands
+    SmartDashboard.putData("Shooter:Flywheel:Run", m_startFlywheel);
+    SmartDashboard.putData("Shooter:Flywheel:Stop", m_stopFlywheel);
+    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
+    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
+    SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
+
+    // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
-
-    // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
-    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
-    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
-
-    // Turret test commands
-    SmartDashboard.putData("Turret Start Tracking", new InstantCommand(m_turret::startTracking));
-    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
   }
 
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
-    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_climber.setDefaultCommand(m_stowClimber);
+    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    // m_climber.setDefaultCommand(m_stowClimber);
   }
 
   /**

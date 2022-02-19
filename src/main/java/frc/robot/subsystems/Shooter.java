@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -17,20 +18,30 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
-  private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID);
-  private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID);
+  private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
+  private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private Limelight m_limelight;
+  private Boolean m_active = false;
 
   // Preferences
+  private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
+  private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
+  private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Hood Trigger Current Duration", 0.002);
+  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
+
   private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_P_DFT);
   private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_I_DFT);
   private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_D_DFT);
   private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_F_DFT);
-  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
 
   /** Creates a new Shooter. */
   public Shooter(Limelight limelight) {
     m_limelight = limelight;
+
+    p_continuousCurrentLimit.addChangeHandler((Double unused) -> configureHood());
+    p_triggerCurrentLimit.addChangeHandler((Double unused) -> configureHood());
+    p_triggerDuration.addChangeHandler((Double unused) -> configureHood());
+
     configureFlywheel();
     configureHood();
   }
@@ -54,11 +65,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private void configureHood() {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
-    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, 20, 25, 1.0);
-    config.peakOutputForward = 1.0;
-    config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;
-    config.nominalOutputReverse = 0;
+    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(), 
+      p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
   }
 
@@ -82,14 +90,21 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
   }
 
+  public void activate() {
+    m_active = true;
+  }
+
+  public void deactivate() {
+    m_active = false;
+  }
+
   @Override
   public boolean wantsCargo() {
-    return onTarget() && m_limelight.hasTarget() 
-      && (Math.abs(m_limelight.getTargetHorizontalOffsetAngle()) < Constants.SHOOTER_LIMELIGHT_THRESHOLD);
+    // return m_active && m_limelight.onTarget();
+    return m_active;
   }
   
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
   }
 }

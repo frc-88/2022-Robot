@@ -1,5 +1,7 @@
 package frc.robot.util.drive;
 
+import java.util.Objects;
+
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.MagnetFieldStrength;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
@@ -64,8 +66,8 @@ public class Shifter {
     public Shifter(ShifterParameters params, TJDriveModule drive) {
         m_drive = drive;
         m_solenoid = new DoubleSolenoid(params.pchId, params.pchType, params.outId, params.inId);
-        m_cancoder = new WPI_CANCoder(params.cancoderId);
-        m_cancoder.configFactoryDefault();
+        // m_cancoder = new WPI_CANCoder(params.cancoderId);
+        // m_cancoder.configFactoryDefault();
 
         m_adjustment = params.minPosition;
         m_lowThreshold = DriveUtils.mod(params.lowThreshold - m_adjustment, 360);
@@ -90,11 +92,12 @@ public class Shifter {
     }
 
     public Gear getGear() {
-        if (isEncoderConnected()) {
-            return getGearFromEncoder();
-        } else {
-            return getCommandedGear();
-        }
+        // if (isEncoderConnected()) {
+        //     return getGearFromEncoder();
+        // } else {
+        //     return getCommandedGear();
+        // }
+        return getCommandedGear();
     }
 
     public Gear getCommandedGear() {
@@ -102,14 +105,14 @@ public class Shifter {
     }
 
     public Gear getGearFromEncoder() {
-        double position = getEncoderPosition();
-        if (position <= m_lowThreshold) {
+        // double position = getEncoderPosition();
+        // if (position <= m_lowThreshold) {
         return Gear.LOW;
-        } else if (position >= m_highThreshold) {
-        return Gear.HIGH;
-        } else {
-        return Gear.NEUTRAL;
-        }
+        // } else if (position >= m_highThreshold) {
+        // return Gear.HIGH;
+        // } else {
+        // return Gear.NEUTRAL;
+        // }
     }
 
     public Gear getGearFromFalconAgreement() {
@@ -127,6 +130,7 @@ public class Shifter {
 
     public boolean isEncoderConnected() {
         if (m_disableEncoderPermanently
+                || Objects.isNull(m_cancoder)
                 || m_cancoder.getLastError() == ErrorCode.SensorNotPresent
                 || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.BadRange_RedLED
                 || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.Invalid_Unknown

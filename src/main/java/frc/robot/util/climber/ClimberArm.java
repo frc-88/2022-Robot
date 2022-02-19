@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -129,8 +130,8 @@ public class ClimberArm {
             staticInit();
         }
 
-        m_pivot = new WPI_TalonFX(pivotID);
-        m_telescope = new WPI_TalonFX(telescopeID);
+        m_pivot = new WPI_TalonFX(pivotID, "1");
+        m_telescope = new WPI_TalonFX(telescopeID, "1");
         m_positionLabel = positionLabel;
 
         m_pivot.configFactoryDefault();
@@ -300,6 +301,10 @@ public class ClimberArm {
         m_pivot.getSimCollection().setIntegratedSensorVelocity((int)convertPivotActualVelocityToMotor(Units.radiansToDegrees(m_pivotSim.getVelocityRadPerSec()) - 90));
         m_telescope.getSimCollection().setIntegratedSensorRawPosition((int)convertTelescopeActualPositionToMotor(Units.metersToInches(m_telescopeSim.getPositionMeters())));
         m_telescope.getSimCollection().setIntegratedSensorVelocity((int)convertTelescopeActualVelocityToMotor(Units.metersToInches(m_telescopeSim.getVelocityMetersPerSecond())));
+    }
+
+    public boolean hasResetOccurred() {
+        return m_pivot.hasResetOccurred() || m_telescope.hasResetOccurred();
     }
 
 

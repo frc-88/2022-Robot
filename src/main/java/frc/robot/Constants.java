@@ -44,7 +44,7 @@ public final class Constants {
 	public static final double HIGH_GEAR_RATIO = (1. / 8.50);
 	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
 	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
-	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 7.5;
+	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 60./24.;
 	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
 	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
 	public static final double DRIVE_LEFT_LOW_EFFICIENCY = 1.025;
@@ -63,8 +63,8 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 18, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 1, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 4, 5, 18, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 2, 3, 1, 120, 240, 150, 210);
 
 	public static final int DRIVE_SPEED_EXP_XBOX = 2;
 	public static final int DRIVE_TURN_EXP_XBOX = 2;
@@ -90,29 +90,36 @@ public final class Constants {
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;
-	public static final int TURRET_ENCODER_ID = 13;
-	public static final double TURRET_CANCODER_CONV = 1.0;
+	public static final int TURRET_CANCODER_ID = 13;
+	public static final double TURRET_GEAR_RATIO = 7.0 * 144.0 / 18;  // 56.0
+	public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 54.0 / 8.0;  // 94.5
+    public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 1024.0;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
-	public static final double TURRET_DEFAULT_ZERO = 0;
-	public static final double TURRET_DEFAULT_FWD_LIMIT = 10000;
-	public static final double TURRET_DEFAULT_REV_LIMIT = -10000;
-    public static final double TURRET_DEFAULT_I = 0.0;
-    public static final double TURRET_DEFAULT_P = 0.0;
-    public static final double TURRET_DEFAULT_D = 0.0;
-    public static final double TURRET_DEFAULT_F = 1.0;
+	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
+	public static final double TURRET_ZERO_DFT = 0;
+    public static final double TURRET_NOMINAL_FWD_DFT = 0.065;
+    public static final double TURRET_NOMINAL_REV_DFT = -0.065;
+	public static final double TURRET_FWD_LIMIT_DFT = 10000;
+	public static final double TURRET_REV_LIMIT_DFT = -10000;
+	public static final double TURRET_LIMIT_BUFFER_DFT = 1000;
+    public static final double TURRET_I_DFT = 0.0;
+    public static final double TURRET_P_DFT = 0.0;
+    public static final double TURRET_D_DFT = 0.0;
+    public static final double TURRET_F_DFT = 0.045;
 
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
-	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
-    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 2;
-    public static final int FEEDER_CHAMBER_BEAMBREAK = 3;
+    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
 	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
+
+	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
+	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
     public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
 	public static final int INTAKE_ARM_ID = 12;
-	public static final int INTAKE_BEAM_BREAK_ID = 1;
+	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;
@@ -133,8 +140,8 @@ public final class Constants {
 	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
 	
-	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
-	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
+	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
+	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
 	public final static double WORKING_PRESSURE_WARNING = 50;
 	public final static double LEAK_WARNING = 0.01;
