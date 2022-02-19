@@ -145,6 +145,10 @@ public class RobotContainer {
 
   private CommandBase m_stowShooter = new InstantCommand(m_turret::stopTracking);
 
+  private CommandBase m_hoodUp = new RunCommand(m_shooter::raiseHood, m_sensors);
+
+  private CommandBase m_hoodDown = new RunCommand(m_shooter::lowerHood, m_sensors);
+
   /////////////////////////////////////
   //             CLIMBER             //
   /////////////////////////////////////
@@ -183,6 +187,8 @@ public class RobotContainer {
     m_buttonBox.shootButton.whenPressed(m_shoot);
     m_buttonBox.shooterButton.whenPressed(m_startFlywheel);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
+    m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
+    m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
   }
 
   private void configureDashboardCommands() {
@@ -223,8 +229,8 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:Run", m_startFlywheel);
     SmartDashboard.putData("Shooter:Flywheel:Stop", m_stopFlywheel);
     SmartDashboard.putData("Shoot", m_shoot);
-    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
-    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_sensors));
+    SmartDashboard.putData("Shooter:Hood:Lower", new RunCommand(m_shooter::lowerHood, m_sensors));
     SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 

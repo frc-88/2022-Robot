@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
@@ -68,6 +69,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(), 
       p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
+    m_hood.setInverted(InvertType.InvertMotorOutput);
   }
 
   public void setFlywheelSpeed(double speed) {
