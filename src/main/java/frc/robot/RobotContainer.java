@@ -180,8 +180,8 @@ public class RobotContainer {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
     m_buttonBox.shootButton.whileHeld(m_shoot);
-    m_buttonBox.prepShooterButton.whileHeld(m_startFlywheel);
-    m_buttonBox.stopShooterButton.whileHeld(m_stopFlywheel);
+    m_buttonBox.shooterButton.whenPressed(m_startFlywheel);
+    m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
   }
 
   private void configureDashboardCommands() {
