@@ -23,7 +23,7 @@ public class TJDriveModule extends WPI_TalonFX {
     private ShiftingTransmission m_transmission;
 
     public TJDriveModule(TJDriveModuleConfiguration config, ShiftingTransmission transmission) {
-        super(config.master);
+        super(config.master, "1");
         this.configFactoryDefault();
         this.configAllSettings(config.masterConfiguration);
         this.enableVoltageCompensation(config.enableVoltageCompensation);
@@ -33,7 +33,7 @@ public class TJDriveModule extends WPI_TalonFX {
 
         followers = new WPI_TalonFX [config.followers.length];
         for (int i = 0; i < config.followers.length; i++) {
-            followers[i] = new WPI_TalonFX(config.followers[i]);
+            followers[i] = new WPI_TalonFX(config.followers[i], "1");
             followers[i].configFactoryDefault();
             followers[i].configAllSettings(config.followerConfiguration);
             followers[i].follow(this);
@@ -150,25 +150,7 @@ public class TJDriveModule extends WPI_TalonFX {
     }
 
     public void setStatusFrames() {
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
         this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
-
-        for (int i = 0; i < followers.length; i++) {
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
-            followers[i].setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
-        }
     }
 
 }

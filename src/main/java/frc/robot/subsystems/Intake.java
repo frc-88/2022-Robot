@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
@@ -41,16 +42,16 @@ public class Intake extends SubsystemBase implements CargoSource {
   private DoublePreferenceConstant armCurrentControlMaxPercent;
 
   private static final int MOTION_MAGIC_PID_SLOT = 0;
-  private static final int CURRENT_CONTROL_PID_SLOT = 0;
+  private static final int CURRENT_CONTROL_PID_SLOT = 1;
 
   private static final double CALIBRATION_COLLECT_SIZE = 25;
   private static final double CALIBRATION_TOLERANCE = 0.5;
   private double m_calibrationStartValue = 0;
   private double m_calibrationCollectsDone = 0;
 
-  private static final double ARM_RATIO = 360. / (5 * 5 * (40/32) * (44/18) * 2048); // Motor ticks to actual degrees
+  private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  private static final double ARM_STOWED = 90;
+  private static final double ARM_STOWED = 93;
   private static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
@@ -68,8 +69,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   /** Creates a new Intake. */
   public Intake() {
-    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID);
-    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID);
+    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID, "1");
+    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID, "1");
     m_beamBreak = new DigitalInput(Constants.INTAKE_BEAM_BREAK_ID);
 
     armCurrentControlTarget = new DoublePreferenceConstant("Intake Arm Current Control Target", 8);
@@ -97,7 +98,8 @@ public class Intake extends SubsystemBase implements CargoSource {
     m_roller.configFactoryDefault();
     m_arm.configFactoryDefault();
 
-    setStatusFrames();
+    m_arm.setInverted(InvertType.InvertMotorOutput);
+
     configCurrentLimit();
     configMotionMagic();
     configCurrentControl();
@@ -184,7 +186,7 @@ public class Intake extends SubsystemBase implements CargoSource {
         enableLimits();
         setArmMotionMagic(ARM_DEPLOYED);
 
-        if (getArmPosition() < ARM_DEPLOYED + ARM_SETPOINT_TOLERANCE) {
+        if (getArmPosition() < ARM_DEPLOYED + ARM_SETPOINT_TOLERANCE || isDeployLimitTriggered()) {
           if (m_isCalibrated) {
             m_state = State.DEPLOYED;
           } else {
@@ -192,11 +194,6 @@ public class Intake extends SubsystemBase implements CargoSource {
             m_calibrationCollectsDone = 0;
             m_state = State.DEPLOYED_CALIBRATING;
           }
-        } else if (isDeployLimitTriggered()) {
-          m_isCalibrated = false;
-          m_calibrationStartValue = getArmPosition();
-          m_calibrationCollectsDone = 0;
-          m_state = State.DEPLOYED_CALIBRATING;
         } else {
           m_state = State.DEPLOYING;
         }
@@ -320,10 +317,6 @@ public class Intake extends SubsystemBase implements CargoSource {
     SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
 
     SmartDashboard.putString("Intake State", m_state.toString());
-
-    if (m_roller.hasResetOccurred() || m_arm.hasResetOccurred()) {
-      setStatusFrames();
-    }
   }
 
   private double convertMotorPositionToArm(double motorPosition) {
@@ -340,24 +333,5 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private double convertArmVelocityToMotor(double armVelocity) {
     return convertArmPositionToMotor(armVelocity) * 0.1;
-  }
-
-  private void setStatusFrames() {
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
-    m_roller.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
-
-    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_arm.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
   }
 }

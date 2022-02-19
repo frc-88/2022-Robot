@@ -22,10 +22,10 @@ public class ButtonBox extends Joystick {
         CLIMB
       }
 	
-    private static int INTAKE = 1;
-    private static int OUTGEST = 2;
-    private static int SHOOT = 3;
-    private static int CLIMB_DIRECTION = 4;
+    private static int INTAKE = 10;
+    private static int OUTGEST = 12;
+    private static int SHOOT = 2;
+    private static int CLIMB_DIRECTION = 14;
     private static int LOW_BAR = 5;
     private static int MID_BAR = 6;
     private static int HIGH_BAR = 7;

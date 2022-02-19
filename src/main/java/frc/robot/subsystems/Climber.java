@@ -95,12 +95,6 @@ public class Climber extends SubsystemBase {
             allArms.forEach(ClimberArm::brake);
         }
         SmartDashboard.putBoolean("Coast Button", !coastButton.get());
-
-        allArms.forEach((ClimberArm arm) -> {
-            if (arm.hasResetOccurred()) {
-                arm.setStatusFrames();
-            }
-        });
     }
 
     @Override

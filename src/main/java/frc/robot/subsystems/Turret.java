@@ -20,8 +20,8 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Turret extends SubsystemBase {
-  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
-  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID);
+  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
+  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
   private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
@@ -71,8 +71,6 @@ public class Turret extends SubsystemBase {
     // sensorTimeBase = SensorTimeBase.PerSecond
 
     m_cancoder.configAllSettings(encConfig);
-
-    setStatusFrames();
 
     sync();
   }
@@ -143,18 +141,5 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
-
-    if (m_turret.hasResetOccurred()) {
-      setStatusFrames();
-    }
-  }
-
-  private void setStatusFrames() {
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_turret.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
   }
 }

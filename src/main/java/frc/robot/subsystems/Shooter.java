@@ -18,8 +18,8 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
-  private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID);
-  private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID);
+  private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
+  private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private Limelight m_limelight;
 
   // Preferences
@@ -34,7 +34,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_limelight = limelight;
     configureFlywheel();
     configureHood();
-    setStatusFrames();
   }
 
   private void configureFlywheel() {
@@ -92,26 +91,5 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   
   @Override
   public void periodic() {
-    if (m_flywheel.hasResetOccurred() || m_hood.hasResetOccurred()) {
-      setStatusFrames();
-    }
-  }
-
-  public void setStatusFrames() {
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
-    m_flywheel.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
-
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
-    m_hood.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
   }
 }

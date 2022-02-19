@@ -26,13 +26,12 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private DoublePreferenceConstant p_feederMotorSpeed;
 
   public Feeder(int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
-    m_feederMotor = new TalonFX(feederMotorId);
+    m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
-    setStatusFrames();
   }
 
   public void run() {
@@ -60,22 +59,5 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
-
-    if (m_feederMotor.hasResetOccurred()) {
-      setStatusFrames();
-    }
-  }
-
-  private void setStatusFrames() {
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_8_PulseWidth, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_14_Turn_PIDF1, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_Brushless_Current, 5000);
   }
 }

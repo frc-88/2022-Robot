@@ -44,7 +44,7 @@ public final class Constants {
 	public static final double HIGH_GEAR_RATIO = (1. / 8.50);
 	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
 	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
-	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 7.5;
+	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 60./24.;
 	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
 	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
 	public static final double DRIVE_LEFT_LOW_EFFICIENCY = 1.025;
@@ -63,8 +63,8 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 0, 15, 18, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 1, 14, 1, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 4, 5, 18, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 2, 3, 1, 120, 240, 150, 210);
 
 	public static final int DRIVE_SPEED_EXP_XBOX = 2;
 	public static final int DRIVE_TURN_EXP_XBOX = 2;
@@ -138,8 +138,8 @@ public final class Constants {
 	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
 	
-	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 0;
-	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 1;
+	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
+	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
 	public final static double WORKING_PRESSURE_WARNING = 50;
 	public final static double LEAK_WARNING = 0.01;

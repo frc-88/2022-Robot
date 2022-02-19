@@ -237,19 +237,19 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public void autoshift(double commandedValue) {
-    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter.getCommandedGear(), getLeftSpeed());
-    autoshiftSide(commandedValue, getRightGear(), m_rightShifter.getCommandedGear(), getRightSpeed());
+    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter, getLeftSpeed());
+    autoshiftSide(commandedValue, getRightGear(), m_rightShifter, getRightSpeed());
   }
 
-  public void autoshiftSide(double commandValue, Gear currentGear, Gear currentCommandedGear, double currentSpeed) {
+  public void autoshiftSide(double commandValue, Gear currentGear, Shifter shifter, double currentSpeed) {
     if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= downshiftSpeed.getValue()) {
-      shiftToLow();
+      shifter.shiftToLow();
     } else if (currentGear == Gear.LOW && Math.abs(currentSpeed) >= upshiftSpeed.getValue()) {
-      shiftToHigh();
+      shifter.shiftToHigh();
     } else if (currentGear == Gear.HIGH && Math.abs(currentSpeed) <= commandDownshiftSpeed.getValue()
         && (Math.signum(commandValue) != Math.signum(currentSpeed)
             || Math.abs(commandValue) <= commandDownshiftCommandValue.getValue())) {
-      shiftToLow();
+      shifter.shiftToLow();
     }
   }
 
@@ -406,6 +406,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
     SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
     SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
+    SmartDashboard.putString("L Drive Gear", getLeftGear().toString());
+    SmartDashboard.putString("R Drive Gear", getRightGear().toString());
     SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
     SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
 
