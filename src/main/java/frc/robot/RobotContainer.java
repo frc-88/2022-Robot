@@ -113,7 +113,7 @@ public class RobotContainer {
   private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
   private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
 
-  private CommandBase m_shoot = new WaitCommand(1);
+  private CommandBase m_shoot = new InstantCommand(m_shooter::activate, m_shooter);
 
   private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
@@ -193,8 +193,10 @@ public class RobotContainer {
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:Stop", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
-    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(() -> {m_shooter.raiseHood();}, m_shooter));
-    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(() -> {m_shooter.lowerHood();}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
+    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
+    SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 
     // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);

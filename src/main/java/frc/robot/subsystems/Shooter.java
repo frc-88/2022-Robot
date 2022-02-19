@@ -20,6 +20,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID);
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID);
   private Limelight m_limelight;
+  private Boolean m_active = false;
 
   // Preferences
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
@@ -88,10 +89,17 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
   }
 
+  public void activate() {
+    m_active = true;
+  }
+
+  public void deactivate() {
+    m_active = false;
+  }
+
   @Override
   public boolean wantsCargo() {
-    return m_limelight.hasTarget() 
-      && (Math.abs(m_limelight.getTargetHorizontalOffsetAngle()) < Constants.SHOOTER_LIMELIGHT_THRESHOLD);
+    return m_active && m_limelight.onTarget();
   }
   
   @Override
