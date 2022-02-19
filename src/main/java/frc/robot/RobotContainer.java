@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.feeder.FeederAcceptCargo;
@@ -97,23 +99,33 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new RunCommand(() -> {
+  private CommandBase m_ingestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
-      }, m_intake);
-  private CommandBase m_outgestCargo = new RunCommand(() -> {
+      }, m_intake),
+      new FeederAcceptCargo(m_centralizer));
+
+  private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerOutgest();
-      }, m_intake);;
-  private CommandBase m_stowIntake = new RunCommand(() -> {
+      }, m_intake),
+      new InstantCommand(m_centralizer::reverse, m_centralizer));
+
+  private CommandBase m_stowIntake = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.stow();
         m_intake.rollerStop();
-      }, m_intake);;
+      }, m_intake),
+      new InstantCommand(m_centralizer::stop, m_centralizer));
 
   private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
   private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
 
-  private CommandBase m_shoot = new InstantCommand(m_shooter::activate, m_shooter);
+  private CommandBase m_startFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter);
+  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter);
+
+  private CommandBase m_shoot = new ParallelDeadlineGroup(new InstantCommand(m_centralizer::run, m_centralizer),
+    new InstantCommand(m_chamber::run, m_chamber),
+    new WaitCommand(5));
 
   private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
@@ -194,8 +206,8 @@ public class RobotContainer {
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
     // Shooter testing commands
-    SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
-    SmartDashboard.putData("Shooter:Flywheel:Stop", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
+    SmartDashboard.putData("Shooter:Flywheel:Run", m_startFlywheel);
+    SmartDashboard.putData("Shooter:Flywheel:Stop", m_stopFlywheel);
     SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
     SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
     SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
