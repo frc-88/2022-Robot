@@ -136,7 +136,7 @@ public class RobotContainer {
   private CommandBase m_shoot = new SequentialCommandGroup(
     new InstantCommand(m_centralizer::run, m_centralizer),
     new InstantCommand(m_chamber::run, m_chamber),
-    new WaitCommand(5),
+    new WaitCommand(0.5),
     new InstantCommand(m_centralizer::stop, m_centralizer),
     new InstantCommand(m_chamber::stop, m_chamber));
 
