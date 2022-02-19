@@ -83,6 +83,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private double m_prevTurn = 0; // The last turn value
   private double m_negInertialAccumulator = 0; // Accumulates our current inertia value
 
+  // Acceleration limiting
+  private DoublePreferenceConstant accelLimit;
+  private boolean deccelerating;
+  private double lastLimitSpeed;
+
   // Simulation
   private DifferentialDrivetrainSim m_driveSim;
   private SimDouble m_gyroSim;
@@ -105,6 +110,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
+    accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
@@ -212,6 +218,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // Convert to feet per second
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
+
+    // Limit Acceleration
+    speed = limitAcceleration(speed);
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
@@ -269,6 +278,42 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   public Gear getRightGear() {
     return m_rightShifter.getGear();
+  }
+
+  public double limitAcceleration(double speed) {
+    double currentSpeed = getStraightSpeed();
+    if (speed - currentSpeed > 0) {
+
+        deccelerating = false;
+
+        double vel = currentSpeed + accelLimit.getValue();
+        if (speed < vel) {
+            return speed;
+        } else {
+            return vel;
+        }
+    } else {
+
+        double vel = getStraightSpeed() - accelLimit.getValue();;
+
+        if (!deccelerating) {
+            lastLimitSpeed = currentSpeed;
+            deccelerating = true;
+        }
+
+        if (speed > vel) {
+            lastLimitSpeed = speed;
+            return speed;
+        } else {
+            if (vel > lastLimitSpeed) {
+                return lastLimitSpeed;
+            } else {
+                lastLimitSpeed = vel;
+                return vel;
+            }
+        }
+
+    }
   }
 
   public void resetEncoderPositions() {
