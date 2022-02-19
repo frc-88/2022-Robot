@@ -29,10 +29,11 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
-    private final DoublePreferenceConstant m_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
-    private final DoublePreferenceConstant m_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
-    private final DoublePreferenceConstant m_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant m_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
+    private final DoublePreferenceConstant p_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
+    private final DoublePreferenceConstant p_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
+    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
+    private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
+    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.SHOOTER_LIMELIGHT_THRESHOLD);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -77,10 +78,14 @@ public class Limelight {
         return isLightOn() && (m_tv.getDouble(0.0) == 1.0);
     }
 
+    public boolean onTarget() {
+        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle()) < p_targetThreshold.getValue());
+    }
+
     public double getDistanceToTarget(boolean hoodUp) {
         double distance = 0;
-        double height = hoodUp ? m_heightHoodUp.getValue() : m_heightHoodDown.getValue();
-        double angle = hoodUp ? m_angleHoodUp.getValue() : m_angleHoodDown.getValue();
+        double height = hoodUp ? p_heightHoodUp.getValue() : p_heightHoodDown.getValue();
+        double angle = hoodUp ? p_angleHoodUp.getValue() : p_angleHoodDown.getValue();
 
         if (isConnected() && hasTarget()) {
             double ty = getTargetVerticalOffsetAngle();
@@ -173,5 +178,4 @@ public class Limelight {
     public void setPip() {
         m_stream.setNumber(2);
     }
-
 }

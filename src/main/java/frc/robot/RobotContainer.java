@@ -113,7 +113,7 @@ public class RobotContainer {
   private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
   private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
 
-  private CommandBase m_shoot = new WaitCommand(1);
+  private CommandBase m_shoot = new InstantCommand(m_shooter::activate, m_shooter);
 
   private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
@@ -164,9 +164,9 @@ public class RobotContainer {
     SmartDashboard.putData("Drive forwards", new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW));
 
     // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
-    SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
-    SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+    // SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
+    // SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
+    // SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
@@ -178,7 +178,7 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
-
+    
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
@@ -196,6 +196,10 @@ public class RobotContainer {
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:Run", new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:Stop", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
+    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
+    SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 
     // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);
