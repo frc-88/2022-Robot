@@ -25,6 +25,8 @@ public class ButtonBox extends Joystick {
     private static int INTAKE = 10;
     private static int OUTGEST = 12;
     private static int SHOOT = 2;
+    private static int PREP_SHOOTER = 0;
+    private static int STOP_SHOOTER = 0;
     private static int CLIMB_DIRECTION = 14;
     private static int LOW_BAR = 5;
     private static int MID_BAR = 6;
@@ -43,6 +45,8 @@ public class ButtonBox extends Joystick {
 
 	public Button intakeButton = new JoystickButton(this, INTAKE);
     public Button outgestButton = new JoystickButton(this, OUTGEST);
+    public Button prepShooterButton = new JoystickButton(this, PREP_SHOOTER);
+    public Button stopShooterButton = new JoystickButton(this, STOP_SHOOTER);
     public Button shootButton = new JoystickButton(this, SHOOT);
     public Button stowClimberButton = new JoystickButton(this, STOW_CLIMBER);
     public Button prepClimberButton = new JoystickButton(this, PREP_CLIMBER);
