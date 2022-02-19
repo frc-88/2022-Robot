@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
@@ -32,7 +31,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 
-    // basic config, stagger status frames we don't care about
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
   }
@@ -46,7 +44,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void stop() {
-    m_feederMotor.set(ControlMode.PercentOutput, 0);
+    m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
 
   @Override

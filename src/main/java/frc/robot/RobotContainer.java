@@ -178,6 +178,7 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
+    
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
