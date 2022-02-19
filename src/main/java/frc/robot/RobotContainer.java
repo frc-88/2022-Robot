@@ -17,6 +17,7 @@ import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Feeder;
@@ -123,9 +124,12 @@ public class RobotContainer {
   private CommandBase m_startFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_testSpeed.getValue());}, m_shooter);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter);
 
-  private CommandBase m_shoot = new ParallelDeadlineGroup(new InstantCommand(m_centralizer::run, m_centralizer),
+  private CommandBase m_shoot = new SequentialCommandGroup(
+    new InstantCommand(m_centralizer::run, m_centralizer),
     new InstantCommand(m_chamber::run, m_chamber),
-    new WaitCommand(5));
+    new WaitCommand(5),
+    new InstantCommand(m_centralizer::stop, m_centralizer),
+    new InstantCommand(m_chamber::stop, m_chamber));
 
   private CommandBase m_turretTrackingOn = new InstantCommand(m_turret::startTracking);
 
@@ -208,6 +212,7 @@ public class RobotContainer {
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:Run", m_startFlywheel);
     SmartDashboard.putData("Shooter:Flywheel:Stop", m_stopFlywheel);
+    SmartDashboard.putData("Shoot", m_shoot);
     SmartDashboard.putData("Shooter:Hood:Raise", new InstantCommand(m_shooter::raiseHood, m_shooter));
     SmartDashboard.putData("Shooter:Hood:Lower", new InstantCommand(m_shooter::lowerHood, m_shooter));
     SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
