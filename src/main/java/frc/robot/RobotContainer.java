@@ -179,7 +179,7 @@ public class RobotContainer {
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
-    m_buttonBox.shootButton.whileHeld(m_shoot);
+    m_buttonBox.shootButton.whenPressed(m_shoot);
     m_buttonBox.shooterButton.whenPressed(m_startFlywheel);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
   }
