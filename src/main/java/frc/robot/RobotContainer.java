@@ -44,8 +44,8 @@ public class RobotContainer {
   private final Shooter m_shooter = new Shooter(m_sensors.limelight);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder(Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
-  private final Feeder m_chamber = new Feeder(Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
+  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
+  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
   private final Climber m_climber = new Climber();
 
   
@@ -178,7 +178,7 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
-    
+
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));

@@ -22,11 +22,13 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
  */
 
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
+  private String m_feederName;
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
   private DoublePreferenceConstant p_feederMotorSpeed;
 
-  public Feeder(int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
+  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
+    m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
@@ -59,6 +61,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
+    SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
   }
 }
