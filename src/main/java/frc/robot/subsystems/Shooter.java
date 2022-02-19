@@ -22,6 +22,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
 
   // Preferences
+  private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Shooter Hood Continuous Current", 10);
+  private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Shooter Hood Trigger Current", 80);
+  private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Shooter Hood Trigger Current Duration", 0.002);
   private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_P_DFT);
   private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_I_DFT);
   private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_D_DFT);
@@ -31,6 +34,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   /** Creates a new Shooter. */
   public Shooter(Limelight limelight) {
     m_limelight = limelight;
+
+    p_continuousCurrentLimit.addChangeHandler((Double unused) -> configureHood());
+    p_triggerCurrentLimit.addChangeHandler((Double unused) -> configureHood());
+    p_triggerDuration.addChangeHandler((Double unused) -> configureHood());
+
     configureFlywheel();
     configureHood();
   }
@@ -54,7 +62,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private void configureHood() {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
-    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, 20, 25, 1.0);
+    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(), 
+      p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
     config.nominalOutputForward = 0;
@@ -84,8 +93,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public boolean wantsCargo() {
-    // TODO
-    return false && onTarget() && m_limelight.hasTarget() 
+    return m_limelight.hasTarget() 
       && (Math.abs(m_limelight.getTargetHorizontalOffsetAngle()) < Constants.SHOOTER_LIMELIGHT_THRESHOLD);
   }
   
