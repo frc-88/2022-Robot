@@ -91,8 +91,9 @@ public final class Constants {
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;
 	public static final int TURRET_CANCODER_ID = 13;
-	public static final double TURRET_CANCODER_CONV = 1.0;
-    public static final double TURRET_COUNTS_PER_REV = 10000;
+	public static final double TURRET_GEAR_RATIO = 7.0 * 144.0 / 18;  // 56.0
+	public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 54.0 / 8.0;  // 94.5
+    public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 1024.0;
 	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
 	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
 	public static final double TURRET_ZERO_DFT = 0;
@@ -117,7 +118,7 @@ public final class Constants {
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
 	public static final int INTAKE_ARM_ID = 12;
-	public static final int INTAKE_BEAM_BREAK_ID = 1;
+	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
 	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;

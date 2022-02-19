@@ -19,12 +19,13 @@ import frc.robot.Constants;
 import frc.robot.util.CargoSource;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+import frc.robot.util.sensors.SharpIR;
 
 public class Intake extends SubsystemBase implements CargoSource {
 
   private final WPI_TalonFX m_roller;
   private final WPI_TalonFX m_arm;
-  private final DigitalInput m_beamBreak;
+  private final SharpIR m_IR;
 
   private boolean m_isCalibrated = false;
 
@@ -40,6 +41,7 @@ public class Intake extends SubsystemBase implements CargoSource {
   private PIDPreferenceConstants armMotionMagicPID;
   private PIDPreferenceConstants armCurrentPID;
   private DoublePreferenceConstant armCurrentControlMaxPercent;
+  private DoublePreferenceConstant intakseSensorThreshold;
 
   private static final int MOTION_MAGIC_PID_SLOT = 0;
   private static final int CURRENT_CONTROL_PID_SLOT = 1;
@@ -71,7 +73,7 @@ public class Intake extends SubsystemBase implements CargoSource {
   public Intake() {
     m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID, "1");
     m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID, "1");
-    m_beamBreak = new DigitalInput(Constants.INTAKE_BEAM_BREAK_ID);
+    m_IR = new SharpIR(Constants.INTAKE_IR_ID);
 
     armCurrentControlTarget = new DoublePreferenceConstant("Intake Arm Current Control Target", 8);
     rollerIntakeSpeed = new DoublePreferenceConstant("Intake Roller Intake Speed", 0.5);
@@ -85,6 +87,8 @@ public class Intake extends SubsystemBase implements CargoSource {
     armMotionMagicPID = new PIDPreferenceConstants("Intake Arm Motion Magic", 0, 0, 0, 0, 0, 0, 0);
     armCurrentPID = new PIDPreferenceConstants("Intake Arm Current", 0, 0, 0, 0, 0, 0, 0);
     armCurrentControlMaxPercent = new DoublePreferenceConstant("Intake Arm Current Control Max Percent", 0.1);
+    intakseSensorThreshold =  new DoublePreferenceConstant("Intake Sensor Threshold", 15.0);
+
 
     continuousCurrentLimit.addChangeHandler((Double unused) -> configCurrentLimit());
     triggerCurrentLimit.addChangeHandler((Double unused) -> configCurrentLimit());
@@ -164,7 +168,7 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   @Override
   public boolean hasCargo() {
-    return !m_beamBreak.get();
+    return m_IR.getDistance() < intakseSensorThreshold.getValue();
   }
 
   public boolean isDeployLimitTriggered() {
@@ -315,6 +319,7 @@ public class Intake extends SubsystemBase implements CargoSource {
     SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
     SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
+    SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
 
     SmartDashboard.putString("Intake State", m_state.toString());
   }

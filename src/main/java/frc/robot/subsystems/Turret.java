@@ -120,11 +120,11 @@ public class Turret extends SubsystemBase {
   }
 
   private double cancoderPostionToTurretPosition(double encPosition) {
-    return (encPosition - p_zeroPosition.getValue()) * Constants.TURRET_CANCODER_CONV;
+    return (encPosition - p_zeroPosition.getValue()) / 360.0 * Constants.TURRET_COUNTS_PER_REV;
   }
 
   private double turretPositionToCancoderPostion(double turretPosition) {
-    return turretPosition / Constants.TURRET_CANCODER_CONV + p_zeroPosition.getValue();
+    return turretPositionToDegrees(turretPosition) + p_zeroPosition.getValue();
   }
 
   public double turretPositionToDegrees(double turretPosition) {
