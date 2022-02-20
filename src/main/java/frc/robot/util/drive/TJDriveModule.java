@@ -23,18 +23,17 @@ public class TJDriveModule extends WPI_TalonFX {
     private ShiftingTransmission m_transmission;
 
     public TJDriveModule(TJDriveModuleConfiguration config, ShiftingTransmission transmission) {
-        super(config.master);
+        super(config.master, "1");
         this.configFactoryDefault();
         this.configAllSettings(config.masterConfiguration);
         this.enableVoltageCompensation(config.enableVoltageCompensation);
         this.setInverted(config.invertMotor);
         this.setSensorPhase(config.invertSensor);
         this.setNeutralMode(config.neutralMode);
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
 
         followers = new WPI_TalonFX [config.followers.length];
         for (int i = 0; i < config.followers.length; i++) {
-            followers[i] = new WPI_TalonFX(config.followers[i]);
+            followers[i] = new WPI_TalonFX(config.followers[i], "1");
             followers[i].configFactoryDefault();
             followers[i].configAllSettings(config.followerConfiguration);
             followers[i].follow(this);
@@ -42,6 +41,8 @@ public class TJDriveModule extends WPI_TalonFX {
             followers[i].setSensorPhase(config.invertSensor);
             followers[i].setNeutralMode(config.neutralMode);
         }
+
+        setStatusFrames();
 
         m_transmission = transmission;
     }
@@ -146,6 +147,10 @@ public class TJDriveModule extends WPI_TalonFX {
      */
     public double getExpectedCurrentDraw(double targetVelocity) {
         return m_transmission.getExpectedCurrentDraw(targetVelocity, this.getSelectedSensorVelocity());
+    }
+
+    public void setStatusFrames() {
+        this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
     }
 
 }

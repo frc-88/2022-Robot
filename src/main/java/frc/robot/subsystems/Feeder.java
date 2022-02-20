@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
@@ -23,30 +22,19 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
  */
 
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
+  private String m_feederName;
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
   private DoublePreferenceConstant p_feederMotorSpeed;
 
-  public Feeder(int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
-    m_feederMotor = new TalonFX(feederMotorId);
+  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
+    m_feederName = feederName;
+    m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 
-    // basic config, stagger status frames we don't care about
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 1000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_4_AinTempVbat, 3000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_6_Misc, 5000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_7_CommStatus, 7000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 11000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_10_MotionMagic, 13000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_10_Targets, 17000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 19000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 23000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 29000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_15_FirmwareApiStatus, 31000);
-    m_feederMotor.setStatusFramePeriod(StatusFrame.Status_17_Targets1, 37000);
   }
 
   public void run() {
@@ -58,7 +46,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void stop() {
-    m_feederMotor.set(ControlMode.PercentOutput, 0);
+    m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
 
   @Override
@@ -73,6 +61,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Feeder:" + m_feederMotor.getDeviceID() + ":hasCargo?", hasCargo());
+    SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
   }
 }

@@ -12,6 +12,7 @@ import java.util.Queue;
 
 import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -39,15 +40,25 @@ public class Sensors extends SubsystemBase {
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
 
+  private boolean checkedStoragePressure = false;
+  private double currentStorageVoltage = 0;
+  private boolean checkedWorkingPressure = false;
+  private double currentWorkingVoltage = 0;
+
   /**
    * Creates a new Sensors subsystem
    */
   public Sensors() {
+    CameraServer.startAutomaticCapture();
   }
 
   public double getStoragePressure() {
     if (Robot.isReal()) {
-      return (m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL) - 0.4132) / 0.0265;
+      if (!checkedStoragePressure) {
+        currentStorageVoltage = m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL);
+        checkedStoragePressure = true;
+      }
+      return (currentStorageVoltage - 0.4132) / 0.0265;
     } else {
       return 120.;
     }
@@ -55,7 +66,11 @@ public class Sensors extends SubsystemBase {
 
   public double getWorkingPressure() {
     if (Robot.isReal()) {
-      return (m_pneumaticHub.getAnalogVoltage(Constants.WORKING_PRESSURE_SENSOR_CHANNEL) - 0.3944) / 0.0396;
+      if (!checkedWorkingPressure) {
+        currentWorkingVoltage = m_pneumaticHub.getAnalogVoltage(Constants.WORKING_PRESSURE_SENSOR_CHANNEL);
+        checkedWorkingPressure = true;
+      }
+      return (currentWorkingVoltage - 0.3944) / 0.0396;
     } else {
       return 60.;
     }
@@ -65,20 +80,23 @@ public class Sensors extends SubsystemBase {
     if (Robot.isSimulation()) {
       return true;
     }
-    double voltage = m_pneumaticHub.getAnalogVoltage(Constants.STORAGE_PRESSURE_SENSOR_CHANNEL);
-    return voltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && voltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
+    return currentStorageVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && currentStorageVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
   }
 
   public boolean isWorkingPressureSensorConnected() {
     if (Robot.isSimulation()) {
       return true;
     }
-    double voltage = m_pneumaticHub.getAnalogVoltage(Constants.WORKING_PRESSURE_SENSOR_CHANNEL);
-    return voltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && voltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
+    return currentWorkingVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && currentWorkingVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
   }
 
   @Override
   public void periodic() {
+    checkedStoragePressure = false;
+    checkedWorkingPressure = false;
+    getStoragePressure();
+    getWorkingPressure();
+
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());

@@ -4,9 +4,11 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -42,16 +44,16 @@ public class Intake extends SubsystemBase implements CargoSource {
   private DoublePreferenceConstant intakseSensorThreshold;
 
   private static final int MOTION_MAGIC_PID_SLOT = 0;
-  private static final int CURRENT_CONTROL_PID_SLOT = 0;
+  private static final int CURRENT_CONTROL_PID_SLOT = 1;
 
   private static final double CALIBRATION_COLLECT_SIZE = 25;
   private static final double CALIBRATION_TOLERANCE = 0.5;
   private double m_calibrationStartValue = 0;
   private double m_calibrationCollectsDone = 0;
 
-  private static final double ARM_RATIO = 360. / (5 * 5 * (40/32) * (44/18) * 2048); // Motor ticks to actual degrees
+  private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  private static final double ARM_STOWED = 90;
+  private static final double ARM_STOWED = 93;
   private static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
@@ -69,8 +71,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   /** Creates a new Intake. */
   public Intake() {
-    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID);
-    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID);
+    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID, "1");
+    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID, "1");
     m_IR = new SharpIR(Constants.INTAKE_IR_ID);
 
     armCurrentControlTarget = new DoublePreferenceConstant("Intake Arm Current Control Target", 8);
@@ -99,6 +101,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
     m_roller.configFactoryDefault();
     m_arm.configFactoryDefault();
+
+    m_arm.setInverted(InvertType.InvertMotorOutput);
 
     configCurrentLimit();
     configMotionMagic();
@@ -186,7 +190,7 @@ public class Intake extends SubsystemBase implements CargoSource {
         enableLimits();
         setArmMotionMagic(ARM_DEPLOYED);
 
-        if (getArmPosition() < ARM_DEPLOYED + ARM_SETPOINT_TOLERANCE) {
+        if (getArmPosition() < ARM_DEPLOYED + ARM_SETPOINT_TOLERANCE || isDeployLimitTriggered()) {
           if (m_isCalibrated) {
             m_state = State.DEPLOYED;
           } else {
@@ -194,11 +198,6 @@ public class Intake extends SubsystemBase implements CargoSource {
             m_calibrationCollectsDone = 0;
             m_state = State.DEPLOYED_CALIBRATING;
           }
-        } else if (isDeployLimitTriggered()) {
-          m_isCalibrated = false;
-          m_calibrationStartValue = getArmPosition();
-          m_calibrationCollectsDone = 0;
-          m_state = State.DEPLOYED_CALIBRATING;
         } else {
           m_state = State.DEPLOYING;
         }

@@ -24,9 +24,9 @@ public class ClimberMotionMagicJoystick extends CommandBase {
 
     @Override
     public void execute() {
-        double innerPivot = DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25) * PIVOT_SPEED;
+        double innerPivot = DriveUtils.deadbandExponential(-m_controller.getLeftStickX(), 3, 0.25) * PIVOT_SPEED;
         double innerTelescope = DriveUtils.deadbandExponential(m_controller.getLeftStickY(), 3, 0.25) * TELESCOPE_SPEED;
-        double outerPivot = DriveUtils.deadbandExponential(m_controller.getRightStickX(), 3, 0.25) * PIVOT_SPEED;
+        double outerPivot = DriveUtils.deadbandExponential(-m_controller.getRightStickX(), 3, 0.25) * PIVOT_SPEED;
         double outerTelescope = DriveUtils.deadbandExponential(m_controller.getRightStickY(), 3, 0.25) * TELESCOPE_SPEED;
 
         if (m_controller.buttonRightBumper.get()) {

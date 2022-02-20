@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -19,8 +20,8 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class Turret extends SubsystemBase {
-  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
-  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID);
+  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
+  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
   private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
@@ -141,5 +142,4 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:Position", getPosition());
   }
-
 }
