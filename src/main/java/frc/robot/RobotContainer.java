@@ -322,14 +322,14 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_climber.setDefaultCommand( 
-      new SequentialCommandGroup(
-        new RunCommand(m_climber::calibrate, m_climber)
-          .withInterrupt(m_climber::isCalibrated)
-          .beforeStarting(m_climber::resetCalibration)
-          .withName("calibrateClimber"),
-        new ClimberMotionMagicJoystick(m_climber, m_testController)
-      ));
+    // m_climber.setDefaultCommand( 
+    //   new SequentialCommandGroup(
+    //     new RunCommand(m_climber::calibrate, m_climber)
+    //       .withInterrupt(m_climber::isCalibrated)
+    //       .beforeStarting(m_climber::resetCalibration)
+    //       .withName("calibrateClimber"),
+    //     new ClimberMotionMagicJoystick(m_climber, m_testController)
+    //   ));
   }
 
   /**
