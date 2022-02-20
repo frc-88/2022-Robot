@@ -94,15 +94,18 @@ public class Sensors extends SubsystemBase {
   }
 
   public void setCameraTilterAngle(Rotation2d angle) {
-    m_cameraTilter.setAngle(angle.getDegrees());
+    setCameraTilterAngle(angle.getDegrees());
   }
 
   public void setCameraTilterAngle(double angleDegrees) {
+    SmartDashboard.putNumber("Camera tilter command degrees", angleDegrees);
     m_cameraTilter.setAngle(angleDegrees);
   }
 
   public Rotation2d getCameraTilterAngle() {
-    return new Rotation2d(m_cameraTilter.getAngle());
+    double angleDegrees = m_cameraTilter.getAngle();
+    SmartDashboard.putNumber("Camera tilter read degrees", angleDegrees);
+    return new Rotation2d(angleDegrees);
   }
 
   @Override

@@ -35,6 +35,7 @@ import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
+import frc.robot.commands.cameratilter.ToggleTiltCamera;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
@@ -262,8 +263,9 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_testController.buttonA.whenActive(m_pursueCargoCommand);
+    m_testController.buttonA.whenPressed(m_pursueCargoCommand);
     m_testController.buttonA.whenReleased(m_cancelPursueCargoCommand);
+    m_testController.buttonB.whenPressed(new ToggleTiltCamera(m_sensors));
   }
 
   private void configureDashboardCommands() {
