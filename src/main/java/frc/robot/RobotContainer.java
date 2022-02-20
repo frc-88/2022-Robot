@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.feeder.FeederAcceptCargo;
@@ -39,6 +40,11 @@ import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.roswaypoints.WaypointsPlan;
+import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.commands.ros.SendCoprocessorGoals;
+import frc.robot.commands.ros.WaitForCoprocessorPlan;
+import frc.robot.commands.ros.WaitForCoprocessorRunning;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -71,7 +77,8 @@ public class RobotContainer {
     m_drive,
     m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm,
     m_intake,
-    m_turret);
+    m_turret,
+    m_sensors);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
 
@@ -170,7 +177,9 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private CommandBase m_autoCommand = new WaitCommand(15.0);
+  private CommandBase m_autoCommand;
+  private CommandBase m_pursueCargoCommand;
+  private CommandBase m_cancelPursueCargoCommand;
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -180,6 +189,53 @@ public class RobotContainer {
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
+    setupAutonomousCommand();
+  }
+
+  private void setupAutonomousCommand()
+  {
+    WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
+    autoPlan.addWaypoint(new Waypoint("start"));
+    autoPlan.addWaypoint(new Waypoint("point1"));
+    autoPlan.addWaypoint(new Waypoint("end"));
+    autoPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    m_autoCommand = getWaitForCoprocessorPlan(autoPlan, 15.0);
+
+    WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
+    pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
+
+    m_cancelPursueCargoCommand = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        m_pursueCargoCommand.cancel();
+        m_ros_interface.cancelGoal();
+        m_stowIntake.schedule();
+      }
+    };
+  }
+
+  private CommandBase getWaitForCoprocessorPlan(WaypointsPlan plan, double waitTime)
+  {
+    CommandBase waitForPlanCommand = new SequentialCommandGroup(
+      m_ingestCargo,
+      new ParallelRaceGroup(
+        new WaitForCoprocessorRunning(m_ros_interface),
+        new WaitCommand(0.5)
+      ),
+      new SendCoprocessorGoals(plan),
+      new WaitForCoprocessorPlan(m_drive, m_ros_interface)
+    );
+    if (waitTime <= 0.0) {
+      return waitForPlanCommand;
+    }
+    else {
+      return new ParallelRaceGroup(
+        waitForPlanCommand,
+        new WaitCommand(waitTime)
+      );
+    }
   }
 
   public void disabledPeriodic() {
@@ -206,6 +262,8 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+    m_testController.buttonA.whenActive(m_pursueCargoCommand);
+    m_testController.buttonA.whenReleased(m_cancelPursueCargoCommand);
   }
 
   private void configureDashboardCommands() {

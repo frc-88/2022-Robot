@@ -427,7 +427,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    m_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
   }
 
   @Override

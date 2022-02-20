@@ -2,6 +2,7 @@ package frc.robot.util.tunnel;
 
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.Vector2D;
 import frc.robot.util.climber.ClimberArm;
@@ -26,12 +27,14 @@ public class ThisRobotInterface extends ROSInterface {
 
     private Intake intake;
     private Turret turret;
+    private Sensors sensors;
     // private CameraTilter cameraTilter;  // TODO add camera tilter when that's ready
 
     public ThisRobotInterface(ChassisInterface chassis,
                               ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
                               Intake intake,
-                              Turret turret) {
+                              Turret turret,
+                              Sensors sensors) {
         super(chassis);
         this.outerLeftArm = outerLeftArm;
         this.outerRightArm = outerRightArm;
@@ -39,6 +42,7 @@ public class ThisRobotInterface extends ROSInterface {
         this.innerRightArm = innerRightArm;
         this.intake = intake;
         this.turret = turret;
+        this.sensors = sensors;
     }
 
     // @Override
@@ -112,10 +116,10 @@ public class ThisRobotInterface extends ROSInterface {
         );
 
         // camera
-        // TunnelServer.writePacket("joint",
-        //     camera_joint,
-        //     Math.toRadians(cameraTilter.getPosition())
-        // );
+        TunnelServer.writePacket("joint",
+            camera_joint,
+            sensors.getCameraTilterAngle().getRadians()
+        );
     }
 
 }
