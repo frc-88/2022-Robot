@@ -116,7 +116,7 @@ public class Limelight {
         if (isConnected() && hasTarget()) {
             distance = (Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight()) /
                     (Math.tan(Math.toRadians(getLimelightAngle() + getTargetVerticalOffsetAngle()))
-                            * Math.cos(getTargetHorizontalOffsetAngle()));
+                            * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())));
         }
 
         return distance;
@@ -131,7 +131,7 @@ public class Limelight {
      */
     public double calcLimelightAngle() {
         return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight())
-                        / (p_testDistance.getValue() * Math.cos(getTargetHorizontalOffsetAngle()))))
+                        / (p_testDistance.getValue() * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())))))
                 - getTargetVerticalOffsetAngle();
     }
 
