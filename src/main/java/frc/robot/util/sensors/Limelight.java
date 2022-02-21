@@ -34,6 +34,7 @@ public class Limelight {
     private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
     private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
     private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.SHOOTER_LIMELIGHT_THRESHOLD);
+    private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", Constants.SHOOTER_LIMELIGHT_THRESHOLD);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -97,6 +98,10 @@ public class Limelight {
         return distance;
       }
     
+    public double calcLimelightAngle(boolean hoodUp) {
+        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - (hoodUp?p_heightHoodUp:p_heightHoodDown).getValue()) / p_testDistance.getValue())) - getTargetVerticalOffsetAngle();
+    }
+
 
     /**
      * Get the horizontal offset angle of the target from the center of the camera
