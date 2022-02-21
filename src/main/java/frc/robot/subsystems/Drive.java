@@ -488,6 +488,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public void drive(double vx, double vy, double angularVelocity) {
+    // vx and vy in meters per second
+    // angularVelocity in radians per second
     double speed = vx / (m_maxSpeed * Constants.FEET_TO_METERS);
     double turn = angularVelocity / m_maxAngVelHighGear;
     // if (m_leftTransmission.isInHighGear()) {

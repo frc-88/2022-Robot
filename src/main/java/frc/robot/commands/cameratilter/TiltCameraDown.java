@@ -9,13 +9,12 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Sensors;
 
-public class ToggleTiltCamera extends CommandBase {
+public class TiltCameraDown extends CommandBase {
   private Sensors m_sensors;
-  private Rotation2d tiltAngle = new Rotation2d();
   private boolean toggle = false;
 
-  /** Creates a new TiltCamera. */
-  public ToggleTiltCamera(Sensors sensors) {
+  /** Creates a new TiltCameraDown. */
+  public TiltCameraDown(Sensors sensors) {
     m_sensors = sensors;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(m_sensors);
@@ -24,13 +23,7 @@ public class ToggleTiltCamera extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if (toggle) {
-      m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
-    }
-    else {
-      m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_UP_ANGLE);
-    }
-    toggle = !toggle;
+    m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
