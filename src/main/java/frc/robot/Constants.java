@@ -81,7 +81,6 @@ public final class Constants {
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
     public static final int SHOOTER_HOOD_ID = 9;
     public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
-    public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
     public static final double SHOOTER_P_DFT = 0.0;
     public static final double SHOOTER_I_DFT = 0.0;
     public static final double SHOOTER_D_DFT = 0.0;
@@ -140,6 +139,7 @@ public final class Constants {
 	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
+	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
 	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
