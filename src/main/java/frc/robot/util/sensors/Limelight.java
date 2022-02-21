@@ -89,6 +89,10 @@ public class Limelight {
         m_hoodUp = hoodUp;
     }
 
+    public boolean isHoodUp() {
+        return m_hoodUp;
+    }
+
     public double getDistanceToTarget() {
         double distance = 0;
         double height = m_hoodUp ? p_heightHoodUp.getValue() : p_heightHoodDown.getValue();

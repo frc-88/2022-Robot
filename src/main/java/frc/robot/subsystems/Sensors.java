@@ -103,6 +103,11 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Pitch", navx.getPitch());
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
+    // Limelight calculations
+    SmartDashboard.putNumber("Limelight Distance", limelight.getDistanceToTarget());
+    SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
+    SmartDashboard.putBoolean("Limelight Hood Up?", limelight.isHoodUp());
+
     // Color Sensor data
     Color detectedColor = m_colorSensor.getColor();
     double IR = m_colorSensor.getIR();
