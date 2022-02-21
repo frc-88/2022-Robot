@@ -24,7 +24,7 @@ public class ToggleTiltCamera extends CommandBase {
   @Override
   public void initialize() {
     tiltAngle = m_sensors.getCameraTilterAngle();
-    if (tiltAngle.getDegrees() >= Constants.CAMERA_TILT_UP_ANGLE_DEGREES) {
+    if (tiltAngle.getDegrees() != Constants.CAMERA_TILT_UP_ANGLE_DEGREES) {
       m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE_DEGREES);
     }
     else {

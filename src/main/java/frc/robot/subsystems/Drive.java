@@ -56,7 +56,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private double m_leftCommandedSpeed = 0;
   private double m_rightCommandedSpeed = 0;
   private double m_maxSpeed = Constants.MAX_SPEED_HIGH;
-  private double m_maxAngVel = 2.0 * Constants.MAX_SPEED_HIGH / Constants.WHEEL_BASE_WIDTH;  // in radians per second. arc / radius = angle
+  private double m_maxAngVelHighGear = 6.0;  // in radians per second. arc / radius = angle
+  // private double m_maxAngVelHighGear = 2.0 * Constants.MAX_SPEED_HIGH / Constants.WHEEL_BASE_WIDTH;  // in radians per second. arc / radius = angle
+  private double m_maxAngVelLowGear = 2.0 * Constants.MAX_SPEED_LOW / Constants.WHEEL_BASE_WIDTH;  // in radians per second. arc / radius = angle
 
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
@@ -487,8 +489,20 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   @Override
   public void drive(double vx, double vy, double angularVelocity) {
     double speed = vx / (m_maxSpeed * Constants.FEET_TO_METERS);
-    double turn = angularVelocity / m_maxAngVel;
-    arcadeDrive(speed, turn);
+    double turn = angularVelocity / m_maxAngVelHighGear;
+    // if (m_leftTransmission.isInHighGear()) {
+    //   turn = angularVelocity / m_maxAngVelHighGear;
+    // }
+    // else {
+    //   turn = angularVelocity / m_maxAngVelLowGear;
+    // }
+
+    // Calculate left and right speed
+    double leftSpeed = (speed - turn);
+    double rightSpeed = (speed + turn);
+
+    // Apply values
+    basicDrive(leftSpeed, rightSpeed);  // TODO: fix max range issue
   }
 
   @Override

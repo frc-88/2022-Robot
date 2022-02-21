@@ -116,9 +116,11 @@ public class ThisRobotInterface extends ROSInterface {
         );
 
         // camera
+        double cameraAngle = sensors.getCameraTilterAngle().getDegrees();
+        cameraAngle += 30.0;
         TunnelServer.writePacket("joint",
             camera_joint,
-            sensors.getCameraTilterAngle().getRadians()
+            Math.toRadians(cameraAngle)
         );
     }
 

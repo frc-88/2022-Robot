@@ -181,16 +181,18 @@ public class RobotContainer {
   private CommandBase m_autoCommand;
   private CommandBase m_pursueCargoCommand;
   private CommandBase m_cancelPursueCargoCommand;
+  private CommandBase m_allowRosCommandVelocities;
+  private CommandBase m_cancelRosCommandVelocities;
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer() {
+    setupAutonomousCommand();
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
-    setupAutonomousCommand();
   }
 
   private void setupAutonomousCommand()
@@ -203,16 +205,55 @@ public class RobotContainer {
     m_autoCommand = getWaitForCoprocessorPlan(autoPlan, 15.0);
 
     WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
-    pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    // pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    pursuitPlan.addWaypoint(new Waypoint("point1"));
     m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
 
+    m_allowRosCommandVelocities = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        if (TunnelServer.anyClientsAlive() && m_ros_interface.isCommandActive()) {
+            System.out.println("ROS command");
+            m_drive.drive(m_ros_interface.getCommand());
+        }
+      }
+
+      @Override
+      public boolean isFinished() {
+        return false;
+      }
+      @Override
+      public void end(boolean interrupted) {
+          m_drive.stop();
+      }
+    };
+
+    m_cancelRosCommandVelocities = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        m_allowRosCommandVelocities.cancel();
+      }
+
+      @Override
+      public boolean isFinished() {
+        return true;
+      }
+    };
     m_cancelPursueCargoCommand = new CommandBase() {
       @Override
       public void execute()
       {
         m_pursueCargoCommand.cancel();
         m_ros_interface.cancelGoal();
+        // m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
         m_stowIntake.schedule();
+      }
+
+      @Override
+      public boolean isFinished() {
+        return true;
       }
     };
   }
@@ -220,10 +261,14 @@ public class RobotContainer {
   private CommandBase getWaitForCoprocessorPlan(WaypointsPlan plan, double waitTime)
   {
     CommandBase waitForPlanCommand = new SequentialCommandGroup(
-      m_ingestCargo,
       new ParallelRaceGroup(
         new WaitForCoprocessorRunning(m_ros_interface),
-        new WaitCommand(0.5)
+        new ParallelCommandGroup(new RunCommand(() -> {
+          m_intake.deploy();
+          m_intake.rollerIntake();
+        }, m_intake),
+        new FeederAcceptCargo(m_centralizer)), // deploy intake
+        new WaitCommand(1.0)
       ),
       new SendCoprocessorGoals(plan),
       new WaitForCoprocessorPlan(m_drive, m_ros_interface)
@@ -263,9 +308,11 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_testController.buttonA.whenPressed(m_pursueCargoCommand);
-    m_testController.buttonA.whenReleased(m_cancelPursueCargoCommand);
-    m_testController.buttonB.whenPressed(new ToggleTiltCamera(m_sensors));
+    // m_testController.buttonA.whenActive(m_pursueCargoCommand);
+    // m_testController.buttonA.whenInactive(m_cancelPursueCargoCommand);
+    m_testController.buttonA.whenActive(m_allowRosCommandVelocities);
+    m_testController.buttonA.whenInactive(m_cancelRosCommandVelocities);
+    m_testController.buttonB.whenActive(new ToggleTiltCamera(m_sensors));
   }
 
   private void configureDashboardCommands() {
