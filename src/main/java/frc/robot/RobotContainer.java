@@ -205,8 +205,8 @@ public class RobotContainer {
     m_autoCommand = getWaitForCoprocessorPlan(autoPlan, 15.0);
 
     WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
-    // pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
-    pursuitPlan.addWaypoint(new Waypoint("point1"));
+    pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    // pursuitPlan.addWaypoint(new Waypoint("point1"));
     m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
 
     m_allowRosCommandVelocities = new CommandBase() {
@@ -248,7 +248,8 @@ public class RobotContainer {
         m_pursueCargoCommand.cancel();
         m_ros_interface.cancelGoal();
         // m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
-        m_stowIntake.schedule();
+        // m_stowIntake.schedule();
+        System.out.println("Cancelling pursuit");
       }
 
       @Override
@@ -308,8 +309,8 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    // m_testController.buttonA.whenActive(m_pursueCargoCommand);
-    // m_testController.buttonA.whenInactive(m_cancelPursueCargoCommand);
+    m_testController.buttonRightBumper.whenActive(m_pursueCargoCommand);
+    m_testController.buttonRightBumper.whenInactive(m_cancelPursueCargoCommand);
     m_testController.buttonA.whenActive(m_allowRosCommandVelocities);
     m_testController.buttonA.whenInactive(m_cancelRosCommandVelocities);
     m_testController.buttonB.whenActive(new ToggleTiltCamera(m_sensors));
