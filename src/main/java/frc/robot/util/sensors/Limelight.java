@@ -32,9 +32,9 @@ public class Limelight {
 
     private final DoublePreferenceConstant p_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
     private final DoublePreferenceConstant p_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
-    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
+    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_HEIGHT_HOOD_DOWN_DFT);
     private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.SHOOTER_LIMELIGHT_THRESHOLD);
+    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.LIMELIGHT_TARGET_THRESHOLD_DFT);
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", Constants.LIMELIGHT_TEST_DISTANCE_DFT);
 
     /**
@@ -93,25 +93,31 @@ public class Limelight {
         return m_hoodUp;
     }
 
-    public double getDistanceToTarget() {
-        double distance = 0;
-        double height = m_hoodUp ? p_heightHoodUp.getValue() : p_heightHoodDown.getValue();
-        double angle = m_hoodUp ? p_angleHoodUp.getValue() : p_angleHoodDown.getValue();
-
-        if (isConnected() && hasTarget()) {
-            double ty = getTargetVerticalOffsetAngle();
-    
-          distance = (Constants.FIELD_VISION_TARGET_HEIGHT - height) / 
-             Math.tan(Math.toRadians(angle + ty));
-        }
-    
-        return distance;
-      }
-    
-    public double calcLimelightAngle() {
-        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - (m_hoodUp ? p_heightHoodUp : p_heightHoodDown).getValue()) / p_testDistance.getValue())) - getTargetVerticalOffsetAngle();
+    private double getLimelightHeight() {
+        return (m_hoodUp ? p_heightHoodUp : p_heightHoodDown).getValue();
     }
 
+    private double getLimelightAngle() {
+        return (m_hoodUp ? p_angleHoodUp : p_angleHoodDown).getValue();
+    }
+
+    public double calcDistanceToTarget() {
+        double distance = 0;
+
+        if (isConnected() && hasTarget()) {
+            distance = (Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight()) /
+                    (Math.tan(Math.toRadians(getLimelightAngle() + getTargetVerticalOffsetAngle()))
+                            * Math.cos(getTargetHorizontalOffsetAngle()));
+        }
+
+        return distance;
+    }
+
+    public double calcLimelightAngle() {
+        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight())
+                        / (p_testDistance.getValue() * Math.cos(getTargetHorizontalOffsetAngle()))))
+                - getTargetVerticalOffsetAngle();
+    }
 
     /**
      * Get the horizontal offset angle of the target from the center of the camera
