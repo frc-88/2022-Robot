@@ -101,6 +101,15 @@ public class Limelight {
         return (m_hoodUp ? p_angleHoodUp : p_angleHoodDown).getValue();
     }
 
+ 
+    /**
+     * Calculate the distance to the target.
+     * See: https://www.chiefdelphi.com/t/calculating-distance-to-vision-target/387183/6
+     * for details regarding the cosine term, used to adjust for when
+     * the target isn't in the center of the field of vision.
+     * 
+     * @return The distance to the target
+     */
     public double calcDistanceToTarget() {
         double distance = 0;
 
@@ -113,6 +122,13 @@ public class Limelight {
         return distance;
     }
 
+    /**
+     * Calculate the mount angle of the limelight assuming the target
+     * is the distance specified by the "Limelight Test Distance" value.
+     * Useful during field calibration.
+     * 
+     * @return The mount angle of the limelight in degrees
+     */
     public double calcLimelightAngle() {
         return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight())
                         / (p_testDistance.getValue() * Math.cos(getTargetHorizontalOffsetAngle()))))
