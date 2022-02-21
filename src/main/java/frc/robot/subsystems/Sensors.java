@@ -104,7 +104,7 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
     // Limelight calculations
-    SmartDashboard.putNumber("Limelight Distance", limelight.getDistanceToTarget());
+    SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
     SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
     SmartDashboard.putBoolean("Limelight Hood Up?", limelight.isHoodUp());
 

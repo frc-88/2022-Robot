@@ -81,7 +81,7 @@ public final class Constants {
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
     public static final int SHOOTER_HOOD_ID = 9;
     public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
-    public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
+    public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
     public static final double SHOOTER_P_DFT = 0.0;
     public static final double SHOOTER_I_DFT = 0.0;
     public static final double SHOOTER_D_DFT = 0.0;
