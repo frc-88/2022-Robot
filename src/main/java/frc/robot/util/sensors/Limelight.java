@@ -18,6 +18,7 @@ public class Limelight {
     private String m_name;
 
     private NetworkTable m_table;
+    private boolean m_hoodUp;
     private NetworkTableEntry m_ta;
     private NetworkTableEntry m_tv;
     private NetworkTableEntry m_tx;
@@ -45,6 +46,7 @@ public class Limelight {
 
     public Limelight(String network_table_name) {
         m_name = network_table_name;
+        m_hoodUp = false;
         m_table = NetworkTableInstance.getDefault().getTable(network_table_name);
         m_pipeline = m_table.getEntry("pipeline");
         m_getpipe = m_table.getEntry("getpipe");
@@ -83,10 +85,14 @@ public class Limelight {
         return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle()) < p_targetThreshold.getValue());
     }
 
-    public double getDistanceToTarget(boolean hoodUp) {
+    public void setHood(boolean hoodUp) {
+        m_hoodUp = hoodUp;
+    }
+
+    public double getDistanceToTarget() {
         double distance = 0;
-        double height = hoodUp ? p_heightHoodUp.getValue() : p_heightHoodDown.getValue();
-        double angle = hoodUp ? p_angleHoodUp.getValue() : p_angleHoodDown.getValue();
+        double height = m_hoodUp ? p_heightHoodUp.getValue() : p_heightHoodDown.getValue();
+        double angle = m_hoodUp ? p_angleHoodUp.getValue() : p_angleHoodDown.getValue();
 
         if (isConnected() && hasTarget()) {
             double ty = getTargetVerticalOffsetAngle();
@@ -98,8 +104,8 @@ public class Limelight {
         return distance;
       }
     
-    public double calcLimelightAngle(boolean hoodUp) {
-        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - (hoodUp?p_heightHoodUp:p_heightHoodDown).getValue()) / p_testDistance.getValue())) - getTargetVerticalOffsetAngle();
+    public double calcLimelightAngle() {
+        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - (m_hoodUp ? p_heightHoodUp : p_heightHoodDown).getValue()) / p_testDistance.getValue())) - getTargetVerticalOffsetAngle();
     }
 
 

@@ -86,10 +86,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void raiseHood() {
     m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue());
+    m_limelight.setHood(true);
   }
 
   public void lowerHood() {
     m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
+    m_limelight.setHood(false);
   }
 
   public void activate() {
