@@ -22,17 +22,17 @@ public class TurretMotionMagicJoystick extends CommandBase {
     public void execute() {
         double target = DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25) * ROTATION_SPEED;
 
-        target += m_turret.getPosition();
+        target += m_turret.getFacing();
 
-        if (m_turret.isPositionSafe(target)) {
+        if (m_turret.isFacingSafe(target)) {
             System.out.println("Turret unsafe target!");
         } else {
-            m_turret.goToPosition(target);
+            m_turret.goToFacing(target);
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_turret.goToPosition(0.0);
+        m_turret.rawMotor(0.0);
     }
 }

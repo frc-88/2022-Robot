@@ -23,6 +23,6 @@ public class TurretRawJoystick extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        m_turret.goToPosition(0.0);
+        m_turret.rawMotor(0.0);
     }
 }
