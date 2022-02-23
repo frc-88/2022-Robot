@@ -81,7 +81,7 @@ public class Turret extends SubsystemBase {
 
   public void sync() {
     // initialize TalonFX to correct absolute position when we wake up
-    m_turret.setSelectedSensorPosition(cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition()));
+    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
   }
 
   public void calibrate() {
@@ -98,8 +98,8 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
-  public void goToDegrees(double target) {
-    goToPosition(turretDegreesToPosition(target));
+  public void goToFacing(double target) {
+    goToPosition(turretFacingToEncoderPosition(target));
   }
 
   public boolean isPositionSafe(double position) {
@@ -107,16 +107,20 @@ public class Turret extends SubsystemBase {
       (position > p_reverseLimit.getValue() + p_limitBuffer.getValue());
   }
 
+  public boolean isFacingSafe(double degrees) {
+    return isPositionSafe(turretFacingToEncoderPosition(degrees));
+  }
+
   public double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
   
-  public double getDegrees() {
-    return turretPositionToDegrees(getPosition());
+  public double getFacing() {
+    return turretEncoderPositionToFacing(getPosition());
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getPosition() - cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
+    return Math.abs(getPosition() - cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
   }
 
   public void startTracking() {
@@ -131,21 +135,21 @@ public class Turret extends SubsystemBase {
     return m_tracking;
   }
 
-  private double cancoderPostionToTurretPosition(double encPosition) {
-    return turretDegreesToPosition((encPosition - p_zeroPosition.getValue()) * 
+  private double cancoderPostionToFalconPosition(double position) {
+    return turretFacingToEncoderPosition((position - p_zeroPosition.getValue()) * 
       (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
-  private double turretPositionToCancoderPostion(double turretPosition) {
-    return turretPositionToDegrees(turretPosition) + p_zeroPosition.getValue();
+  private double falconPositionToCancoderPostion(double position) {
+    return turretEncoderPositionToFacing(position) + p_zeroPosition.getValue();
   }
 
-  public double turretPositionToDegrees(double turretPosition) {
+  public double turretEncoderPositionToFacing(double turretPosition) {
     return (turretPosition / Constants.TURRET_COUNTS_PER_REV) * 360.0;
   }
 
-  public double turretDegreesToPosition(double turretDegrees) {
-    return (turretDegrees / 360.0) * Constants.TURRET_COUNTS_PER_REV;
+  public double turretFacingToEncoderPosition(double degrees) {
+    return (degrees / 360.0) * Constants.TURRET_COUNTS_PER_REV;
   }
 
   @Override
@@ -153,8 +157,8 @@ public class Turret extends SubsystemBase {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
-    SmartDashboard.putNumber("Turret:CANCoder Turret",  turretPositionToDegrees(cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition())));
+    SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
     SmartDashboard.putNumber("Turret:Position", getPosition());
-    SmartDashboard.putNumber("Turret:Degrees", getDegrees());
+    SmartDashboard.putNumber("Turret:Facing", getFacing());
   }
 }
