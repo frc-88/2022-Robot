@@ -33,6 +33,6 @@ public class TurretMotionMagicJoystick extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        m_turret.rawMotor(0.0);
+        m_turret.setPercentOutput(0.0);
     }
 }

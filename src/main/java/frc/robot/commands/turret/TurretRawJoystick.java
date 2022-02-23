@@ -18,11 +18,11 @@ public class TurretRawJoystick extends CommandBase {
 
     @Override
     public void execute() {
-        m_turret.rawMotor(DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25));
+        m_turret.setPercentOutput(DriveUtils.deadbandExponential(m_controller.getLeftStickX(), 3, 0.25));
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_turret.rawMotor(0.0);
+        m_turret.setPercentOutput(0.0);
     }
 }

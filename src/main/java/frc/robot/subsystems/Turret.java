@@ -17,10 +17,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
   private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
+
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
   private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
@@ -28,13 +30,10 @@ public class Turret extends SubsystemBase {
   private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_FWD_LIMIT_DFT);
   private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_REV_LIMIT_DFT);
   private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", Constants.TURRET_LIMIT_BUFFER_DFT);
-  private DoublePreferenceConstant p_turretP = new DoublePreferenceConstant("Turret P", Constants.TURRET_P_DFT);
-  private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_I_DFT);
-  private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_D_DFT);
-  private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_F_DFT);
+  private PIDPreferenceConstants p_turretPID = new PIDPreferenceConstants("Turret PID", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   private DoublePreferenceConstant p_maxVelocity = new DoublePreferenceConstant("Turret Max Velocity", 0);
   private DoublePreferenceConstant p_maxAcceleration = new DoublePreferenceConstant("Turret Max Acceleration", 0);
-
+  
   // 
   private boolean m_tracking = false;
 
@@ -45,10 +44,12 @@ public class Turret extends SubsystemBase {
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
     config.motionCruiseVelocity = p_maxVelocity.getValue();
     config.motionAcceleration = p_maxAcceleration.getValue();
-    config.slot0.kP = p_turretP.getValue();
-    config.slot0.kI = p_turretI.getValue();
-    config.slot0.kD = p_turretD.getValue();
-    config.slot0.kF = p_turretF.getValue();
+    config.slot0.kP = p_turretPID.getKP().getValue();
+    config.slot0.kI = p_turretPID.getKI().getValue();
+    config.slot0.kD = p_turretPID.getKD().getValue();
+    config.slot0.kF = p_turretPID.getKF().getValue();
+    config.slot0.integralZone = p_turretPID.getIZone().getValue();
+    config.slot0.maxIntegralAccumulator = p_turretPID.getIMax().getValue();
     config.forwardSoftLimitThreshold = p_forwardLimit.getValue();
     config.forwardSoftLimitEnable = true;
     config.reverseSoftLimitThreshold = p_reverseLimit.getValue();
@@ -64,7 +65,6 @@ public class Turret extends SubsystemBase {
     CANCoderConfiguration encConfig = new CANCoderConfiguration();
     encConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
     encConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
-
     // Other configuration options, with defaults noted
     // velocityMeasurementPeriod = SensorVelocityMeasPeriod.Period_100Ms
     // velocityMeasurementWindow = 64
@@ -73,24 +73,26 @@ public class Turret extends SubsystemBase {
     // sensorCoefficient = 360.0 / 4096.0
     // unitString = "deg"
     // sensorTimeBase = SensorTimeBase.PerSecond
-
     m_cancoder.configAllSettings(encConfig);
 
+    // initialize Falcon to correct position when we wake up based on CANcoder absolute position
     sync();
   }
 
   public void sync() {
-    // initialize TalonFX to correct absolute position when we wake up
     m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
   }
 
   public void calibrate() {
-    // assume the turret has been physically moved to its center position
+    // This is only necessary if the CANcoder is moved or adjusted.
+    // The turret must be physically moved to its center position.
+    // WARNING - doing this when the turret isn't in the "zero"
+    // position could cause the turret to move to unsafe positions.
     p_zeroPosition.setValue(m_cancoder.getAbsolutePosition());
     sync();
   }
 
-  public void rawMotor(double percentOutput) {
+  public void setPercentOutput(double percentOutput) {
     m_turret.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
