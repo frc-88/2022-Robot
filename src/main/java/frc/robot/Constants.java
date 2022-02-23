@@ -140,6 +140,7 @@ public final class Constants {
 	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
 	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
+	public static final double LIMELIGHT_TURRET_RADIUS = 12.0;
 	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
