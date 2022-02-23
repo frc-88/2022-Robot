@@ -44,7 +44,11 @@ public class TurretTrack extends CommandBase {
           // update offset if we have a target, otherwise, follow the last offset.
           m_offset = m_limelight.getTargetHorizontalOffsetAngle();
         }
-        m_target = m_turret.turretDegreesToPosition(m_turret.getDegrees() - m_offset);
+
+        // only change the target if we aren't on target
+        if (!m_limelight.onTarget()) {
+          m_target = m_turret.turretDegreesToPosition(m_turret.getDegrees() - m_offset);
+        }
 
         // if (!m_turret.isPositionSafe(m_target)) {
         //   m_circumnavigating = true;

@@ -250,8 +250,9 @@ public class RobotContainer {
     SmartDashboard.putData("Turret Go To 45", new InstantCommand(() -> {m_turret.goToPosition(m_turret.turretDegreesToPosition(45));}, m_turret));
     SmartDashboard.putData("Turret Go To 0", new InstantCommand(() -> {m_turret.goToPosition(m_turret.turretDegreesToPosition(0));}, m_turret));
     
-    SmartDashboard.putData("Turret Start Tracking", m_turretTrackingOn);
-    SmartDashboard.putData("Turret Stop Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
+    SmartDashboard.putData("Turret Activate Tracking", m_turretTrackingOn);
+    SmartDashboard.putData("Turret Deactivate Tracking", new InstantCommand(m_turret::stopTracking));
     SmartDashboard.putData("Turret Calibrate", new TurretCalibrate(m_turret));
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
@@ -281,7 +282,7 @@ public class RobotContainer {
     m_intake.setDefaultCommand(m_stowIntake);
 
 
-    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    //m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
 
     // m_climber.setDefaultCommand( 
