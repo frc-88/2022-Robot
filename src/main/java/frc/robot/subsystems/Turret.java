@@ -98,6 +98,10 @@ public class Turret extends SubsystemBase {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
+  public void goToDegrees(double target) {
+    goToPosition(turretDegreesToPosition(target));
+  }
+
   public boolean isPositionSafe(double position) {
     return (position < p_forwardLimit.getValue() - p_limitBuffer.getValue()) &&
       (position > p_reverseLimit.getValue() + p_limitBuffer.getValue());
@@ -106,7 +110,7 @@ public class Turret extends SubsystemBase {
   public double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
-
+  
   public double getDegrees() {
     return turretPositionToDegrees(getPosition());
   }

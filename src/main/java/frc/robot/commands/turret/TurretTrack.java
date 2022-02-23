@@ -46,14 +46,14 @@ public class TurretTrack extends CommandBase {
 
         m_offset = Math.atan((distance * Math.sin(angle))/
           (distance * Math.cos(angle) - Constants.LIMELIGHT_TURRET_RADIUS));
-        m_target -= m_offset;
+        m_target = m_turret.getDegrees() - m_offset;
       }
     } else { // not tracking
       // turn off limelight, hold position
       m_limelight.ledOff();
     }
 
-    m_turret.goToPosition(m_target);
+    m_turret.goToDegrees(m_target);
   }
 
   // Called once the command ends or is interrupted.
