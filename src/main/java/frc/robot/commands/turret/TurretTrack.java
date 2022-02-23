@@ -37,20 +37,20 @@ public class TurretTrack extends CommandBase {
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
-      if (m_circumnavigating) {
-        m_circumnavigating = Math.abs(m_turret.getPosition() - m_target) > Constants.TURRET_SPIN_THRESHOLD;
-      } else {
+      // if (m_circumnavigating) {
+      //   m_circumnavigating = Math.abs(m_turret.getPosition() - m_target) > Constants.TURRET_SPIN_THRESHOLD;
+      // } else {
         if (m_limelight.hasTarget()) {
           // update offset if we have a target, otherwise, follow the last offset.
-          m_offset = m_turret.turretDegreesToPosition(m_limelight.getTargetHorizontalOffsetAngle());
+          m_offset = m_limelight.getTargetHorizontalOffsetAngle();
         }
-        m_target = m_turret.getPosition() + m_offset;
+        m_target = m_turret.turretDegreesToPosition(m_turret.getDegrees() - m_offset);
 
-        if (!m_turret.isPositionSafe(m_target)) {
-          m_circumnavigating = true;
-          m_target = Math.signum(m_target) * m_turret.turretDegreesToPosition(-360.0);
-        }
-      }
+        // if (!m_turret.isPositionSafe(m_target)) {
+        //   m_circumnavigating = true;
+        //   m_target = Math.signum(m_target) * m_turret.turretDegreesToPosition(-360.0);
+        // }
+      // }
     } else { // not tracking
       // turn off the limelight and go to center position
       m_limelight.ledOff();

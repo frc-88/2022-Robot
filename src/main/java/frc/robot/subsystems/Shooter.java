@@ -11,6 +11,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.CargoTarget;
@@ -56,8 +57,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.neutralDeadband = 0.001;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;
-    config.nominalOutputReverse = 0;
+    config.nominalOutputForward = 0.02;
+    config.nominalOutputReverse = -0.02;
 
     m_flywheel.configAllSettings(config);
   }
@@ -109,5 +110,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Shooter Flywheel Position", m_flywheel.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Shooter Flywheel Velocity", m_flywheel.getSelectedSensorVelocity());
   }
 }

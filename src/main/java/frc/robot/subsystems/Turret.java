@@ -32,6 +32,9 @@ public class Turret extends SubsystemBase {
   private DoublePreferenceConstant p_turretI = new DoublePreferenceConstant("Turret I", Constants.TURRET_I_DFT);
   private DoublePreferenceConstant p_turretD = new DoublePreferenceConstant("Turret D", Constants.TURRET_D_DFT);
   private DoublePreferenceConstant p_turretF = new DoublePreferenceConstant("Turret F", Constants.TURRET_F_DFT);
+  private DoublePreferenceConstant p_maxVelocity = new DoublePreferenceConstant("Turret Max Velocity", 0);
+  private DoublePreferenceConstant p_maxAcceleration = new DoublePreferenceConstant("Turret Max Acceleration", 0);
+
   // 
   private boolean m_tracking = false;
 
@@ -40,6 +43,8 @@ public class Turret extends SubsystemBase {
     // configure TalonFX
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+    config.motionCruiseVelocity = p_maxVelocity.getValue();
+    config.motionAcceleration = p_maxAcceleration.getValue();
     config.slot0.kP = p_turretP.getValue();
     config.slot0.kI = p_turretI.getValue();
     config.slot0.kD = p_turretD.getValue();
@@ -102,6 +107,10 @@ public class Turret extends SubsystemBase {
     return m_turret.getSelectedSensorPosition();
   }
 
+  public double getDegrees() {
+    return turretPositionToDegrees(getPosition());
+  }
+
   public boolean isSynchronized() {
     return Math.abs(getPosition() - cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
   }
@@ -119,7 +128,8 @@ public class Turret extends SubsystemBase {
   }
 
   private double cancoderPostionToTurretPosition(double encPosition) {
-    return (encPosition - p_zeroPosition.getValue()) / 360.0 * Constants.TURRET_COUNTS_PER_REV;
+    return turretDegreesToPosition((encPosition - p_zeroPosition.getValue()) * 
+      (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
   private double turretPositionToCancoderPostion(double turretPosition) {
@@ -127,11 +137,11 @@ public class Turret extends SubsystemBase {
   }
 
   public double turretPositionToDegrees(double turretPosition) {
-    return turretPosition / Constants.TURRET_COUNTS_PER_REV * 360.0;
+    return (turretPosition / Constants.TURRET_COUNTS_PER_REV) * 360.0;
   }
 
   public double turretDegreesToPosition(double turretDegrees) {
-    return turretDegrees / 360.0 * Constants.TURRET_COUNTS_PER_REV;
+    return (turretDegrees / 360.0) * Constants.TURRET_COUNTS_PER_REV;
   }
 
   @Override
@@ -139,6 +149,8 @@ public class Turret extends SubsystemBase {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
+    SmartDashboard.putNumber("Turret:CANCoder Turret",  turretPositionToDegrees(cancoderPostionToTurretPosition(m_cancoder.getAbsolutePosition())));
     SmartDashboard.putNumber("Turret:Position", getPosition());
+    SmartDashboard.putNumber("Turret:Degrees", getDegrees());
   }
 }

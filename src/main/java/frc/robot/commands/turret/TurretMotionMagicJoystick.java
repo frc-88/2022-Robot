@@ -10,7 +10,7 @@ public class TurretMotionMagicJoystick extends CommandBase {
     private Turret m_turret;
     private XboxController m_controller;
 
-    private static final double ROTATION_SPEED = 5;
+    private static final double ROTATION_SPEED = 5000;
     
     public TurretMotionMagicJoystick(Turret turret, XboxController controller) {
         m_turret = turret;
