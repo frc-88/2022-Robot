@@ -24,21 +24,38 @@ public class Turret extends SubsystemBase {
   private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
 
   // Preferences
-  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", Constants.TURRET_ZERO_DFT);
-  private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", Constants.TURRET_NOMINAL_FWD_DFT);
-  private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", Constants.TURRET_NOMINAL_REV_DFT);
-  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", Constants.TURRET_FWD_LIMIT_DFT);
-  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", Constants.TURRET_REV_LIMIT_DFT);
-  private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", Constants.TURRET_LIMIT_BUFFER_DFT);
+  private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", 0.0);
+  private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", 0.0);
+  private DoublePreferenceConstant p_syncThreshold = new DoublePreferenceConstant("Turret Sync Threshold", 0.0);
   private PIDPreferenceConstants p_turretPID = new PIDPreferenceConstants("Turret PID", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   private DoublePreferenceConstant p_maxVelocity = new DoublePreferenceConstant("Turret Max Velocity", 0);
   private DoublePreferenceConstant p_maxAcceleration = new DoublePreferenceConstant("Turret Max Acceleration", 0);
-  
+  private DoublePreferenceConstant p_nominalForward = new DoublePreferenceConstant("Turret Nominal Forward", 0.0);
+  private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", 0.0);
+  private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", 0.0);
+  private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", 0.0);
+ 
   // 
   private boolean m_tracking = false;
 
   /** Creates a new Turret. */
   public Turret() {
+    configureFalcon();
+    configureCANCoder();
+
+    p_turretPID.addChangeHandler((Double unused) -> configureFalcon());
+    p_maxVelocity.addChangeHandler((Double unused) -> configureFalcon());
+    p_maxAcceleration.addChangeHandler((Double unused) -> configureFalcon());
+    p_nominalForward.addChangeHandler((Double unused) -> configureFalcon());
+    p_nominalReverse.addChangeHandler((Double unused) -> configureFalcon());
+    p_forwardLimit.addChangeHandler((Double unused) -> configureFalcon());
+    p_reverseLimit.addChangeHandler((Double unused) -> configureFalcon());
+
+    // initialize Falcon to correct position when we wake up based on CANcoder absolute position
+    sync();
+  }
+
+  private void configureFalcon() {
     // configure TalonFX
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
@@ -60,8 +77,9 @@ public class Turret extends SubsystemBase {
     config.nominalOutputReverse = p_nominalReverse.getValue();
     config.neutralDeadband = 0.001;
     m_turret.configAllSettings(config);
+  }
 
-    // configure CANCoder
+  private void configureCANCoder() {
     CANCoderConfiguration encConfig = new CANCoderConfiguration();
     encConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
     encConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
@@ -73,10 +91,7 @@ public class Turret extends SubsystemBase {
     // sensorCoefficient = 360.0 / 4096.0
     // unitString = "deg"
     // sensorTimeBase = SensorTimeBase.PerSecond
-    m_cancoder.configAllSettings(encConfig);
-
-    // initialize Falcon to correct position when we wake up based on CANcoder absolute position
-    sync();
+    m_cancoder.configAllSettings(encConfig);   
   }
 
   public void sync() {
@@ -109,7 +124,7 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getPosition() - cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())) < Constants.TURRET_SYNCRONIZATION_THRESHOLD;
+    return Math.abs(getPosition() - cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())) < p_syncThreshold.getValue();
   }
 
   public void startTracking() {
