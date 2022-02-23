@@ -29,7 +29,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
   private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
   private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Hood Trigger Current Duration", 0.002);
-  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
+  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0, 0.0, 0.0);
 
   /** Creates a new Shooter. */
@@ -79,7 +79,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public boolean onTarget() {
-    return Math.abs(m_flywheel.getClosedLoopError()) < Constants.SHOOTER_FLYWHEEL_ERROR_THRESHOLD;
+    return Math.abs(m_flywheel.getClosedLoopError()) < p_flywheelPID.getTolerance().getValue();
   }
 
   public void raiseHood() {
@@ -110,5 +110,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public void periodic() {
     SmartDashboard.putNumber("Shooter Flywheel Position", m_flywheel.getSelectedSensorPosition());
     SmartDashboard.putNumber("Shooter Flywheel Velocity", m_flywheel.getSelectedSensorVelocity());
+    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
   }
 }
