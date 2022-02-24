@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.CargoTarget;
+import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.sensors.Limelight;
@@ -24,6 +25,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private Limelight m_limelight;
   private Boolean m_active = false;
+
+  // TODO - enter real values for this table
+  private final ValueInterpolator distanceToSpeedInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(127, 5100),
+    new ValueInterpolator.ValuePair(173, 4600),
+    new ValueInterpolator.ValuePair(213, 4300),
+    new ValueInterpolator.ValuePair(245, 4275),
+    new ValueInterpolator.ValuePair(294, 4200)
+  );
 
   // Preferences
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
@@ -76,6 +86,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void setFlywheelRaw(double percentOutput) {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
+  }
+
+  public void setFlywheelSpeedFromLimelight() {
+    if (m_limelight.hasTarget()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, distanceToSpeedInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()));
+    }
   }
 
   public boolean onTarget() {
