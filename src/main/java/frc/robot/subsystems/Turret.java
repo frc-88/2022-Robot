@@ -95,7 +95,7 @@ public class Turret extends SubsystemBase {
   }
 
   public void sync() {
-    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getPosition()));
+    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
   }
 
   public void calibrate() {
@@ -125,7 +125,7 @@ public class Turret extends SubsystemBase {
 
   public boolean isSynchronized() {
     return Math.abs(getFacing() - 
-      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getPosition()))) < p_syncThreshold.getValue();
+      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
   }
 
   public void startTracking() {
@@ -154,7 +154,12 @@ public class Turret extends SubsystemBase {
   }
 
   private double cancoderPostionToFalconPosition(double position) {
-    return turretFacingToEncoderPosition((position - p_zeroPosition.getValue()) * 
+    double normalPosition = (position - p_zeroPosition.getValue());
+
+    if (normalPosition > 180) { normalPosition -= 360; }
+    if (normalPosition < -180) { normalPosition += 360; }
+
+    return turretFacingToEncoderPosition(normalPosition * 
       (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
@@ -171,7 +176,7 @@ public class Turret extends SubsystemBase {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
-    SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getPosition())));
+    SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
     SmartDashboard.putNumber("Turret:Position", getPosition());
     SmartDashboard.putNumber("Turret:Facing", getFacing());
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
