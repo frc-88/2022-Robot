@@ -33,6 +33,7 @@ import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
+import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
@@ -40,6 +41,7 @@ import frc.robot.util.controllers.XboxController;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.cameratilter.ToggleTiltCamera;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
+import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
@@ -170,8 +172,6 @@ public class RobotContainer {
           .withInterrupt(m_climber::isCalibrated)
           .beforeStarting(m_climber::resetCalibration)
           .withName("calibrateClimber");
-
-  private CommandBase m_stowClimber = new WaitCommand(1);
 
   private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
   private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
@@ -397,6 +397,23 @@ public class RobotContainer {
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
+
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false).withName("Climber M Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_UNSTOW, false).withName("Climber M Unstow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID_FROM_STOW, false).withName("Climber M Prep Low Mid From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false).withName("Climber M Prep Low Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FROM_STOW, false).withName("Climber M Prep High Traversal From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false).withName("Climber M Prep High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW_FROM_STOW, false).withName("Climber M Raise Low From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false).withName("Climber M Raise Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID_FROM_STOW, false).withName("Climber M Raise Mid From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false).withName("Climber M Raise Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FROM_STOW, false).withName("Climber M Raise High Traversal From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false).withName("Climber M Raise High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false).withName("Climber M Climb Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false).withName("Climber M Climb Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH ,true).withName("Climber M Climb High"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true).withName("Climber M Climb Traversal"));
   }
 
   private void configureDefaultCommands() {

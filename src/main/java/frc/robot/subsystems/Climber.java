@@ -54,6 +54,16 @@ public class Climber extends SubsystemBase {
         this.outerRightArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
     }
 
+    public void setInnerMotionMagic(double pivotAngle, double telescopeHeight, double pivotSpeed, double telescopeSpeed) {
+        this.innerLeftArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+        this.innerRightArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+    }
+
+    public void setOuterMotionMagic(double pivotAngle, double telescopeHeight, double pivotSpeed, double telescopeSpeed) {
+        this.outerLeftArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+        this.outerRightArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+    }
+
     public void setInnerMotionMagic(double pivotAngle, double telescopeHeight) {
         this.innerLeftArm.setMotionMagic(pivotAngle, telescopeHeight);
         this.innerRightArm.setMotionMagic(pivotAngle, telescopeHeight);

@@ -197,5 +197,7 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
     SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());
     SmartDashboard.putBoolean("Working Pressure Sensor Disconnected", !this.isWorkingPressureSensorConnected());
+
+    SmartDashboard.putNumber("NavX Roll", navx.getRoll());
   }
 }

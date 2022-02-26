@@ -5,29 +5,60 @@
 package frc.robot.commands.climber;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Sensors;
 import frc.robot.util.climber.ClimberStateMachine;
 
 public class ClimberStateMachineExecutor extends CommandBase {
   
+  private final Climber m_climber;
+  private final Sensors m_sensors;
   private final ClimberStateMachine m_stateMachine;
+  private final boolean m_cancelIfRolled;
 
-  public ClimberStateMachineExecutor(ClimberStateMachine stateMachine) {
+  private final double ROLL_THRESHOLD = 10;
+  private final int ROLL_DURATION = 25;
+  private int m_rollCount;
+  private boolean m_rolled;
+
+  public ClimberStateMachineExecutor(Climber climber, Sensors sensors, ClimberStateMachine stateMachine, boolean cancelIfRolled) {
+    m_climber = climber;
+    m_sensors = sensors;
     m_stateMachine = stateMachine;
-    addRequirements(stateMachine.getClimber());
+    m_cancelIfRolled = cancelIfRolled;
+    addRequirements(climber);
   }
 
   @Override
   public void initialize() {
     m_stateMachine.reset();
+    m_rollCount = 0;
+    m_rolled = false;
   }
 
   @Override
   public void execute() {
-    m_stateMachine.run();
+    if (Math.abs(m_sensors.navx.getPitch()) > ROLL_THRESHOLD) {
+      m_rollCount++;
+    } else {
+      m_rollCount = 0;
+    }
+
+    if (m_cancelIfRolled && m_rollCount > ROLL_DURATION) {
+      m_rolled = true;
+    }
+ 
+    if (m_rolled) { 
+      m_climber.setInnerPercentOutput(0, 0);
+      m_climber.setOuterPercentOutput(0, 0);
+      return;
+    }
+
+    m_stateMachine.run(m_climber);
   }
 
   @Override
   public boolean isFinished() {
-    return m_stateMachine.isFinished();
+    return false;
   }
 }
