@@ -135,6 +135,14 @@ public class Limelight {
                 - getTargetVerticalOffsetAngle();
     }
 
+    public double calcTurretOffset() {
+        double distance = calcDistanceToTarget();
+        double angle = getTargetHorizontalOffsetAngle();
+
+        return hasTarget() ? Math.atan((distance * Math.sin(angle)) /
+            (distance * Math.cos(angle) - Constants.LIMELIGHT_TURRET_RADIUS)) : 0.0;
+    }
+
     /**
      * Get the horizontal offset angle of the target from the center of the camera
      * frame. If no target is seen, returns zero.
