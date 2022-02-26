@@ -81,7 +81,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, speed);
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
   }
 
   public void setFlywheelRaw(double percentOutput) {
@@ -90,12 +90,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void setFlywheelSpeedFromLimelight() {
     if (m_limelight.hasTarget()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, distanceToSpeedInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()));
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(distanceToSpeedInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget())));
     }
   }
 
   public boolean onTarget() {
-    return Math.abs(m_flywheel.getClosedLoopError()) < p_flywheelPID.getTolerance().getValue();
+    return Math.abs(convertMotorTicksToRPM(m_flywheel.getClosedLoopError())) < p_flywheelPID.getTolerance().getValue();
   }
 
   public void raiseHood() {
@@ -124,8 +124,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Shooter Flywheel Position", m_flywheel.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Shooter Flywheel Velocity", m_flywheel.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+  }
+
+  private double convertMotorTicksToRPM(double motorVelocity) {
+    return motorVelocity / 2048 * 200;
+  }
+
+  private double convertRPMsToMotorTicks(double flywheelVelocity) {
+    return flywheelVelocity * 2048 / 200;
   }
 }
