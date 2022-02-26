@@ -26,13 +26,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
   private Boolean m_active = false;
 
-  // TODO - enter real values for this table
-  private final ValueInterpolator distanceToSpeedInterpolator = new ValueInterpolator(
-    new ValueInterpolator.ValuePair(127, 5100),
-    new ValueInterpolator.ValuePair(173, 4600),
-    new ValueInterpolator.ValuePair(213, 4300),
-    new ValueInterpolator.ValuePair(245, 4275),
-    new ValueInterpolator.ValuePair(294, 4200)
+  private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
+  );
+
+  private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
   );
 
   // Preferences
@@ -81,7 +82,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, speed);
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
   }
 
   public void setFlywheelRaw(double percentOutput) {
@@ -90,12 +91,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void setFlywheelSpeedFromLimelight() {
     if (m_limelight.hasTarget()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, distanceToSpeedInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()));
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
     }
   }
 
   public boolean onTarget() {
-    return Math.abs(m_flywheel.getClosedLoopError()) < p_flywheelPID.getTolerance().getValue();
+    return Math.abs(convertMotorTicksToRPM(m_flywheel.getClosedLoopError())) < p_flywheelPID.getTolerance().getValue();
   }
 
   public void raiseHood() {
@@ -124,8 +125,22 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Shooter Flywheel Position", m_flywheel.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Shooter Flywheel Velocity", m_flywheel.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
+  }
+
+  private double getFlywheelSpeedFromLimelight() {
+    return m_limelight.isHoodUp() 
+        ? hoodUpInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()) 
+        : hoodDownInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget());
+  }
+
+  private double convertMotorTicksToRPM(double motorVelocity) {
+    return motorVelocity / 2048 * 200;
+  }
+
+  private double convertRPMsToMotorTicks(double flywheelVelocity) {
+    return flywheelVelocity * 2048 / 200;
   }
 }
