@@ -41,7 +41,7 @@ public class ClimberArm {
     private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
 
-    public static final double PIVOT_MIN_ANGLE = -50;
+    public static final double PIVOT_MIN_ANGLE = -48;
     public static final double PIVOT_MAX_ANGLE = 29;
     public static final double TELESCOPE_MIN_HEIGHT = 27;
     public static final double TELESCOPE_MAX_HEIGHT = 60;
@@ -147,6 +147,9 @@ public class ClimberArm {
 
         m_pivot.setNeutralMode(NeutralMode.Brake);
         m_telescope.setNeutralMode(NeutralMode.Brake);
+
+        m_pivot.configNeutralDeadband(0);
+        m_telescope.configNeutralDeadband(0);
 
         m_pivot.configReverseSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MIN_ANGLE));
         m_pivot.configForwardSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));

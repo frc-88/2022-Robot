@@ -20,8 +20,8 @@ public class ClimberCalibrationProcedure {
     private Queue<Double> m_pivotPositions;
     private Queue<Double> m_telescopePositions;
 
-    private static final double PIVOT_CALIBRATION_OUTPUT = 0.2;
-    private static final double TELESCOPE_CALIBRATION_OUTPUT = -0.1;
+    private static final double PIVOT_CALIBRATION_OUTPUT = 0.05;
+    private static final double TELESCOPE_CALIBRATION_OUTPUT = -0.05;
 
     private static final double PIVOT_POSITION_EPSILON = 0.5;
     private static final double TELESCOPE_POSITION_EPSILON = 0.25;

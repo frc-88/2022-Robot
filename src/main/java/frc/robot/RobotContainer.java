@@ -17,6 +17,7 @@ import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.feeder.FeederOutgestCargo;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.feeder.FeederCargolizer;
@@ -126,7 +127,7 @@ public class RobotContainer {
         m_intake.deploy();
         m_intake.rollerOutgest();
       }, m_intake),
-      new InstantCommand(m_centralizer::reverse, m_centralizer));
+      new FeederOutgestCargo(m_centralizer));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
@@ -402,14 +403,13 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    // m_climber.setDefaultCommand( 
-    //   new SequentialCommandGroup(
-    //     new RunCommand(m_climber::calibrate, m_climber)
-    //       .withInterrupt(m_climber::isCalibrated)
-    //       .beforeStarting(m_climber::resetCalibration)
-    //       .withName("calibrateClimber"),
-    //     new ClimberMotionMagicJoystick(m_climber, m_testController)
-    //   ));
+    m_climber.setDefaultCommand( 
+      new SequentialCommandGroup(
+        new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .withName("calibrateClimber"),
+        new ClimberMotionMagicJoystick(m_climber, m_testController)
+      ));
   }
 
   /**
