@@ -67,9 +67,9 @@ public class Turret extends SubsystemBase {
     config.slot0.kF = p_turretPID.getKF().getValue();
     config.slot0.integralZone = p_turretPID.getIZone().getValue();
     config.slot0.maxIntegralAccumulator = p_turretPID.getIMax().getValue();
-    config.forwardSoftLimitThreshold = p_forwardLimit.getValue();
+    config.forwardSoftLimitThreshold = turretFacingToEncoderPosition(p_forwardLimit.getValue());
     config.forwardSoftLimitEnable = true;
-    config.reverseSoftLimitThreshold = p_reverseLimit.getValue();
+    config.reverseSoftLimitThreshold = turretFacingToEncoderPosition(p_reverseLimit.getValue());
     config.reverseSoftLimitEnable = true;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
