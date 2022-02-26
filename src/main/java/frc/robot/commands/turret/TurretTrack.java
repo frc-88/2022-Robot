@@ -4,6 +4,7 @@
 
 package frc.robot.commands.turret;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
@@ -46,6 +47,7 @@ public class TurretTrack extends CommandBase {
 
         m_offset = Math.atan((distance * Math.sin(angle)) /
             (distance * Math.cos(angle) - Constants.LIMELIGHT_TURRET_RADIUS));
+
         m_target = m_turret.getFacing() - m_offset;
       }
     } else { // not tracking
@@ -53,6 +55,9 @@ public class TurretTrack extends CommandBase {
       m_limelight.ledOff();
     }
 
+    SmartDashboard.putNumber("Turret:Track Offset", m_offset);
+    SmartDashboard.putNumber("Turret:Track Target", m_target);
+    
     m_turret.goToFacing(m_target);
   }
 

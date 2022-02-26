@@ -95,7 +95,7 @@ public class Turret extends SubsystemBase {
   }
 
   public void sync() {
-    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
+    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getPosition()));
   }
 
   public void calibrate() {
@@ -125,7 +125,7 @@ public class Turret extends SubsystemBase {
 
   public boolean isSynchronized() {
     return Math.abs(getFacing() - 
-      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
+      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getPosition()))) < p_syncThreshold.getValue();
   }
 
   public void startTracking() {
@@ -158,10 +158,6 @@ public class Turret extends SubsystemBase {
       (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
-  private double falconPositionToCancoderPostion(double position) {
-    return turretEncoderPositionToFacing(position) + p_zeroPosition.getValue();
-  }
-
   private double turretEncoderPositionToFacing(double turretPosition) {
     return (turretPosition / Constants.TURRET_COUNTS_PER_REV) * 360.0;
   }
@@ -175,7 +171,7 @@ public class Turret extends SubsystemBase {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
     SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
-    SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
+    SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getPosition())));
     SmartDashboard.putNumber("Turret:Position", getPosition());
     SmartDashboard.putNumber("Turret:Facing", getFacing());
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());

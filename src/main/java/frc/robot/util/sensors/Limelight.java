@@ -46,7 +46,7 @@ public class Limelight {
 
     public Limelight(String network_table_name) {
         m_name = network_table_name;
-        m_hoodUp = false;
+        m_hoodUp = true;
         m_table = NetworkTableInstance.getDefault().getTable(network_table_name);
         m_pipeline = m_table.getEntry("pipeline");
         m_getpipe = m_table.getEntry("getpipe");
