@@ -110,11 +110,10 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new ParallelCommandGroup(new RunCommand(() -> {
+  private CommandBase m_ingestCargo = new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
-      }, m_intake),
-      new FeederAcceptCargo(m_centralizer));
+      }, m_intake);
 
   private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
@@ -127,11 +126,10 @@ public class RobotContainer {
         m_intake.rollerStop();
       }, m_intake);
 
-  private CommandBase m_stowIntakeStopCentralizer = new ParallelCommandGroup(new RunCommand(() -> {
+  private CommandBase m_stowIntakeTwo = new RunCommand(() -> {
     m_intake.stow();
     m_intake.rollerStop();
-  }, m_intake),
-      new InstantCommand(m_centralizer::stop, m_centralizer));
+  }, m_intake);
 
   private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
   private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
@@ -229,7 +227,7 @@ public class RobotContainer {
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
-    SmartDashboard.putData("Intake:Stow", m_stowIntakeStopCentralizer);
+    SmartDashboard.putData("Intake:Stow", m_stowIntakeTwo);
 
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
@@ -281,9 +279,10 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
 
+    m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
+    m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
     //m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-
 
     // m_climber.setDefaultCommand( 
     //   new SequentialCommandGroup(
