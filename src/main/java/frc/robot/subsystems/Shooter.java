@@ -26,13 +26,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
   private Boolean m_active = false;
 
-  // TODO - enter real values for this table
-  private final ValueInterpolator distanceToSpeedInterpolator = new ValueInterpolator(
-    new ValueInterpolator.ValuePair(127, 5100),
-    new ValueInterpolator.ValuePair(173, 4600),
-    new ValueInterpolator.ValuePair(213, 4300),
-    new ValueInterpolator.ValuePair(245, 4275),
-    new ValueInterpolator.ValuePair(294, 4200)
+  private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
+  );
+
+  private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
   );
 
   // Preferences
@@ -90,7 +91,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void setFlywheelSpeedFromLimelight() {
     if (m_limelight.hasTarget()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(distanceToSpeedInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget())));
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
     }
   }
 
@@ -126,6 +127,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public void periodic() {
     SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
+  }
+
+  private double getFlywheelSpeedFromLimelight() {
+    return m_limelight.isHoodUp() 
+        ? hoodUpInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()) 
+        : hoodDownInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget());
   }
 
   private double convertMotorTicksToRPM(double motorVelocity) {
