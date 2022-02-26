@@ -124,7 +124,8 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getPosition() - cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())) < p_syncThreshold.getValue();
+    return Math.abs(getFacing() - 
+      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
   }
 
   public void startTracking() {
@@ -148,8 +149,8 @@ public class Turret extends SubsystemBase {
   }
 
   private boolean isPositionSafe(double position) {
-    return (position < p_forwardLimit.getValue() - p_limitBuffer.getValue()) &&
-      (position > p_reverseLimit.getValue() + p_limitBuffer.getValue());
+    return (position < turretFacingToEncoderPosition(p_forwardLimit.getValue() - p_limitBuffer.getValue())) &&
+      (position > turretFacingToEncoderPosition(p_reverseLimit.getValue() + p_limitBuffer.getValue()));
   }
 
   private double cancoderPostionToFalconPosition(double position) {
