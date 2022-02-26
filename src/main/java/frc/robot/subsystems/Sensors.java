@@ -50,6 +50,8 @@ public class Sensors extends SubsystemBase {
    */
   public Sensors() {
     CameraServer.startAutomaticCapture();
+
+    limelight.ledOff();
   }
 
   public double getStoragePressure() {
