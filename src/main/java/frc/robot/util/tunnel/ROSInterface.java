@@ -112,15 +112,33 @@ public class ROSInterface implements TunnelInterface {
      */
     
     public void sendGoal(Waypoint waypoint) {
-        TunnelServer.writePacket(
-            "goal",
-            waypoint.waypoint_name,
-            waypoint.is_continuous,
-            waypoint.ignore_orientation,
-            waypoint.intermediate_tolerance,
-            waypoint.ignore_obstacles,
-            waypoint.ignore_walls
-        );
+        if (waypoint.waypoint_name.length() > 0) {
+            TunnelServer.writePacket(
+                "goal",
+                waypoint.waypoint_name,
+                waypoint.is_continuous,
+                waypoint.ignore_orientation,
+                waypoint.intermediate_tolerance,
+                waypoint.ignore_obstacles,
+                waypoint.ignore_walls,
+                waypoint.interruptableBy
+            );
+        }
+        else {
+            TunnelServer.writePacket(
+                "gpose",
+                waypoint.pose.getX(),
+                waypoint.pose.getY(),
+                waypoint.pose.getRotation().getRadians(),
+                waypoint.is_continuous,
+                waypoint.ignore_orientation,
+                waypoint.intermediate_tolerance,
+                waypoint.ignore_obstacles,
+                waypoint.ignore_walls,
+                waypoint.interruptableBy
+            );
+        }
+        
         num_sent_goals++;
     }
 
