@@ -11,7 +11,6 @@ import frc.robot.subsystems.Sensors;
 
 public class ToggleTiltCamera extends CommandBase {
   private Sensors m_sensors;
-  private Rotation2d tiltAngle = new Rotation2d();
   private boolean toggle = false;
 
   /** Creates a new TiltCamera. */

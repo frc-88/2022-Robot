@@ -163,7 +163,7 @@ public class ROSInterface implements TunnelInterface {
             team_name = "red";
         }
         else if (team_color == Alliance.Blue) {
-            team_name = "red";
+            team_name = "blue";
         }
         
         TunnelServer.writePacket("match", is_autonomous, match_timer, team_name);

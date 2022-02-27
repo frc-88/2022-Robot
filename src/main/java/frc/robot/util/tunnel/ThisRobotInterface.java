@@ -2,6 +2,8 @@ package frc.robot.util.tunnel;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
@@ -77,6 +79,18 @@ public class ThisRobotInterface extends ROSInterface {
 
     private double convertCameraTiltAngle(Rotation2d cameraAngle) {
         return cameraAngle.getRadians();
+    }
+
+    public String getGameObjectName() {
+        Alliance team_color = DriverStation.getAlliance();
+        String object_name = "";
+        if (team_color == Alliance.Red) {
+            object_name = "cargo_red";
+        }
+        else if (team_color == Alliance.Blue) {
+            object_name = "cargo_blue";
+        }
+        return object_name;
     }
 
     @Override

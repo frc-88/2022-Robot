@@ -166,4 +166,6 @@ public final class Constants {
     
 	// Field constants
 	public static final double FIELD_VISION_TARGET_HEIGHT = 0;
+	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
+	public static final double SHOOTING_ZONE_OUTER_RADIUS_METERS = 0.3;
 }
