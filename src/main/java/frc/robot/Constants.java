@@ -80,32 +80,14 @@ public final class Constants {
 	// Shooter
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
     public static final int SHOOTER_HOOD_ID = 9;
-    public static final double SHOOTER_FLYWHEEL_ERROR_THRESHOLD = 1.0;
-    public static final double SHOOTER_LIMELIGHT_THRESHOLD = 1.0;
-    public static final double SHOOTER_P_DFT = 0.0;
-    public static final double SHOOTER_I_DFT = 0.0;
-    public static final double SHOOTER_D_DFT = 0.0;
-    public static final double SHOOTER_F_DFT = 1.0;
-    public static final double SHOOTER_HOOD_SPEED_DFT = 0;
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;
 	public static final int TURRET_CANCODER_ID = 13;
 	public static final double TURRET_GEAR_RATIO = 7.0 * 144.0 / 18;  // 56.0
 	public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 54.0 / 8.0;  // 94.5
-    public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 1024.0;
-	public static final double TURRET_SYNCRONIZATION_THRESHOLD = 1.0;
+    public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 2048.0;
 	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
-	public static final double TURRET_ZERO_DFT = 0;
-    public static final double TURRET_NOMINAL_FWD_DFT = 0.065;
-    public static final double TURRET_NOMINAL_REV_DFT = -0.065;
-	public static final double TURRET_FWD_LIMIT_DFT = 10000;
-	public static final double TURRET_REV_LIMIT_DFT = -10000;
-	public static final double TURRET_LIMIT_BUFFER_DFT = 1000;
-    public static final double TURRET_I_DFT = 0.0;
-    public static final double TURRET_P_DFT = 0.0;
-    public static final double TURRET_D_DFT = 0.0;
-    public static final double TURRET_F_DFT = 0.045;
 
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
@@ -136,9 +118,12 @@ public final class Constants {
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
 	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 20.0;
+	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 43.5;  // inches
 	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
 	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
+	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
+	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
+	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
 	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
@@ -165,7 +150,7 @@ public final class Constants {
 	public static final int TEST_CONTROLLER_ID = 2;
     
 	// Field constants
-	public static final double FIELD_VISION_TARGET_HEIGHT = 0;
 	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
 	public static final double SHOOTING_ZONE_OUTER_RADIUS_METERS = 0.3;
+	public static final double FIELD_VISION_TARGET_HEIGHT = 102;
 }

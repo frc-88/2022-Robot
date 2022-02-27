@@ -113,6 +113,7 @@ public class Intake extends SubsystemBase implements CargoSource {
     m_arm.configForwardSoftLimitEnable(true);
     m_arm.configReverseSoftLimitThreshold(convertArmPositionToMotor(ARM_DEPLOYED));
     m_arm.configReverseSoftLimitEnable(true);
+    m_arm.configNeutralDeadband(0);
   }
 
   private void configCurrentLimit() {
@@ -168,7 +169,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   @Override
   public boolean hasCargo() {
-    return m_IR.getDistance() < intakseSensorThreshold.getValue();
+    // return m_IR.getDistance() < intakseSensorThreshold.getValue();
+    return m_state == State.DEPLOYED || m_state == State.DEPLOYING;
   }
 
   public boolean isDeployLimitTriggered() {

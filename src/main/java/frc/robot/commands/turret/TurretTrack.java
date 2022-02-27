@@ -4,6 +4,7 @@
 
 package frc.robot.commands.turret;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
@@ -37,26 +38,19 @@ public class TurretTrack extends CommandBase {
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
-      if (m_circumnavigating) {
-        m_circumnavigating = Math.abs(m_turret.getPosition() - m_target) > Constants.TURRET_SPIN_THRESHOLD;
-      } else {
-        if (m_limelight.hasTarget()) {
-          // update offset if we have a target, otherwise, follow the last offset.
-          m_offset = m_turret.turretDegreesToPosition(m_limelight.getTargetHorizontalOffsetAngle());
-        }
-        m_target = m_turret.getPosition() + m_offset;
-
-        if (!m_turret.isPositionSafe(m_target)) {
-          m_circumnavigating = true;
-          m_target = Math.signum(m_target) * m_turret.turretDegreesToPosition(-360.0);
-        }
+      if (m_limelight.onTarget()) {
+        // stay on target
+      } else if (m_limelight.hasTarget()) {
+        m_offset = m_limelight.calcTurretOffset();
+        m_target = m_turret.getFacing() - m_offset;
       }
     } else { // not tracking
-      // turn off the limelight and go to center position
+      // turn off limelight, hold position
       m_limelight.ledOff();
-      m_target = 0.0;
     }
-    m_turret.goToPosition(m_target);
+
+    SmartDashboard.putNumber("Turret:Track Target", m_target);    
+    m_turret.goToFacing(m_target);
   }
 
   // Called once the command ends or is interrupted.

@@ -6,16 +6,18 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.CargoTarget;
+import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.sensors.Limelight;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
@@ -24,72 +26,87 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
   private Boolean m_active = false;
 
+  private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
+  );
+
+  private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(100, 1000),
+    new ValueInterpolator.ValuePair(200, 2000)
+  );
+
   // Preferences
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
   private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
   private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Hood Trigger Current Duration", 0.002);
-  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", Constants.SHOOTER_HOOD_SPEED_DFT);
-
-  private DoublePreferenceConstant p_shooterP = new DoublePreferenceConstant("Shooter P", Constants.SHOOTER_P_DFT);
-  private DoublePreferenceConstant p_shooterI = new DoublePreferenceConstant("Shooter I", Constants.SHOOTER_I_DFT);
-  private DoublePreferenceConstant p_shooterD = new DoublePreferenceConstant("Shooter D", Constants.SHOOTER_D_DFT);
-  private DoublePreferenceConstant p_shooterF = new DoublePreferenceConstant("Shooter F", Constants.SHOOTER_F_DFT);
+  private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
+  private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0, 0.0, 0.0);
 
   /** Creates a new Shooter. */
   public Shooter(Limelight limelight) {
     m_limelight = limelight;
+    configureFlywheel();
+    configureHood();
 
+    p_flywheelPID.addChangeHandler((Double unused) -> configureFlywheel());
     p_continuousCurrentLimit.addChangeHandler((Double unused) -> configureHood());
     p_triggerCurrentLimit.addChangeHandler((Double unused) -> configureHood());
     p_triggerDuration.addChangeHandler((Double unused) -> configureHood());
-
-    configureFlywheel();
-    configureHood();
   }
 
   private void configureFlywheel() {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
-    config.slot0.kP = p_shooterP.getValue();
-    config.slot0.kI = p_shooterI.getValue();
-    config.slot0.kD = p_shooterD.getValue();
-    config.slot0.kF = p_shooterF.getValue();
+    config.slot0.kP = p_flywheelPID.getKP().getValue();
+    config.slot0.kI = p_flywheelPID.getKI().getValue();
+    config.slot0.kD = p_flywheelPID.getKD().getValue();
+    config.slot0.kF = p_flywheelPID.getKF().getValue();
+    config.slot0.integralZone = p_flywheelPID.getIZone().getValue();
+    config.slot0.maxIntegralAccumulator = p_flywheelPID.getIMax().getValue();
     config.neutralDeadband = 0.001;
     config.peakOutputForward = 1.0;
     config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0;
-    config.nominalOutputReverse = 0;
-
+    config.nominalOutputForward = 0.02;
+    config.nominalOutputReverse = -0.02;
     m_flywheel.configAllSettings(config);
   }
 
   private void configureHood() {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
-    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(), 
-      p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
+    config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(),
+        p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
     m_hood.setInverted(InvertType.InvertMotorOutput);
   }
 
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, speed);
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
   }
 
   public void setFlywheelRaw(double percentOutput) {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
+  public void setFlywheelSpeedFromLimelight() {
+    if (m_limelight.hasTarget()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
+    }
+  }
+
   public boolean onTarget() {
-    return Math.abs(m_flywheel.getClosedLoopError()) < Constants.SHOOTER_FLYWHEEL_ERROR_THRESHOLD;
+    return Math.abs(convertMotorTicksToRPM(m_flywheel.getClosedLoopError())) < p_flywheelPID.getTolerance().getValue();
   }
 
   public void raiseHood() {
     m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue());
+    m_limelight.setHood(true);
   }
 
   public void lowerHood() {
     m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
+    m_limelight.setHood(false);
   }
 
   public void activate() {
@@ -105,8 +122,25 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // return m_active && m_limelight.onTarget();
     return m_active;
   }
-  
+
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
+    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
+  }
+
+  private double getFlywheelSpeedFromLimelight() {
+    return m_limelight.isHoodUp() 
+        ? hoodUpInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()) 
+        : hoodDownInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget());
+  }
+
+  private double convertMotorTicksToRPM(double motorVelocity) {
+    return motorVelocity / 2048 * 200;
+  }
+
+  private double convertRPMsToMotorTicks(double flywheelVelocity) {
+    return flywheelVelocity * 2048 / 200;
   }
 }
