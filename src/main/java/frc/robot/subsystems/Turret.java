@@ -37,6 +37,8 @@ public class Turret extends SubsystemBase {
  
   // 
   private boolean m_tracking = false;
+  private boolean m_circumnavigating = false;
+  private double m_circumnavigationTarget;
 
   /** Creates a new Turret. */
   public Turret() {
@@ -112,7 +114,33 @@ public class Turret extends SubsystemBase {
   }
 
   public void goToFacing(double target) {
-    goToPosition(turretFacingToEncoderPosition(target));
+    if (m_circumnavigating) {
+      // if we are circumnavigating, ignore the input and keep doing that until we get there
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      m_circumnavigating = Math.abs(m_circumnavigationTarget) - getFacing() > 5.0;
+    } else if (isFacingSafe(target)) {
+      // otherwise go to the input target if it is safe.
+      goToPosition(turretFacingToEncoderPosition(target));
+    } else if (isFacingSafe(m_circumnavigationTarget = calcCircumnavigationTarget(target))) {
+      // but if the target isn't safe, and our circumnavigation target is, start circumnavigating
+      m_circumnavigating = true;
+      // TODO? - adjust config here if different PID needed for targeting vs. circumnavigating
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+    } else {
+      // target is unsafe and circumnavigation target is unsafe, ignore it
+    }
+  }
+
+  private double calcCircumnavigationTarget(double origin) {
+    double target;
+
+    if(origin > 0.0) { 
+      target = origin - 360.0;
+    } else {
+      target = origin + 360.0;
+    }
+
+    return target;
   }
 
   public boolean isFacingSafe(double degrees) {
