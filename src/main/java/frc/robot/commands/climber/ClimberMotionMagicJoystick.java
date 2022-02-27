@@ -29,7 +29,7 @@ public class ClimberMotionMagicJoystick extends CommandBase {
         double outerPivot = DriveUtils.deadbandExponential(-m_controller.getRightStickX(), 3, 0.25) * PIVOT_SPEED;
         double outerTelescope = DriveUtils.deadbandExponential(m_controller.getRightStickY(), 3, 0.25) * TELESCOPE_SPEED;
 
-        if (m_controller.buttonRightBumper.get()) {
+        if (m_controller.buttonLeftBumper.get()) {
             innerTelescope *= BUMPER_MULTIPLIER;
             outerTelescope *= BUMPER_MULTIPLIER;
         }

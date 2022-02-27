@@ -1,9 +1,12 @@
 package frc.robot.util.tunnel;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.Vector2D;
+import frc.robot.util.WrappedAngle;
 import frc.robot.util.climber.ClimberArm;
 
 public class ThisRobotInterface extends ROSInterface {
@@ -26,12 +29,14 @@ public class ThisRobotInterface extends ROSInterface {
 
     private Intake intake;
     private Turret turret;
+    private Sensors sensors;
     // private CameraTilter cameraTilter;  // TODO add camera tilter when that's ready
 
     public ThisRobotInterface(ChassisInterface chassis,
                               ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
                               Intake intake,
-                              Turret turret) {
+                              Turret turret,
+                              Sensors sensors) {
         super(chassis);
         this.outerLeftArm = outerLeftArm;
         this.outerRightArm = outerRightArm;
@@ -39,6 +44,7 @@ public class ThisRobotInterface extends ROSInterface {
         this.innerRightArm = innerRightArm;
         this.intake = intake;
         this.turret = turret;
+        this.sensors = sensors;
     }
 
     // @Override
@@ -46,6 +52,32 @@ public class ThisRobotInterface extends ROSInterface {
     //     super.packetCallback(tunnel, result);
     // }
 
+    private double convertClimberPivotAngle(WrappedAngle pivotAngle) {
+        return Math.toRadians(pivotAngle.asDouble());
+    }
+
+    private double convertClimberTelescopeHeight(double telescopeHeight) {
+        return Units.inchesToMeters(telescopeHeight - ClimberArm.TELESCOPE_MIN_HEIGHT);
+    }
+
+    private static final double ROS_INTAKE_ARM_DEPLOYED = 0.0;
+    private static final double ROS_INTAKE_ARM_STOWED = -93.0;
+    private double convertIntakeAngle(double intakeAngle) {
+        return Math.toRadians(
+            (Intake.ARM_DEPLOYED - Intake.ARM_STOWED) / 
+            (ROS_INTAKE_ARM_DEPLOYED - ROS_INTAKE_ARM_STOWED) * 
+            (intakeAngle - Intake.ARM_STOWED)
+             + ROS_INTAKE_ARM_STOWED
+        );
+    }
+
+    private double convertTurretAngle(double turretAngle) {
+        return Math.toRadians(turretAngle);
+    }
+
+    private double convertCameraTiltAngle(Rotation2d cameraAngle) {
+        return cameraAngle.getRadians();
+    }
 
     @Override
     public void update() {
@@ -58,51 +90,51 @@ public class ThisRobotInterface extends ROSInterface {
         // outerLeftArmVector
         TunnelServer.writePacket("joint",
             left_outer_climber_joint,
-            Math.toRadians(outerLeftArmVector.getAngle().asDouble())
+            convertClimberPivotAngle(outerLeftArmVector.getAngle())
         );
 
         TunnelServer.writePacket("joint",
             left_outer_climber_hook_joint,
-            Units.inchesToMeters(outerLeftArmVector.getMagnitude())
+            convertClimberTelescopeHeight(outerLeftArmVector.getMagnitude())
         );
 
         // innerLeftArmVector
         TunnelServer.writePacket("joint",
             left_inner_climber_joint,
-            Math.toRadians(innerLeftArmVector.getAngle().asDouble())
+            convertClimberPivotAngle(innerLeftArmVector.getAngle())
         );
 
         TunnelServer.writePacket("joint",
             left_inner_climber_hook_joint,
-            Units.inchesToMeters(innerLeftArmVector.getMagnitude())
+            convertClimberTelescopeHeight(innerLeftArmVector.getMagnitude())
         );
 
         // outerRightArmVector
         TunnelServer.writePacket("joint",
             right_outer_climber_joint,
-            Math.toRadians(outerRightArmVector.getAngle().asDouble())
+            convertClimberPivotAngle(outerRightArmVector.getAngle())
         );
 
         TunnelServer.writePacket("joint",
             right_outer_climber_hook_joint,
-            Units.inchesToMeters(outerRightArmVector.getMagnitude())
+            convertClimberTelescopeHeight(outerRightArmVector.getMagnitude())
         );
 
         // innerRightArmVector
         TunnelServer.writePacket("joint",
             right_inner_climber_joint,
-            Math.toRadians(innerRightArmVector.getAngle().asDouble())
+            convertClimberPivotAngle(innerRightArmVector.getAngle())
         );
 
         TunnelServer.writePacket("joint",
             right_inner_climber_hook_joint,
-            Units.inchesToMeters(innerRightArmVector.getMagnitude())
+            convertClimberTelescopeHeight(innerRightArmVector.getMagnitude())
         );
 
         // intake
         TunnelServer.writePacket("joint",
             intake_joint,
-            Math.toRadians(intake.getArmPosition())
+            convertIntakeAngle(intake.getArmPosition())
         );
 
         // turret
@@ -112,10 +144,9 @@ public class ThisRobotInterface extends ROSInterface {
         );
 
         // camera
-        // TunnelServer.writePacket("joint",
-        //     camera_joint,
-        //     Math.toRadians(cameraTilter.getPosition())
-        // );
+        TunnelServer.writePacket("joint",
+            camera_joint,
+            convertCameraTiltAngle(sensors.getCameraTilterAngle())
+        );
     }
-
 }

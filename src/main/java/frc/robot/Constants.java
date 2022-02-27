@@ -138,6 +138,12 @@ public final class Constants {
     public static final double COLOR_SENSOR_BLUE_CARGO_RED_THRESHOLD = 0;
     public static final double COLOR_SENSOR_BLUE_CARGO_GREEN_THRESHOLD = 0;
 
+	public static final int CAMERA_TILTER_SERVO_CHANNEL = 0;
+	public static final double CAMERA_TILT_DOWN_COMMAND = 180;
+	public static final double CAMERA_TILT_LEVEL_ANGLE = 55;
+	public static final double CAMERA_TILT_UP_ANGLE = 70;
+	public static final double CAMERA_TILT_DOWN_ANGLE = -30;
+
 	// Controllers
 	public static final int DRIVER_CONTROLLER_ID = 0;
 	public static final int BUTTON_BOX_ID = 1;

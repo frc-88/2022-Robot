@@ -53,8 +53,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  private static final double ARM_STOWED = 93;
-  private static final double ARM_DEPLOYED = 0;
+  public static final double ARM_STOWED = 93;
+  public static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
 
@@ -113,6 +113,7 @@ public class Intake extends SubsystemBase implements CargoSource {
     m_arm.configForwardSoftLimitEnable(true);
     m_arm.configReverseSoftLimitThreshold(convertArmPositionToMotor(ARM_DEPLOYED));
     m_arm.configReverseSoftLimitEnable(true);
+    m_arm.configNeutralDeadband(0);
   }
 
   private void configCurrentLimit() {
