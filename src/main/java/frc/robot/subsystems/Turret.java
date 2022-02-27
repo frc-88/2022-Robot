@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -154,6 +155,10 @@ public class Turret extends SubsystemBase {
   public boolean isSynchronized() {
     return Math.abs(getFacing() - 
       turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
+  }
+
+  public void setNeutralMode(NeutralMode mode) {
+    m_turret.setNeutralMode(mode);
   }
 
   public void startTracking() {
