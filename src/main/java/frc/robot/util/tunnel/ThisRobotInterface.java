@@ -140,7 +140,7 @@ public class ThisRobotInterface extends ROSInterface {
         // turret
         TunnelServer.writePacket("joint",
             turret_joint,
-            convertTurretAngle(turret.getAngleDegrees())
+            Math.toRadians(turret.getFacing())
         );
 
         // camera

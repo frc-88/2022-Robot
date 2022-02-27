@@ -53,6 +53,8 @@ public class Sensors extends SubsystemBase {
    */
   public Sensors() {
     CameraServer.startAutomaticCapture();
+
+    limelight.ledOff();
   }
 
   public double getStoragePressure() {
@@ -83,14 +85,16 @@ public class Sensors extends SubsystemBase {
     if (Robot.isSimulation()) {
       return true;
     }
-    return currentStorageVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && currentStorageVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
+    return currentStorageVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE
+        && currentStorageVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
   }
 
   public boolean isWorkingPressureSensorConnected() {
     if (Robot.isSimulation()) {
       return true;
     }
-    return currentWorkingVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && currentWorkingVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
+    return currentWorkingVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE
+        && currentWorkingVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
   }
 
   public void setCameraTilterAngle(Rotation2d angle) {
@@ -131,6 +135,14 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Pitch", navx.getPitch());
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
+    // Limelight calculations
+    SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
+    SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
+    SmartDashboard.putNumber("Limelight Turret Offset", limelight.calcTurretOffset());
+    SmartDashboard.putBoolean("Limelight Hood Up?", limelight.isHoodUp());
+    SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
+    SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
+
     // Color Sensor data
     Color detectedColor = m_colorSensor.getColor();
     double IR = m_colorSensor.getIR();
@@ -157,7 +169,8 @@ public class Sensors extends SubsystemBase {
       if (m_storagePressureMeasurements.size() > 0) {
         pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
         while (pressureDifference > Constants.PRESSURE_DIFFERENCE_TARGET && m_storagePressureMeasurements.size() > 1) {
-          // Measure the time it took for the last 5 PSI to leak (or since last enabled if 5 PSI hasn't been leaked yet)
+          // Measure the time it took for the last 5 PSI to leak (or since last enabled if
+          // 5 PSI hasn't been leaked yet)
           m_storagePressureMeasurements.poll();
           pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
         }
@@ -166,10 +179,11 @@ public class Sensors extends SubsystemBase {
         if (timeDifference > 0.) {
           // The leak rate in PSI/minute
           leakRatePSI = pressureDifference / timeDifference;
-          double averagePressure  = (m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.;
+          double averagePressure = (m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.;
           if (averagePressure > 0) {
             // The leak rate as a percentage of total pressure lost each minute
-            leakRatePercentage = leakRatePSI / ((m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.);
+            leakRatePercentage = leakRatePSI
+                / ((m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.);
           } else {
             // Don't divide by 0
             leakRatePercentage = 0;
@@ -179,14 +193,13 @@ public class Sensors extends SubsystemBase {
           leakRatePSI = 0;
           leakRatePercentage = 0;
         }
-      }
-      else {
+      } else {
         // Can't measure for leaks with no measurement history
         pressureDifference = 0;
         leakRatePSI = 0;
         leakRatePercentage = 0;
       }
-      m_storagePressureMeasurements.add(new Pair<Double,Double>(measurementTime, storagePressure));
+      m_storagePressureMeasurements.add(new Pair<Double, Double>(measurementTime, storagePressure));
     }
     SmartDashboard.putNumber("Storage Pressure", storagePressure);
     SmartDashboard.putNumber("Working Pressure", workingPressure);
