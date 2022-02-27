@@ -171,10 +171,6 @@ public class Turret extends SubsystemBase {
     return (degrees / 360.0) * Constants.TURRET_COUNTS_PER_REV;
   }
 
-  public double getAngleDegrees() {
-    return turretPositionToDegrees(getPosition());
-  }
-
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
