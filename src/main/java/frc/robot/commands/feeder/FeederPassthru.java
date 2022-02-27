@@ -31,12 +31,11 @@ public class FeederPassthru extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (m_target.wantsCargo()) {
+    if (m_target.wantsCargo() && m_source.hasCargo()) {
       m_feeder.run();
     } else {
       m_feeder.stop();
     }
-
   }
 
   // Called once the command ends or is interrupted.
