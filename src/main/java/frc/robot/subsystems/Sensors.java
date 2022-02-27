@@ -14,9 +14,11 @@ import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,6 +38,7 @@ public class Sensors extends SubsystemBase {
   public final Limelight limelight = new Limelight();
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
+  private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
 
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
@@ -88,6 +91,31 @@ public class Sensors extends SubsystemBase {
       return true;
     }
     return currentWorkingVoltage > Constants.PRESSURE_SENSOR_MIN_VOLTAGE && currentWorkingVoltage < Constants.PRESSURE_SENSOR_MAX_VOLTAGE;
+  }
+
+  public void setCameraTilterAngle(Rotation2d angle) {
+    setCameraTilterAngle(angle.getDegrees());
+  }
+
+  public void setCameraTilterAngle(double angleDegrees) {
+    SmartDashboard.putNumber("Camera tilter degrees", angleDegrees);
+    SmartDashboard.putNumber("Camera tilter command degrees", convertAngleToServoCommand(angleDegrees));
+    m_cameraTilter.setAngle(convertAngleToServoCommand(angleDegrees));
+  }
+
+  public Rotation2d getCameraTilterAngle() {
+    double angleDegrees = convertServoCommandToAngle(m_cameraTilter.getAngle());
+
+    SmartDashboard.putNumber("Camera tilter read degrees", angleDegrees);
+    return Rotation2d.fromDegrees(angleDegrees);
+  }
+
+  public double convertServoCommandToAngle(double servoCommand) {
+    return -(servoCommand - Constants.CAMERA_TILT_DOWN_COMMAND) - Constants.CAMERA_TILT_LEVEL_ANGLE;
+  }
+
+  public double convertAngleToServoCommand(double angleDegrees) {
+    return -(angleDegrees + Constants.CAMERA_TILT_LEVEL_ANGLE) + Constants.CAMERA_TILT_DOWN_COMMAND;
   }
 
   @Override

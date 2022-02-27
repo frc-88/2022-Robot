@@ -11,8 +11,10 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
+import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
@@ -34,11 +36,18 @@ import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
+import frc.robot.commands.cameratilter.TiltCameraDown;
+import frc.robot.commands.cameratilter.ToggleTiltCamera;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.roswaypoints.WaypointsPlan;
+import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.commands.ros.SendCoprocessorGoals;
+import frc.robot.commands.ros.WaitForCoprocessorPlan;
+import frc.robot.commands.ros.WaitForCoprocessorRunning;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -71,7 +80,8 @@ public class RobotContainer {
     m_drive,
     m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm,
     m_intake,
-    m_turret);
+    m_turret,
+    m_sensors);
   private TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
 
 
@@ -170,18 +180,143 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private CommandBase m_autoCommand = new WaitCommand(15.0);
+  private CommandBase m_autoCommand;
+  private CommandBase m_pursueCargoCommand;
+  private CommandBase m_cancelPursueCargoCommand;
+  private CommandBase m_allowRosCommandVelocities;
+  private CommandBase m_cancelRosCommandVelocities;
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer() {
+    setupAutonomousCommand();
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
   }
 
+  private void setupAutonomousCommand()
+  {
+    WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
+    // autoPlan.addWaypoint(new Waypoint("start"));
+    autoPlan.addWaypoint(new Waypoint("point1"));
+    autoPlan.addWaypoint(new Waypoint("end"));
+    autoPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    autoPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    m_autoCommand = getAutonomousCoprocessorPlan(autoPlan, 60.0);
+
+    WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
+    pursuitPlan.addWaypoint(new Waypoint("cargo_red"));  // TODO selected based on team color
+    // pursuitPlan.addWaypoint(new Waypoint("point1"));
+    m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
+    m_allowRosCommandVelocities = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        if (TunnelServer.anyClientsAlive() && m_ros_interface.isCommandActive()) {
+            System.out.println("ROS command");
+            m_drive.drive(m_ros_interface.getCommand());
+        }
+      }
+
+      @Override
+      public boolean isFinished() {
+        return false;
+      }
+      @Override
+      public void end(boolean interrupted) {
+          m_drive.stop();
+      }
+    };
+
+    m_cancelRosCommandVelocities = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        m_allowRosCommandVelocities.cancel();
+      }
+
+      @Override
+      public boolean isFinished() {
+        return true;
+      }
+    };
+    m_cancelPursueCargoCommand = new CommandBase() {
+      @Override
+      public void execute()
+      {
+        m_pursueCargoCommand.cancel();
+        m_ros_interface.cancelGoal();
+        // m_pursueCargoCommand = getWaitForCoprocessorPlan(pursuitPlan, 0.0);
+        // m_stowIntake.schedule();
+        m_centralizer.stop();
+        m_intake.stow();
+        System.out.println("Cancelling pursuit");
+      }
+
+      @Override
+      public boolean isFinished() {
+        return true;
+      }
+    };
+  }
+
+  private CommandBase getWaitForCoprocessorPlan(WaypointsPlan plan, double waitTime)
+  {
+    CommandBase waitForPlanCommand = new SequentialCommandGroup(
+      new ParallelRaceGroup(
+        new TiltCameraDown(m_sensors),
+        new WaitForCoprocessorRunning(m_ros_interface),
+        new ParallelCommandGroup(new RunCommand(() -> {
+          m_intake.deploy();
+          m_intake.rollerIntake();
+        }, m_intake),
+        new FeederAcceptCargo(m_centralizer)), // deploy intake
+        new WaitCommand(1.0)
+      ),
+      new SendCoprocessorGoals(plan),
+      new WaitForCoprocessorPlan(m_drive, m_ros_interface)
+    );
+    if (waitTime <= 0.0) {
+      return waitForPlanCommand;
+    }
+    else {
+      return new ParallelRaceGroup(
+        waitForPlanCommand,
+        new WaitCommand(waitTime)
+      );
+    }
+  }
+
+  private CommandBase getAutonomousCoprocessorPlan(WaypointsPlan plan, double waitTime)
+  {
+    CommandBase waitForPlanCommand = new SequentialCommandGroup(
+      new DriveDistanceMeters(m_drive, 0.5, 0.5),
+      new ParallelRaceGroup(
+        new TiltCameraDown(m_sensors),
+        new WaitForCoprocessorRunning(m_ros_interface),
+        new ParallelCommandGroup(new RunCommand(() -> {
+          m_intake.deploy();
+          m_intake.rollerIntake();
+          m_centralizer.run();
+        }, m_intake)), // deploy intake
+        new WaitCommand(1.0)
+      ),
+      new SendCoprocessorGoals(plan),
+      new WaitForCoprocessorPlan(m_drive, m_ros_interface)
+    );
+    if (waitTime <= 0.0) {
+      return waitForPlanCommand;
+    }
+    else {
+      return new ParallelRaceGroup(
+        waitForPlanCommand,
+        new WaitCommand(waitTime)
+      );
+    }
+  }
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {
       m_autoCommand = new ParallelCommandGroup(
@@ -206,6 +341,11 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheel);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+    m_testController.buttonRightBumper.whenActive(m_pursueCargoCommand);
+    m_testController.buttonRightBumper.whenInactive(m_cancelPursueCargoCommand);
+    m_testController.buttonA.whenActive(m_allowRosCommandVelocities);
+    m_testController.buttonA.whenInactive(m_cancelRosCommandVelocities);
+    m_testController.buttonB.whenActive(new ToggleTiltCamera(m_sensors));
   }
 
   private void configureDashboardCommands() {
@@ -262,14 +402,14 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_climber.setDefaultCommand( 
-      new SequentialCommandGroup(
-        new RunCommand(m_climber::calibrate, m_climber)
-          .withInterrupt(m_climber::isCalibrated)
-          .beforeStarting(m_climber::resetCalibration)
-          .withName("calibrateClimber"),
-        new ClimberMotionMagicJoystick(m_climber, m_testController)
-      ));
+    // m_climber.setDefaultCommand( 
+    //   new SequentialCommandGroup(
+    //     new RunCommand(m_climber::calibrate, m_climber)
+    //       .withInterrupt(m_climber::isCalibrated)
+    //       .beforeStarting(m_climber::resetCalibration)
+    //       .withName("calibrateClimber"),
+    //     new ClimberMotionMagicJoystick(m_climber, m_testController)
+    //   ));
   }
 
   /**

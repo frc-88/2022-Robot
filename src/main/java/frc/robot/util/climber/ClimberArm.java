@@ -41,10 +41,10 @@ public class ClimberArm {
     private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
 
-    private static final double PIVOT_MIN_ANGLE = -50;
-    private static final double PIVOT_MAX_ANGLE = 29;
-    protected static final double TELESCOPE_MIN_HEIGHT = 27;
-    private static final double TELESCOPE_MAX_HEIGHT = 60;
+    public static final double PIVOT_MIN_ANGLE = -50;
+    public static final double PIVOT_MAX_ANGLE = 29;
+    public static final double TELESCOPE_MIN_HEIGHT = 27;
+    public static final double TELESCOPE_MAX_HEIGHT = 60;
 
     private static final Vector2D PIVOT_LOCATION = Vector2D.createCartesianCoordinates(0, 13.123);
     private static final Vector2D HOOK_TOP_CENTER = Vector2D.createCartesianCoordinates(1.773, 0.754);

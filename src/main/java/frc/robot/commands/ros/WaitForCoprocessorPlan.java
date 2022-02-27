@@ -19,6 +19,7 @@ public class WaitForCoprocessorPlan extends CommandBase {
 
     @Override
     public void initialize() {
+        is_finished = false;
         System.out.println("Starting WaitForCoprocessorPlan command");
     }
 
