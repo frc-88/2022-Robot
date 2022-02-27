@@ -26,6 +26,28 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Limelight m_limelight;
   private Boolean m_active = false;
 
+  private static final double FLYWHEEL_RATIO = 3;
+  private static final double HOOD_RATIO = 2;
+
+  public static final double HOOD_LOWERED = 12.5;
+  public static final double HOOD_RAISED = 37.5;
+
+  private static final double HOOD_SETPOINT_TOLERANCE = 3;
+
+  private static final double HOOD_CALIBRATION_COLLECT_SIZE = 25;
+  private static final double HOOD_CALIBRATION_TOLERANCE = 0.5;
+  private double m_hoodCalibrationStartValue = 0;
+  private int m_hoodCalibrationCollectsDone = 0;
+
+  private HoodState m_hoodState = HoodState.CALIBRATING;
+  private static enum HoodState {
+    CALIBRATING,
+    RAISING,
+    RAISED,
+    LOWERING,
+    LOWERED
+  }
+
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
     new ValueInterpolator.ValuePair(100, 1000),
     new ValueInterpolator.ValuePair(200, 2000)
@@ -40,6 +62,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
   private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
   private DoublePreferenceConstant p_triggerDuration = new DoublePreferenceConstant("Hood Trigger Current Duration", 0.002);
+  private DoublePreferenceConstant p_hoodMaxVelocity = new DoublePreferenceConstant("Hood Max Velocity", 360);
+  private DoublePreferenceConstant p_hoodMaxAcceleration = new DoublePreferenceConstant("Hood Max Acceleration", 1080);
+  private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0, 0.0, 0.0);
 
@@ -53,6 +78,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     p_continuousCurrentLimit.addChangeHandler((Double unused) -> configureHood());
     p_triggerCurrentLimit.addChangeHandler((Double unused) -> configureHood());
     p_triggerDuration.addChangeHandler((Double unused) -> configureHood());
+    p_hoodMaxVelocity.addChangeHandler((Double unused) -> configureHood());
+    p_hoodMaxAcceleration.addChangeHandler((Double unused) -> configureHood());
+    p_hoodPID.addChangeHandler((Double unused) -> configureHood());
   }
 
   private void configureFlywheel() {
@@ -74,7 +102,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   private void configureHood() {
     TalonFXConfiguration config = new TalonFXConfiguration();
+    config.neutralDeadband = 0;
     config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+    config.motionCruiseVelocity = convertHoodVelocityToMotor(p_hoodMaxVelocity.getValue());
+    config.motionAcceleration = convertHoodVelocityToMotor(p_hoodMaxAcceleration.getValue());
+    config.slot0.kP = p_hoodPID.getKP().getValue();
+    config.slot0.kI = p_hoodPID.getKI().getValue();
+    config.slot0.kD = p_hoodPID.getKD().getValue();
+    config.slot0.kF = p_hoodPID.getKF().getValue();
+    config.slot0.integralZone= p_hoodPID.getIZone().getValue();
+    config.slot0.maxIntegralAccumulator = p_hoodPID.getIMax().getValue();
     config.statorCurrLimit = new StatorCurrentLimitConfiguration(true, p_continuousCurrentLimit.getValue(),
         p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
@@ -100,13 +137,101 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void raiseHood() {
-    m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue());
     m_limelight.setHood(true);
+    switch (m_hoodState) {
+      case CALIBRATING:
+        setHoodPercentOut(1);
+
+        double currentPosition = getHoodPosition();
+        if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
+          m_hoodCalibrationCollectsDone++;
+        } else {
+          m_hoodCalibrationCollectsDone = 0;
+          m_hoodCalibrationStartValue = currentPosition;
+        }
+
+        if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
+          m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_RAISED));
+          m_hoodState = HoodState.RAISED;
+        } else {
+          m_hoodState = HoodState.CALIBRATING;
+        }
+
+        break;
+
+      case LOWERING:
+      case LOWERED:
+      case RAISING:
+        setHoodMotionMagic(HOOD_RAISED);
+
+        if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+          m_hoodState = HoodState.RAISED;
+        } else {
+          m_hoodState = HoodState.RAISING;
+        }
+        
+        break;
+
+      case RAISED:
+        setHoodPercentOut(1);
+
+        m_hoodState = HoodState.RAISED;
+
+        break;
+    }
   }
 
   public void lowerHood() {
-    m_hood.set(TalonFXControlMode.PercentOutput, -p_hoodSpeed.getValue());
     m_limelight.setHood(false);
+    switch (m_hoodState) {
+      case CALIBRATING:
+        setHoodPercentOut(-1);
+
+        double currentPosition = getHoodPosition();
+        if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
+          m_hoodCalibrationCollectsDone++;
+        } else {
+          m_hoodCalibrationCollectsDone = 0;
+          m_hoodCalibrationStartValue = currentPosition;
+        }
+
+        if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
+          m_hood.setSelectedSensorPosition(HOOD_LOWERED);
+          m_hoodState = HoodState.LOWERED;
+        } else {
+          m_hoodState = HoodState.CALIBRATING;
+        }
+
+        break;
+
+      case LOWERING:
+      case LOWERED:
+      case RAISING:
+        setHoodMotionMagic(HOOD_RAISED);
+
+        if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+          m_hoodState = HoodState.RAISED;
+        } else {
+          m_hoodState = HoodState.RAISING;
+        }
+        
+        break;
+
+      case RAISED:
+        setHoodPercentOut(1);
+
+        m_hoodState = HoodState.RAISED;
+
+        break;
+    }
+  }
+
+  private void setHoodPercentOut(int direction) {
+    m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue() * direction);
+  }
+
+  private void setHoodMotionMagic(double setpoint) {
+    m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint));
   }
 
   public void activate() {
@@ -123,11 +248,18 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return m_active;
   }
 
+  public double getHoodPosition() {
+    return convertHoodPositionToMotor(m_hood.getSelectedSensorPosition());
+  }
+
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
     SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
+
+    SmartDashboard.putNumber("Hood Position", getHoodPosition());
+    SmartDashboard.putString("Hood State", m_hoodState.toString());
   }
 
   private double getFlywheelSpeedFromLimelight() {
@@ -137,10 +269,27 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double convertMotorTicksToRPM(double motorVelocity) {
-    return motorVelocity / 2048 * 200;
+    return motorVelocity * 600 / (FLYWHEEL_RATIO * 2048);
   }
 
   private double convertRPMsToMotorTicks(double flywheelVelocity) {
-    return flywheelVelocity * 2048 / 200;
+    return flywheelVelocity * FLYWHEEL_RATIO * 2048 / 600;
+  }
+  
+
+  private double convertMotorPositionToHood(double motorPosition) {
+    return motorPosition / (FLYWHEEL_RATIO * 2048);
+  }
+
+  private double convertMotorVelocityToHood(double motorVelocity) {
+    return convertMotorPositionToHood(motorVelocity) * 10;
+  }
+
+  private double convertHoodPositionToMotor(double hoodPosition) {
+    return hoodPosition * HOOD_RATIO * 2048;
+  }
+
+  private double convertHoodVelocityToMotor(double hoodVelocity) {
+    return convertHoodPositionToMotor(hoodVelocity) / 10;
   }
 }

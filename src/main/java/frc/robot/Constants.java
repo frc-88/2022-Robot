@@ -104,14 +104,10 @@ public final class Constants {
 	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
-	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;
-	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 15;
-	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 5;
-	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 4;
-	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 16;
-	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 17;
-	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 3;
-	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 2;
+	public static final int OUTER_CLIMBER_PIVOT_ID = 3;
+	public static final int OUTER_CLIMBER_TELESCOPE_ID = 15;
+	public static final int INNER_CLIMBER_PIVOT_ID = 16;
+	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
 	public static final int CLIMBER_COAST_BUTTON_ID = 0;
 
 	// Sensors

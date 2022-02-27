@@ -24,25 +24,21 @@ public class ThisRobotInterface extends ROSInterface {
     final int turret_joint = 9;
     final int camera_joint = 10;
 
-    private ClimberArm outerLeftArm;
-    private ClimberArm outerRightArm;
-    private ClimberArm innerLeftArm;
-    private ClimberArm innerRightArm;
+    private ClimberArm outerArm;
+    private ClimberArm innerArm;
 
     private Intake intake;
     private Turret turret;
     private Sensors sensors;
 
     public ThisRobotInterface(ChassisInterface chassis,
-                              ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
+                              ClimberArm outerArm, ClimberArm innerArm,
                               Intake intake,
                               Turret turret,
                               Sensors sensors) {
         super(chassis);
-        this.outerLeftArm = outerLeftArm;
-        this.outerRightArm = outerRightArm;
-        this.innerLeftArm = innerLeftArm;
-        this.innerRightArm = innerRightArm;
+        this.outerArm = outerArm;
+        this.innerArm = innerArm;
         this.intake = intake;
         this.turret = turret;
         this.sensors = sensors;
@@ -95,10 +91,10 @@ public class ThisRobotInterface extends ROSInterface {
     @Override
     public void updateSlow() {
         super.updateSlow();
-        Vector2D outerLeftArmVector = outerLeftArm.getPositionVector();
-        Vector2D outerRightArmVector = outerRightArm.getPositionVector();
-        Vector2D innerLeftArmVector = innerLeftArm.getPositionVector();
-        Vector2D innerRightArmVector = innerRightArm.getPositionVector();
+        Vector2D outerLeftArmVector = outerArm.getPositionVector();
+        Vector2D outerRightArmVector = outerArm.getPositionVector();
+        Vector2D innerLeftArmVector = innerArm.getPositionVector();
+        Vector2D innerRightArmVector = innerArm.getPositionVector();
 
         // outerLeftArmVector
         TunnelServer.writePacket("joint",

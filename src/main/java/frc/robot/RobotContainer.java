@@ -87,7 +87,7 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   private final ThisRobotInterface m_ros_interface = new ThisRobotInterface(
     m_drive,
-    m_climber.outerLeftArm, m_climber.outerRightArm, m_climber.innerLeftArm, m_climber.innerRightArm,
+    m_climber.outerArm, m_climber.innerArm,
     m_intake,
     m_turret,
     m_sensors);

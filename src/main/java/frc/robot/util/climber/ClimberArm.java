@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -38,8 +37,10 @@ public class ClimberArm {
     private SingleJointedArmSim m_pivotSim;
     private ElevatorSim m_telescopeSim;
 
-    private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
-    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
+    private static final double PIVOT_RATIO = 360. / (7 * 7 * 46/20 * 72/16 * 2048.); // Motor ticks to actual degrees
+    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (49. * 2048.); // Motor ticks to actual inches
+    // Pivot Max Speed ~75 degrees/s
+    // Telescope Max Speed ~17.5 in/s
 
     public static final double PIVOT_MIN_ANGLE = -48;
     public static final double PIVOT_MAX_ANGLE = 30;
