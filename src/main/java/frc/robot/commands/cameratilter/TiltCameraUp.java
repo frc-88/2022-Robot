@@ -11,7 +11,6 @@ import frc.robot.subsystems.Sensors;
 
 public class TiltCameraUp extends CommandBase {
   private Sensors m_sensors;
-  private boolean toggle = false;
 
   /** Creates a new TiltCameraDown. */
   public TiltCameraUp(Sensors sensors) {

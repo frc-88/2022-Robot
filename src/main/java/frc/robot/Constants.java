@@ -53,7 +53,7 @@ public final class Constants {
 	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
 	public static final double MAX_SPEED_LOW = 8.8;
 	public static final double MAX_SPEED_HIGH = 16.5;
-	public static final double WHEEL_BASE_WIDTH = 25.75 / 12.; // feet
+	public static final double WHEEL_BASE_WIDTH = 26.25 / 12.; // feet
 	public static final double DRIVE_CURRENT_LIMIT = 300;
 	
 	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
@@ -141,8 +141,8 @@ public final class Constants {
 	public static final int CAMERA_TILTER_SERVO_CHANNEL = 0;
 	public static final double CAMERA_TILT_DOWN_COMMAND = 180;
 	public static final double CAMERA_TILT_LEVEL_ANGLE = 55;
-	public static final double CAMERA_TILT_UP_ANGLE = 70;
-	public static final double CAMERA_TILT_DOWN_ANGLE = -30;
+	public static final double CAMERA_TILT_UP_ANGLE = -70;
+	public static final double CAMERA_TILT_DOWN_ANGLE = 30;
 
 	// Controllers
 	public static final int DRIVER_CONTROLLER_ID = 0;
@@ -150,5 +150,7 @@ public final class Constants {
 	public static final int TEST_CONTROLLER_ID = 2;
     
 	// Field constants
+	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
+	public static final double SHOOTING_ZONE_OUTER_RADIUS_METERS = 0.3;
 	public static final double FIELD_VISION_TARGET_HEIGHT = 102;
 }

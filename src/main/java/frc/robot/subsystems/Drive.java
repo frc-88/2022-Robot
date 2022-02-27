@@ -7,6 +7,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.Objects;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 
@@ -42,7 +44,7 @@ import frc.robot.util.tunnel.ChassisInterface;
 import frc.robot.util.tunnel.VelocityCommand;
 
 public class Drive extends SubsystemBase implements ChassisInterface {
-
+  
   private final Sensors m_sensors;
 
   private final TJDriveModule m_leftDrive, m_rightDrive;
@@ -490,21 +492,12 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   public void drive(double vx, double vy, double angularVelocity) {
     // vx and vy in meters per second
     // angularVelocity in radians per second
-    double speed = vx / (m_maxSpeed * Constants.FEET_TO_METERS);
-    double turn = angularVelocity / m_maxAngVelHighGear;
-    // if (m_leftTransmission.isInHighGear()) {
-    //   turn = angularVelocity / m_maxAngVelHighGear;
-    // }
-    // else {
-    //   turn = angularVelocity / m_maxAngVelLowGear;
-    // }
 
-    // Calculate left and right speed
-    double leftSpeed = (speed - turn);
-    double rightSpeed = (speed + turn);
-
-    // Apply values
-    basicDrive(leftSpeed, rightSpeed);  // TODO: fix max range issue
+    double vx_fps = vx * Constants.METERS_TO_FEET;
+    double turn_fps = angularVelocity * Constants.WHEEL_BASE_WIDTH / 2.0;
+    autoshift(0);  // 0 for aggresive shifting
+    updateCurrentGear();
+    basicDriveLimited(vx_fps - turn_fps, vx_fps + turn_fps);
   }
 
   @Override

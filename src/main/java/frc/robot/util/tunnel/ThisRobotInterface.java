@@ -2,6 +2,8 @@ package frc.robot.util.tunnel;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
@@ -30,7 +32,6 @@ public class ThisRobotInterface extends ROSInterface {
     private Intake intake;
     private Turret turret;
     private Sensors sensors;
-    // private CameraTilter cameraTilter;  // TODO add camera tilter when that's ready
 
     public ThisRobotInterface(ChassisInterface chassis,
                               ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
@@ -79,9 +80,21 @@ public class ThisRobotInterface extends ROSInterface {
         return cameraAngle.getRadians();
     }
 
+    public String getGameObjectName() {
+        Alliance team_color = DriverStation.getAlliance();
+        String object_name = "";
+        if (team_color == Alliance.Red) {
+            object_name = "cargo_red";
+        }
+        else if (team_color == Alliance.Blue) {
+            object_name = "cargo_blue";
+        }
+        return object_name;
+    }
+
     @Override
-    public void update() {
-        super.update();
+    public void updateSlow() {
+        super.updateSlow();
         Vector2D outerLeftArmVector = outerLeftArm.getPositionVector();
         Vector2D outerRightArmVector = outerRightArm.getPositionVector();
         Vector2D innerLeftArmVector = innerLeftArm.getPositionVector();
@@ -140,7 +153,7 @@ public class ThisRobotInterface extends ROSInterface {
         // turret
         TunnelServer.writePacket("joint",
             turret_joint,
-            Math.toRadians(turret.getFacing())
+            convertTurretAngle(turret.getFacing())
         );
 
         // camera

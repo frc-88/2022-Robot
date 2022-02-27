@@ -36,6 +36,7 @@ public class ButtonBox extends Joystick {
     private static int PREP_CLIMBER = 10;
     private static int RAISE_CLIMBER = 11;
     private static int CLIMB = 12;
+    private static int PURSUE_CARGO = 3;
 
 
     private ClimbBar m_currentClimbBar;
@@ -53,6 +54,7 @@ public class ButtonBox extends Joystick {
     public Button raiseClimberButton = new JoystickButton(this, RAISE_CLIMBER);
     public Button climbButton = new JoystickButton(this, CLIMB);
     public Button hoodSwitch = new JoystickButton(this, HOOD_SWITCH);
+    public Button pursueCargoButton = new JoystickButton(this, PURSUE_CARGO);
     public Button climbDirectionChange = new Button() {
         private ClimbDirection lastState = ClimbDirection.FORWARDS;
         @Override
