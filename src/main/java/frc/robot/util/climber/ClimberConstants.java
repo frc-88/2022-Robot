@@ -59,7 +59,7 @@ public class ClimberConstants {
     public static final ClimberState S_HIGH_FIRST_LIFT = new ClimberState(0, 29.5, 15, 55);
     public static final ClimberState S_HIGH_HIT_HIGH_BAR = new ClimberState(0, 29.5, 28, 55);
     public static final ClimberState S_HIGH_LIFT_ONTO_HIGH_BAR = new ClimberState(0, 29.5, 28, 50);
-    public static final ClimberState S_HIGH_TRANSITION_TO_HIGH_BAR = new ClimberState(-28, 34, 0, 43, true);
+    public static final ClimberState S_HIGH_TRANSITION_TO_HIGH_BAR = new ClimberState(-28, 34, 0, 43, ClimberState.DEFAULT_PIVOT_TOLERANCE, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, true);
     public static final ClimberState S_HIGH_RAISE_ABOVE_MID_BAR = new ClimberState(-28, 43, 0, 43);
     public static final ClimberState S_HIGH_PIVOT_BEHIND_MID_BAR = new ClimberState(-45, 43, 0, 43);
     public static final ClimberState S_HIGH_LOWER_BELOW_MID_BAR = new ClimberState(-45, 35, 0, 43);
@@ -88,7 +88,7 @@ public class ClimberConstants {
     public static final ClimberState S_TRAVERSAL_LIFT_FULLY_ONTO_HIGH_BAR = new ClimberState(15, 55, 0, 29.5);
     public static final ClimberState S_TRAVERSAL_HIT_TRAVERSAL_BAR = new ClimberState(30, 55, -10, 29.5);
     public static final ClimberState S_TRAVERSAL_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(30, 50, -10, 29.5);
-    public static final ClimberState S_TRAVERSAL_TRANSITION_TO_TRAVERSAL_BAR = new ClimberState(0, 43, -28, 34, true);
+    public static final ClimberState S_TRAVERSAL_TRANSITION_TO_TRAVERSAL_BAR = new ClimberState(0, 43, -28, 34, ClimberState.DEFAULT_PIVOT_TOLERANCE, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, true);
     public static final ClimberState S_TRAVERSAL_RAISE_ABOVE_HIGH_BAR = new ClimberState(0, 43, -28, 43);
     public static final ClimberState S_TRAVERSAL_PIVOT_BEHIND_HIGH_BAR = new ClimberState(0, 43, -45, 43);
     public static final ClimberState S_TRAVERSAL_LOWER_BELOW_HIGH_BAR = new ClimberState(0, 43, -45, 35);
