@@ -208,11 +208,19 @@ public class RobotContainer {
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
-  public RobotContainer() {
+  public RobotContainer(Robot robot) {
     setupAutonomousCommand();
+    // setupTunnelCallbacks(robot);
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
+  }
+
+  private void setupTunnelCallbacks(Robot robot) {
+    robot.addPeriodic(this::updateJoints, 0.1, 0.05);
+  }
+  private void updateJoints() {
+    m_ros_interface.updateSlow();
   }
 
   private void setupAutonomousCommand()

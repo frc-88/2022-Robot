@@ -32,7 +32,6 @@ public class ThisRobotInterface extends ROSInterface {
     private Intake intake;
     private Turret turret;
     private Sensors sensors;
-    // private CameraTilter cameraTilter;  // TODO add camera tilter when that's ready
 
     public ThisRobotInterface(ChassisInterface chassis,
                               ClimberArm outerLeftArm, ClimberArm outerRightArm, ClimberArm innerLeftArm, ClimberArm innerRightArm,
@@ -94,9 +93,8 @@ public class ThisRobotInterface extends ROSInterface {
     }
 
     @Override
-    public void update() {
-        super.update();
-        /*
+    public void updateSlow() {
+        super.updateSlow();
         Vector2D outerLeftArmVector = outerLeftArm.getPositionVector();
         Vector2D outerRightArmVector = outerRightArm.getPositionVector();
         Vector2D innerLeftArmVector = innerLeftArm.getPositionVector();
@@ -156,7 +154,7 @@ public class ThisRobotInterface extends ROSInterface {
         TunnelServer.writePacket("joint",
             turret_joint,
             convertTurretAngle(turret.getFacing())
-        );*/
+        );
 
         // camera
         TunnelServer.writePacket("joint",

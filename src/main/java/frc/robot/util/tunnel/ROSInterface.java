@@ -75,8 +75,10 @@ public class ROSInterface implements TunnelInterface {
             pose.getX(), pose.getY(), pose.getRotation().getRadians(),
             velocity.vxMetersPerSecond, velocity.vyMetersPerSecond, velocity.omegaRadiansPerSecond
         );
-        sendMatchStatus(DriverStation.isAutonomous(), DriverStation.getMatchTime(), DriverStation.getAlliance());
+    }
 
+    public void updateSlow() {
+        sendMatchStatus(DriverStation.isAutonomous(), DriverStation.getMatchTime(), DriverStation.getAlliance());
     }
 
     /***
