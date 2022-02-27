@@ -69,6 +69,15 @@ public class RapidReactTrajectories
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
+  public static Trajectory generateStraightTrajectory(double distanceFeet) {
+    TrajectoryConfig config = initializeConfig();
+    ArrayList<Pose2d> waypoints = new ArrayList<>();
+    waypoints.add(new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d()));
+
+    waypoints.add(new Pose2d(Units.feetToMeters(distanceFeet), Units.feetToMeters(0.0), new Rotation2d()));
+    return TrajectoryGenerator.generateTrajectory(waypoints, config);
+  }
+
   // Barrel runs from last year for testing and simulation
   public static Trajectory generateBarrelRunTrajectory() {
     TrajectoryConfig config = initializeConfig();
