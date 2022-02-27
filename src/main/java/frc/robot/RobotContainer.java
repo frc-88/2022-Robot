@@ -17,6 +17,7 @@ import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.feeder.FeederOutgestCargo;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.feeder.FeederCargolizer;
@@ -32,6 +33,7 @@ import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.RapidReactTrajectories;
+import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
@@ -39,6 +41,7 @@ import frc.robot.util.controllers.XboxController;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.cameratilter.ToggleTiltCamera;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
+import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
@@ -126,7 +129,7 @@ public class RobotContainer {
         m_intake.deploy();
         m_intake.rollerOutgest();
       }, m_intake),
-      new InstantCommand(m_centralizer::reverse, m_centralizer));
+      new FeederOutgestCargo(m_centralizer));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
@@ -169,8 +172,6 @@ public class RobotContainer {
           .withInterrupt(m_climber::isCalibrated)
           .beforeStarting(m_climber::resetCalibration)
           .withName("calibrateClimber");
-
-  private CommandBase m_stowClimber = new WaitCommand(1);
 
   private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
   private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
@@ -396,20 +397,36 @@ public class RobotContainer {
     SmartDashboard.putData(m_manualModeClimber);
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
+
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false).withName("Climber M Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_UNSTOW, false).withName("Climber M Unstow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID_FROM_STOW, false).withName("Climber M Prep Low Mid From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false).withName("Climber M Prep Low Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FROM_STOW, false).withName("Climber M Prep High Traversal From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false).withName("Climber M Prep High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW_FROM_STOW, false).withName("Climber M Raise Low From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false).withName("Climber M Raise Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID_FROM_STOW, false).withName("Climber M Raise Mid From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false).withName("Climber M Raise Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FROM_STOW, false).withName("Climber M Raise High Traversal From Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false).withName("Climber M Raise High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false).withName("Climber M Climb Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false).withName("Climber M Climb Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH ,true).withName("Climber M Climb High"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true).withName("Climber M Climb Traversal"));
   }
 
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    // m_climber.setDefaultCommand( 
-    //   new SequentialCommandGroup(
-    //     new RunCommand(m_climber::calibrate, m_climber)
-    //       .withInterrupt(m_climber::isCalibrated)
-    //       .beforeStarting(m_climber::resetCalibration)
-    //       .withName("calibrateClimber"),
-    //     new ClimberMotionMagicJoystick(m_climber, m_testController)
-    //   ));
+    m_climber.setDefaultCommand( 
+      new SequentialCommandGroup(
+        new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .withName("calibrateClimber"),
+        new ClimberMotionMagicJoystick(m_climber, m_testController)
+      ));
   }
 
   /**

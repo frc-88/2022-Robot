@@ -41,8 +41,8 @@ public class ClimberArm {
     private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
 
-    public static final double PIVOT_MIN_ANGLE = -50;
-    public static final double PIVOT_MAX_ANGLE = 29;
+    public static final double PIVOT_MIN_ANGLE = -48;
+    public static final double PIVOT_MAX_ANGLE = 30;
     public static final double TELESCOPE_MIN_HEIGHT = 27;
     public static final double TELESCOPE_MAX_HEIGHT = 60;
 
@@ -101,8 +101,6 @@ public class ClimberArm {
             );
             motors.forEach((WPI_TalonFX motor) -> {
                 motor.configStatorCurrentLimit(config);
-                motor.configMotionCruiseVelocity(convertActualVelocitytoMotorVelocity(maxVelocity.getValue(), ratio));
-                motor.configMotionAcceleration(convertActualVelocitytoMotorVelocity(maxAcceleration.getValue(), ratio));
                 motor.config_kP(0, pid.getKP().getValue());
                 motor.config_kI(0, pid.getKI().getValue());
                 motor.config_kD(0, pid.getKD().getValue());
@@ -148,6 +146,9 @@ public class ClimberArm {
         m_pivot.setNeutralMode(NeutralMode.Brake);
         m_telescope.setNeutralMode(NeutralMode.Brake);
 
+        m_pivot.configNeutralDeadband(0);
+        m_telescope.configNeutralDeadband(0);
+
         m_pivot.configReverseSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MIN_ANGLE));
         m_pivot.configForwardSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
         m_telescope.configReverseSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
@@ -166,13 +167,22 @@ public class ClimberArm {
         m_telescope.set(TalonFXControlMode.PercentOutput, telescopePercent);
     }
 
-    public void setMotionMagic(double pivotAngle, double telescopeHeight) {
+    public void setMotionMagic(double pivotAngle, double telescopeHeight, double pivotSpeed, double telescopeSpeed) {
         if (!isCalibrated()) {
             System.err.println("Cannot use motion magic for " + m_positionLabel + " climber because it is not calibrated!");
             return;
         }
+        m_pivot.configMotionCruiseVelocity(convertPivotActualVelocityToMotor(pivotSpeed));
+        m_pivot.configMotionAcceleration(convertPivotActualVelocityToMotor(pivotPreferences.maxAcceleration.getValue() * pivotPreferences.maxVelocity.getValue() / pivotSpeed));
+        m_telescope.configMotionCruiseVelocity(convertTelescopeActualVelocityToMotor(telescopeSpeed));
+        m_telescope.configMotionAcceleration(convertTelescopeActualVelocityToMotor(telescopePreferences.maxAcceleration.getValue() * telescopePreferences.maxVelocity.getValue() / pivotSpeed));
+
         m_pivot.set(TalonFXControlMode.MotionMagic, convertPivotActualPositionToMotor(pivotAngle));
         m_telescope.set(TalonFXControlMode.MotionMagic, convertTelescopeActualPositionToMotor(telescopeHeight));
+    }
+
+    public void setMotionMagic(double pivotAngle, double telescopeHeight) {
+        setMotionMagic(pivotAngle, telescopeHeight, pivotPreferences.maxVelocity.getValue(), telescopePreferences.maxVelocity.getValue());
     }
 
 
@@ -229,6 +239,14 @@ public class ClimberArm {
 
     public Vector2D getPositionVector() {
         return getPositionVector(getPivotAngle(), getTelescopeHeight());
+    }
+
+    public static double getPivotMaxVelocity() {
+        return pivotPreferences.maxVelocity.getValue();
+    }
+
+    public static double getTelescopeMaxVelocity() {
+        return telescopePreferences.maxVelocity.getValue();
     }
 
     private static Vector2D getPositionVector(double pivotAngle, double telescopeHeight) {
