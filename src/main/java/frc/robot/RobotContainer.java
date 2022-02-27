@@ -261,8 +261,8 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
     SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_sensors));
     SmartDashboard.putData("Shooter:Hood:Lower", new RunCommand(m_shooter::lowerHood, m_sensors));
-    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
-    SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
+    SmartDashboard.putData("Shooter:Activate", new ParallelCommandGroup(new InstantCommand(m_shooter::activate, m_shooter), new InstantCommand(m_chamber::run, m_chamber)));
+    SmartDashboard.putData("Shooter:Deactivate", new ParallelCommandGroup(new InstantCommand(m_shooter::deactivate, m_shooter), new InstantCommand(m_chamber::stop, m_chamber)));
 
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));
@@ -279,8 +279,9 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
 
-    m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
-    m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
+    m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_shooter));
+    // m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
+    // m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
     //m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
