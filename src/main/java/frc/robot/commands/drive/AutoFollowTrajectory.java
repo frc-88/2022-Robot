@@ -89,7 +89,6 @@ public class AutoFollowTrajectory extends CommandBase {
       default:
         break;
     }
-
     m_drive.basicDriveLimited(leftSpeed, rightSpeed);
   }
 

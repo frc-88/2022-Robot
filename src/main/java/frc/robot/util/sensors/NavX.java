@@ -22,11 +22,11 @@ public class NavX {
     }
 
     public void zeroYaw() {
-        yawOffset = getYaw() + yawOffset;
+        yawOffset = m_ahrs.getYaw();
     }
 
     public double getYaw() {
-        return m_ahrs.getYaw() + yawOffset;
+        return m_ahrs.getYaw() - yawOffset;
     }
 
     public double getYawRate() {

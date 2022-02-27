@@ -420,6 +420,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_sensors.navx.zeroYaw();
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
+    m_leftDrive.setSelectedSensorPosition(0);
+    m_rightDrive.setSelectedSensorPosition(0);
   }
 
   public void resetOdometry() {

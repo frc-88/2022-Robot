@@ -227,26 +227,24 @@ public class RobotContainer {
 
   private void setupAutonomousCommand()
   {
-    AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
+    // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
 
     WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
-    autoPlanPart1.addWaypoint(new Waypoint("point1").makeContinuous(true));
+    autoPlanPart1.addWaypoint(new Waypoint("point1").makeContinuous(true).makeIgnoreOrientation(true));
     autoPlanPart1.addWaypoint(new Waypoint("end"));
 
     WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_autoCommand = new SequentialCommandGroup(
-      new ParallelDeadlineGroup(new WaitCommand(0.5), 
-        new TiltCameraDown(m_sensors),
-        m_ingestCargo.get(),
-        m_centralizerCargolizer.get(),
-        m_chamberCargolizer.get(),
-        m_startFlywheel.get()
-      ),
-      driveForward,
+      // new TiltCameraDown(m_sensors),
+      // m_ingestCargo.get(),
+      // m_startFlywheel.get(),
+      new DriveDistanceMeters(m_drive, 0.5, 0.5),
       new DriveToWaypoint(m_coprocessor, autoPlanPart1),
-      new InstantCommand(m_shooter::activate, m_shooter),
+      new InstantCommand(m_turret::startTracking),
+      new WaitCommand(1.0),
+      new InstantCommand(m_shooter::activate),
       new DriveToWaypoint(m_coprocessor, autoPlanPart2)
     );
 
@@ -379,7 +377,7 @@ public class RobotContainer {
     // m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
     // m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
-    //m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
     m_climber.setDefaultCommand( 
       new SequentialCommandGroup(
