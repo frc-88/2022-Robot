@@ -96,6 +96,7 @@ public class ThisRobotInterface extends ROSInterface {
     @Override
     public void update() {
         super.update();
+        /*
         Vector2D outerLeftArmVector = outerLeftArm.getPositionVector();
         Vector2D outerRightArmVector = outerRightArm.getPositionVector();
         Vector2D innerLeftArmVector = innerLeftArm.getPositionVector();
@@ -154,8 +155,8 @@ public class ThisRobotInterface extends ROSInterface {
         // turret
         TunnelServer.writePacket("joint",
             turret_joint,
-            Math.toRadians(turret.getFacing())
-        );
+            convertTurretAngle(turret.getFacing())
+        );*/
 
         // camera
         TunnelServer.writePacket("joint",

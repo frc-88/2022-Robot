@@ -493,7 +493,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // vx and vy in meters per second
     // angularVelocity in radians per second
 
-    double vx_fps = vx / Constants.FEET_TO_METERS;
+    double vx_fps = vx * Constants.METERS_TO_FEET;
     double turn_fps = angularVelocity * Constants.WHEEL_BASE_WIDTH / 2.0;
     autoshift(0);  // 0 for aggresive shifting
     updateCurrentGear();

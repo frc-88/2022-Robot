@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -126,10 +128,11 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new RunCommand(() -> {
+  private Supplier<CommandBase> m_ingestCargo = () -> {return new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
       }, m_intake);
+    };
 
   private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
@@ -147,8 +150,8 @@ public class RobotContainer {
     m_intake.rollerStop();
   }, m_intake);
 
-  private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
-  private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
+  private Supplier<CommandBase> m_centralizerCargolizer = () -> { return new FeederCargolizer(m_centralizer, m_intake, m_chamber); };
+  private Supplier<CommandBase> m_chamberCargolizer = () -> { return new FeederCargolizer(m_chamber, m_centralizer, m_shooter); };
 
   /////////////////////////////////////
   //            SHOOTING             //
@@ -156,7 +159,7 @@ public class RobotContainer {
 
   private CommandBase m_startFlywheelRaw = new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_shooterTestOutput.getValue());}, m_shooter);
   private CommandBase m_stopFlywheelRaw = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter);
-  private CommandBase m_startFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterTestVelocity.getValue());}, m_shooter);
+  private Supplier<CommandBase> m_startFlywheel = () -> {return new InstantCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterTestVelocity.getValue());}, m_shooter); };
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
 
   private CommandBase m_shoot = new SequentialCommandGroup(
@@ -221,10 +224,11 @@ public class RobotContainer {
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_autoCommand = new SequentialCommandGroup(
-      m_ingestCargo,
-      m_centralizerCargolizer,
-      m_chamberCargolizer,
-      m_startFlywheel,
+      new TiltCameraDown(m_sensors),
+      m_ingestCargo.get(),
+      m_centralizerCargolizer.get(),
+      m_chamberCargolizer.get(),
+      m_startFlywheel.get(),
       new DriveToWaypoint(m_coprocessor, autoPlanPart1),
       new InstantCommand(m_shooter::activate, m_shooter),
       new DriveToWaypoint(m_coprocessor, autoPlanPart2)
@@ -233,10 +237,10 @@ public class RobotContainer {
     WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
     pursuitPlan.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_pursueCargoCommand = new SequentialCommandGroup(
-      m_ingestCargo,
-      m_centralizerCargolizer,
-      m_chamberCargolizer,
-      m_startFlywheel,
+      m_ingestCargo.get(),
+      m_centralizerCargolizer.get(),
+      m_chamberCargolizer.get(),
+      m_startFlywheel.get(),
       new DriveToWaypoint(m_coprocessor, pursuitPlan),
       new InstantCommand(m_shooter::activate, m_shooter)
     );
@@ -259,16 +263,15 @@ public class RobotContainer {
   }
 
   private void configureButtonBox() {
-    m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
+    m_buttonBox.intakeButton.whileHeld(m_ingestCargo.get());
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
     m_buttonBox.shootButton.whenPressed(m_shoot);
     m_buttonBox.shooterButton.whenPressed(m_startFlywheelRaw);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheelRaw);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_testController.buttonRightBumper.whenActive(m_pursueCargoCommand);
-    m_testController.buttonA.whileHeld(m_allowRosCommandVelocities);
-    m_testController.buttonB.whenActive(new ToggleTiltCamera(m_sensors));
+    // m_buttonBox.pursueCargoButton.whenActive(m_pursueCargoCommand);
+    m_buttonBox.pursueCargoButton.whileHeld(m_allowRosCommandVelocities);
   }
 
   private void configureDashboardCommands() {
@@ -281,7 +284,7 @@ public class RobotContainer {
     // SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
 
     // Intake testing commands
-    SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
+    SmartDashboard.putData("Intake:Ingest", m_ingestCargo.get());
     SmartDashboard.putData("Intake:Stow", m_stowIntakeTwo);
 
     // Centralizer and Chamber commmands
@@ -289,13 +292,13 @@ public class RobotContainer {
     SmartDashboard.putData("Centralizer:Run", new InstantCommand(m_centralizer::run, m_centralizer));
     SmartDashboard.putData("Centralizer:Reverse", new InstantCommand(m_centralizer::reverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new InstantCommand(m_centralizer::stop, m_centralizer));
-    SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
+    SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer.get());
     
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
     SmartDashboard.putData("Chamber:Run", new InstantCommand(m_chamber::run, m_chamber));
     SmartDashboard.putData("Chamber:Reverse", new InstantCommand(m_chamber::reverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new InstantCommand(m_chamber::stop, m_chamber));
-    SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
+    SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer.get());
 
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
@@ -311,7 +314,7 @@ public class RobotContainer {
 
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:RunRaw", m_startFlywheelRaw);
-    SmartDashboard.putData("Shooter:Flywheel:RunSpeed", m_startFlywheel);
+    SmartDashboard.putData("Shooter:Flywheel:RunSpeed", m_startFlywheel.get());
     SmartDashboard.putData("Shooter:Flywheel:StopRaw", m_stopFlywheelRaw);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
     SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_sensors));
