@@ -13,9 +13,6 @@ public class ClimberStateMachine {
 
     private ClimberState m_initialState;
 
-    private final double PIVOT_TOLERANCE = 2;
-    private final double TELESCOPE_TOLERANCE = 1;
-
     public ClimberStateMachine(ClimberState firstState) {
         m_states = new ArrayList<>();
         m_states.add(firstState);
@@ -106,9 +103,9 @@ public class ClimberStateMachine {
     }
 
     private boolean onTarget(ClimberState state, Climber climber) {
-        return Math.abs(state.getOuterPivot() - climber.getAverageOuterPivotAngle()) < PIVOT_TOLERANCE
-                && Math.abs(state.getOuterTelescope() - climber.getAverageOuterTelescopeHeight()) < TELESCOPE_TOLERANCE
-                && Math.abs(state.getInnerPivot() - climber.getAverageInnerPivotAngle()) < PIVOT_TOLERANCE
-                && Math.abs(state.getInnerTelescope() - climber.getAverageInnerTelescopeHeight()) < TELESCOPE_TOLERANCE;
+        return Math.abs(state.getOuterPivot() - climber.getAverageOuterPivotAngle()) < state.getPivotTolerance()
+                && Math.abs(state.getOuterTelescope() - climber.getAverageOuterTelescopeHeight()) < state.getTelescopeTolerance()
+                && Math.abs(state.getInnerPivot() - climber.getAverageInnerPivotAngle()) < state.getPivotTolerance()
+                && Math.abs(state.getInnerTelescope() - climber.getAverageInnerTelescopeHeight()) < state.getTelescopeTolerance();
     }
 }
