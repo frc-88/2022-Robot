@@ -18,6 +18,7 @@ import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.feeder.FeederOutgestCargo;
+import frc.robot.commands.feeder.FeederPassthru;
 import frc.robot.commands.turret.TurretCalibrate;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
@@ -437,6 +438,7 @@ public class RobotContainer {
     m_intake.setDefaultCommand(m_stowIntake);
 
     m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_shooter));
+    m_chamber.setDefaultCommand(new FeederPassthru(m_chamber, m_centralizer, m_shooter));
     // m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
     // m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
