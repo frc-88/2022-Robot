@@ -362,10 +362,10 @@ public class RobotContainer {
     m_drive.setDefaultCommand(m_arcadeDrive);
     m_intake.setDefaultCommand(m_stowIntake);
 
-    m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_shooter));
-    m_chamber.setDefaultCommand(new FeederPassthru(m_chamber, m_centralizer, m_shooter));
-    // m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
-    // m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
+    // m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_shooter));
+    // m_chamber.setDefaultCommand(new FeederPassthru(m_chamber, m_centralizer, m_shooter));
+    m_centralizer.setDefaultCommand(new FeederCargolizer(m_centralizer, m_intake, m_chamber));
+    m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
     //m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
