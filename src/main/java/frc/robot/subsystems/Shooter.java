@@ -25,7 +25,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private CargoSource[] m_sources;
-  private Limelight m_limelight;
+  private Sensors m_sensors;
   private Boolean m_active = false;
 
   private static final double FLYWHEEL_RATIO = 3;
@@ -72,9 +72,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
 
   /** Creates a new Shooter. */
-  public Shooter(CargoSource [] sources, Limelight limelight) {
+  public Shooter(CargoSource [] sources, Sensors sensors) {
     m_sources = sources;
-    m_limelight = limelight;
+    m_sensors = sensors;
     configureFlywheel();
     configureHood();
 
@@ -131,7 +131,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (m_limelight.hasTarget() && sourcesHaveCargo()) {
+    if (sourcesHaveCargo() && m_sensors.isCargoOurs()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
     } else {
       m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
@@ -143,7 +143,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void raiseHood() {
-    m_limelight.setHood(true);
+    m_sensors.limelight.setHood(true);
     switch (m_hoodState) {
       case CALIBRATING:
         setHoodPercentOut(1);
@@ -188,7 +188,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void lowerHood() {
-    m_limelight.setHood(false);
+    m_sensors.limelight.setHood(false);
     switch (m_hoodState) {
       case CALIBRATING:
         setHoodPercentOut(-1);
@@ -279,9 +279,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double getFlywheelSpeedFromLimelight() {
-    return m_limelight.isHoodUp() 
-        ? hoodUpInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget()) 
-        : hoodDownInterpolator.getInterpolatedValue(m_limelight.calcDistanceToTarget());
+    return m_sensors.limelight.isHoodUp() 
+        ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget()) 
+        : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget());
   }
 
   private double convertMotorTicksToRPM(double motorVelocity) {

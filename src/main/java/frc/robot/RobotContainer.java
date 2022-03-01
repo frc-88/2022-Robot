@@ -71,7 +71,7 @@ public class RobotContainer {
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
-  private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors.limelight);
+  private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber();
   
 
