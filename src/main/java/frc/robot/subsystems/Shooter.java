@@ -21,6 +21,12 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.sensors.Limelight;
 
+/**
+ * Cargo is coming
+ * Is it blue or is it red?
+ * Mine scores, yours bounces
+ **/
+
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
@@ -51,15 +57,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-    new ValueInterpolator.ValuePair(100, 1000),
-    new ValueInterpolator.ValuePair(200, 2000)
-  );
-
-  private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-    new ValueInterpolator.ValuePair(100, 1000),
-    new ValueInterpolator.ValuePair(200, 2000)
-  );
-
+      new ValueInterpolator.ValuePair(100, 1000),
+      new ValueInterpolator.ValuePair(200, 2000)
+      );
+    
+      private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
+        new ValueInterpolator.ValuePair(100, 1000),
+        new ValueInterpolator.ValuePair(200, 2000)
+      );
+    
   // Preferences
   private DoublePreferenceConstant p_continuousCurrentLimit = new DoublePreferenceConstant("Hood Continuous Current", 10);
   private DoublePreferenceConstant p_triggerCurrentLimit = new DoublePreferenceConstant("Hood Trigger Current", 80);
@@ -175,7 +181,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         } else {
           m_hoodState = HoodState.RAISING;
         }
-        
+
         break;
 
       case RAISED:
@@ -220,7 +226,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         } else {
           m_hoodState = HoodState.RAISING;
         }
-        
+
         break;
 
       case RAISED:
@@ -279,8 +285,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double getFlywheelSpeedFromLimelight() {
-    return m_sensors.limelight.isHoodUp() 
-        ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget()) 
+    return m_sensors.limelight.isHoodUp()
+        ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
         : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget());
   }
 
@@ -291,7 +297,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private double convertRPMsToMotorTicks(double flywheelVelocity) {
     return flywheelVelocity * FLYWHEEL_RATIO * 2048 / 600;
   }
-  
+
 
   private double convertMotorPositionToHood(double motorPosition) {
     return motorPosition / (FLYWHEEL_RATIO * 2048);

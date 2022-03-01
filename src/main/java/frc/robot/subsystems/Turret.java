@@ -19,6 +19,12 @@ import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
+/**
+ * a green glowing eye
+ * rises up and lights the way
+ * turn towards the light
+ **/
+
 public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
   private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
@@ -34,8 +40,8 @@ public class Turret extends SubsystemBase {
   private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", 0.0);
   private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", 0.0);
   private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", 0.0);
- 
-  // 
+
+  //
   private boolean m_tracking = false;
 
   /** Creates a new Turret. */
@@ -91,7 +97,7 @@ public class Turret extends SubsystemBase {
     // sensorCoefficient = 360.0 / 4096.0
     // unitString = "deg"
     // sensorTimeBase = SensorTimeBase.PerSecond
-    m_cancoder.configAllSettings(encConfig);   
+    m_cancoder.configAllSettings(encConfig);
   }
 
   public void sync() {
@@ -124,8 +130,8 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getFacing() - 
-      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
+    return Math.abs(getFacing() -
+    turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
   }
 
   public void startTracking() {
@@ -143,14 +149,14 @@ public class Turret extends SubsystemBase {
   private double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
-  
+
   private void goToPosition(double position) {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
   private boolean isPositionSafe(double position) {
     return (position < turretFacingToEncoderPosition(p_forwardLimit.getValue() - p_limitBuffer.getValue())) &&
-      (position > turretFacingToEncoderPosition(p_reverseLimit.getValue() + p_limitBuffer.getValue()));
+        (position > turretFacingToEncoderPosition(p_reverseLimit.getValue() + p_limitBuffer.getValue()));
   }
 
   private double cancoderPostionToFalconPosition(double position) {
@@ -159,8 +165,8 @@ public class Turret extends SubsystemBase {
     if (normalPosition > 180) { normalPosition -= 360; }
     if (normalPosition < -180) { normalPosition += 360; }
 
-    return turretFacingToEncoderPosition(normalPosition * 
-      (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
+    return turretFacingToEncoderPosition(normalPosition *
+    (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
   private double turretEncoderPositionToFacing(double turretPosition) {
