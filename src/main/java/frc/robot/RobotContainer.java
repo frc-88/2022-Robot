@@ -311,8 +311,11 @@ public class RobotContainer {
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController));
     SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController));
+    SmartDashboard.putData("Turret Go To 180", new InstantCommand(() -> {m_turret.goToFacing(180);}, m_turret));
     SmartDashboard.putData("Turret Go To 45", new InstantCommand(() -> {m_turret.goToFacing(45);}, m_turret));
     SmartDashboard.putData("Turret Go To 0", new InstantCommand(() -> {m_turret.goToFacing(0);}, m_turret));
+    SmartDashboard.putData("Turret Go To -45", new InstantCommand(() -> {m_turret.goToFacing(-45);}, m_turret));
+    SmartDashboard.putData("Turret Go To -180", new InstantCommand(() -> {m_turret.goToFacing(-180);}, m_turret));
     
     SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
     SmartDashboard.putData("Turret Activate Tracking", m_turretTrackingOn);
