@@ -124,7 +124,7 @@ public class ClimberArm {
         staticInitialized = true;
     }
 
-    public ClimberArm(String positionLabel, int pivotID, int telescopeID, boolean pivotInverted) {
+    public ClimberArm(String positionLabel, int pivotID, int telescopeID, boolean pivotInverted, boolean telescopeInverted) {
         if (!staticInitialized) {
             staticInit();
         }
@@ -138,10 +138,14 @@ public class ClimberArm {
 
         if (pivotInverted || Robot.isSimulation()) {
             m_pivot.setInverted(InvertType.InvertMotorOutput);
-            m_telescope.setInverted(InvertType.None);
         } else {
             m_pivot.setInverted(InvertType.None);
+        }
+
+        if (telescopeInverted || Robot.isSimulation()) {
             m_telescope.setInverted(InvertType.InvertMotorOutput);
+        } else {
+            m_telescope.setInverted(InvertType.None);
         }
 
         m_pivot.setNeutralMode(NeutralMode.Brake);

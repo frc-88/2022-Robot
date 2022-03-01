@@ -19,8 +19,8 @@ public class Climber extends SubsystemBase {
     private List<ClimberArm> allArms;
 
     public Climber() {
-        outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, false);
-        innerArm = new ClimberArm("Inner Right", Constants.INNER_CLIMBER_PIVOT_ID, Constants.INNER_CLIMBER_TELESCOPE_ID, true);
+        outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, true, true);
+        innerArm = new ClimberArm("Inner Right", Constants.INNER_CLIMBER_PIVOT_ID, Constants.INNER_CLIMBER_TELESCOPE_ID, false, true);
 
         coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
 
