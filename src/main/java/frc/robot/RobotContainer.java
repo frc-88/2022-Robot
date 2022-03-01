@@ -274,7 +274,8 @@ public class RobotContainer {
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo.get());
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
-    m_buttonBox.shootButton.whenPressed(m_shoot);
+    m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
+    m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
     m_buttonBox.shooterButton.whenPressed(m_startFlywheelRaw);
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheelRaw);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
