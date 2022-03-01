@@ -37,6 +37,7 @@ import frc.robot.subsystems.Shooter;
 import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
+import frc.robot.util.CargoSource;
 import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
@@ -66,11 +67,11 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
-  private final Shooter m_shooter = new Shooter(m_sensors.limelight);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:Speed", Constants.FEEDER_CENTRALIZER_SPEED_DFT));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:Speed",Constants.FEEDER_CHAMBER_SPEED_DFT));
+  private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors.limelight);
   private final Climber m_climber = new Climber();
   
 
@@ -326,6 +327,7 @@ public class RobotContainer {
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:RunRaw", m_startFlywheelRaw);
     SmartDashboard.putData("Shooter:Flywheel:RunSpeed", m_startFlywheel.get());
+    SmartDashboard.putData("Shooter:Flywheel:RunAuto", new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:StopRaw", m_stopFlywheelRaw);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
     SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_sensors));

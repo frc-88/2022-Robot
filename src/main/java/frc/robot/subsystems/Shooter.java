@@ -14,6 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -23,6 +24,7 @@ import frc.robot.util.sensors.Limelight;
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
+  private CargoSource[] m_sources;
   private Limelight m_limelight;
   private Boolean m_active = false;
 
@@ -67,9 +69,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0, 0.0, 0.0);
+  private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
 
   /** Creates a new Shooter. */
-  public Shooter(Limelight limelight) {
+  public Shooter(CargoSource [] sources, Limelight limelight) {
+    m_sources = sources;
     m_limelight = limelight;
     configureFlywheel();
     configureHood();
@@ -126,9 +130,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
-  public void setFlywheelSpeedFromLimelight() {
-    if (m_limelight.hasTarget()) {
+  public void setFlywheelSpeedAuto() {
+    if (m_limelight.hasTarget() && sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
     }
   }
 
@@ -240,6 +246,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void deactivate() {
     m_active = false;
+  }
+
+  private boolean sourcesHaveCargo() {
+    boolean hasCargo = false;
+
+    for (CargoSource source : m_sources) {
+      hasCargo = hasCargo || source.hasCargo();
+    }
+
+    return hasCargo;
   }
 
   @Override
