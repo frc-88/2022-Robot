@@ -19,11 +19,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 import frc.robot.util.sensors.NavX;
 
@@ -39,6 +41,9 @@ public class Sensors extends SubsystemBase {
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
+
+  private DoublePreferenceConstant p_colorRedThreshold = new DoublePreferenceConstant("Color Red Threshold", 0.0);
+  private DoublePreferenceConstant p_colorBlueThreshold = new DoublePreferenceConstant("Color Blue Threshold", 0.0);
 
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
@@ -122,6 +127,25 @@ public class Sensors extends SubsystemBase {
     return -(angleDegrees + Constants.CAMERA_TILT_LEVEL_ANGLE) + Constants.CAMERA_TILT_DOWN_COMMAND;
   }
 
+  public boolean isCargoOurs() {
+    Color detectedColor = m_colorSensor.getColor();
+    boolean foundOurs = false;
+
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      if (detectedColor.red > p_colorRedThreshold.getValue() &&
+          detectedColor.blue < p_colorBlueThreshold.getValue()) {
+            foundOurs = true;
+      }
+    } else {
+      if (detectedColor.red < p_colorRedThreshold.getValue() &&
+          detectedColor.blue > p_colorBlueThreshold.getValue()) {
+            foundOurs = true;
+      }
+    }
+
+    return foundOurs;
+  }
+
   @Override
   public void periodic() {
     checkedStoragePressure = false;
@@ -151,6 +175,7 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
+    SmartDashboard.putBoolean("Our Cargo", isCargoOurs());
 
     // Pressure tracking
     double storagePressure = this.getStoragePressure();
