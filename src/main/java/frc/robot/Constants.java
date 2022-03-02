@@ -92,11 +92,9 @@ public final class Constants {
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
     public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
-	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
 
 	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
 	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
-    public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
@@ -113,12 +111,6 @@ public final class Constants {
 	public static final int SENSORS_COAST_BUTTON_ID = 0;
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
-	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 43.5;  // inches
-	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
-	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
 	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
 	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;

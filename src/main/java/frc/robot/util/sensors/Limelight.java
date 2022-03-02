@@ -30,12 +30,12 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
-    private final DoublePreferenceConstant p_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
-    private final DoublePreferenceConstant p_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
-    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_HEIGHT_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.LIMELIGHT_TARGET_THRESHOLD_DFT);
-    private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", Constants.LIMELIGHT_TEST_DISTANCE_DFT);
+    private final DoublePreferenceConstant p_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", 0);
+    private final DoublePreferenceConstant p_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", 0);
+    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", 0);
+    private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", 0);
+    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
+    private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
