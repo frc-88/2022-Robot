@@ -144,6 +144,7 @@ public final class Constants {
 	public static final int DRIVER_CONTROLLER_ID = 0;
 	public static final int BUTTON_BOX_ID = 1;
 	public static final int TEST_CONTROLLER_ID = 2;
+	public static final int TEST_CONTROLLER_2_ID = 3;
     
 	// Field constants
 	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
