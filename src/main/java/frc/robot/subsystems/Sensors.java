@@ -15,6 +15,7 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
@@ -38,6 +39,8 @@ import frc.robot.util.sensors.NavX;
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
   public final Limelight limelight = new Limelight();
+  public final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
+
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);

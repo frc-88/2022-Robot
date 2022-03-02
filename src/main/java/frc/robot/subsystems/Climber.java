@@ -18,11 +18,11 @@ public class Climber extends SubsystemBase {
 
     private List<ClimberArm> allArms;
 
-    public Climber() {
+    public Climber(DigitalInput coastButton) {
+        this.coastButton = coastButton;
+
         outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, false, true);
         innerArm = new ClimberArm("Inner Right", Constants.INNER_CLIMBER_PIVOT_ID, Constants.INNER_CLIMBER_TELESCOPE_ID, true, false);
-
-        coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
 
         allArms = Arrays.asList(new ClimberArm[]{outerArm, innerArm});
     }

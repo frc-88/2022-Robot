@@ -108,9 +108,9 @@ public final class Constants {
 	public static final int OUTER_CLIMBER_TELESCOPE_ID = 15;
 	public static final int INNER_CLIMBER_PIVOT_ID = 16;
 	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
-	public static final int CLIMBER_COAST_BUTTON_ID = 0;
 
 	// Sensors
+	public static final int SENSORS_COAST_BUTTON_ID = 0;
 	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
 	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
