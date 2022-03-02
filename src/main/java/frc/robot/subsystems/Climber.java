@@ -94,7 +94,6 @@ public class Climber extends SubsystemBase {
         else {
             allArms.forEach(ClimberArm::brake);
         }
-        SmartDashboard.putBoolean("Coast Button", !coastButton.get());
     }
 
     @Override

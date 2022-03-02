@@ -156,6 +156,7 @@ public class Sensors extends SubsystemBase {
     getStoragePressure();
     getWorkingPressure();
 
+    SmartDashboard.putBoolean("Coast Button", !coastButton.get());
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
