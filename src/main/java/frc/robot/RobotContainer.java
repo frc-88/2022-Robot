@@ -332,8 +332,11 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:RunAuto", new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:StopRaw", m_stopFlywheelRaw);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
-    SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_sensors));
-    SmartDashboard.putData("Shooter:Hood:Lower", new RunCommand(m_shooter::lowerHood, m_sensors));
+    SmartDashboard.putData("Shooter:Hood:Raise", new RunCommand(m_shooter::raiseHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:Lower", new RunCommand(m_shooter::lowerHood, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:UpRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(1);}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:DownRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(-1);}, m_shooter));
+    SmartDashboard.putData("Shooter:Hood:StopRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(0);}, m_shooter));
     SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 

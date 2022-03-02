@@ -141,7 +141,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     if (sourcesHaveCargo() && m_sensors.isCargoOurs()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
     }
   }
 
@@ -239,7 +239,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
   }
 
-  private void setHoodPercentOut(int direction) {
+  public void setHoodPercentOut(int direction) {
     m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue() * direction);
   }
 
