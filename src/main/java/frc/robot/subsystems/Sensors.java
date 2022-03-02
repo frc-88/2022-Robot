@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -41,7 +42,7 @@ public class Sensors extends SubsystemBase {
   public final Limelight limelight = new Limelight();
   public final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
 
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
+  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
 

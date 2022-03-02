@@ -109,7 +109,6 @@ public final class Constants {
 
 	// Sensors
 	public static final int SENSORS_COAST_BUTTON_ID = 0;
-	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
 
 	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
 	
