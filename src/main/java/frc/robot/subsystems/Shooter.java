@@ -5,12 +5,14 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -32,6 +34,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private CargoSource[] m_sources;
   private Sensors m_sensors;
+  private final DigitalInput m_coastButton;
   private Boolean m_active = false;
 
   private static final double FLYWHEEL_RATIO = 3;
@@ -81,6 +84,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public Shooter(CargoSource [] sources, Sensors sensors) {
     m_sources = sources;
     m_sensors = sensors;
+    m_coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
     configureFlywheel();
     configureHood();
 
@@ -276,6 +280,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
+    if (!m_coastButton.get()) {
+        m_hood.setNeutralMode(NeutralMode.Coast);
+    } else {
+        m_hood.setNeutralMode(NeutralMode.Brake);
+    }
+
     SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
     SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
