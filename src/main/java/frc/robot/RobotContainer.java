@@ -53,6 +53,7 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
+import frc.robot.commands.drive.AllowRosCommands;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.roswaypoints.WaypointsPlan;
@@ -94,7 +95,7 @@ public class RobotContainer {
     m_intake,
     m_turret,
     m_sensors);
-  private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 15);
+  private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 30);
   private final WaypointMap m_waypoint_map = new WaypointMap();
   private final Coprocessor m_coprocessor = new Coprocessor(m_drive, m_waypoint_map, m_ros_interface);
 
@@ -153,6 +154,12 @@ public class RobotContainer {
     m_intake.rollerStop();
   }, m_intake);
 
+  private CommandBase m_stowIntakeAndShooter = new RunCommand(() -> {
+    m_intake.stow();
+    m_intake.rollerStop();
+    m_shooter.setFlywheelSpeed(0.0);
+  }, m_intake, m_shooter);
+
   private Supplier<CommandBase> m_centralizerCargolizer = () -> { return new FeederCargolizer(m_centralizer, m_intake, m_chamber); };
   private Supplier<CommandBase> m_chamberCargolizer = () -> { return new FeederCargolizer(m_chamber, m_centralizer, m_shooter); };
 
@@ -200,12 +207,7 @@ public class RobotContainer {
 
   private CommandBase m_autoCommand;
   private CommandBase m_pursueCargoCommand;
-  private CommandBase m_allowRosCommandVelocities = new RunCommand(() -> {
-    if (TunnelServer.anyClientsAlive() && m_ros_interface.isCommandActive()) {
-        System.out.println("ROS command");
-        m_drive.drive(m_ros_interface.getCommand());
-    }
-  });;
+  private CommandBase m_allowRosCommandVelocities = new AllowRosCommands(m_drive, m_ros_interface);
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -213,7 +215,7 @@ public class RobotContainer {
 
   public RobotContainer(Robot robot) {
     setupAutonomousCommand();
-    // setupTunnelCallbacks(robot);
+    setupTunnelCallbacks(robot);
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
@@ -228,30 +230,37 @@ public class RobotContainer {
 
   private void setupAutonomousCommand()
   {
+    // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
+
     WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
-    autoPlanPart1.addWaypoint(new Waypoint("point1"));
+    autoPlanPart1.addWaypoint(new Waypoint("point1").makeContinuous(true).makeIgnoreOrientation(true));
+    autoPlanPart1.addWaypoint(new Waypoint("end"));
 
     WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_autoCommand = new SequentialCommandGroup(
-      new TiltCameraDown(m_sensors),
-      m_ingestCargo.get(),
-      m_centralizerCargolizer.get(),
-      m_chamberCargolizer.get(),
-      m_startFlywheel.get(),
+      // new TiltCameraDown(m_sensors),
+      // m_ingestCargo.get(),
+      // m_startFlywheel.get(),
+      new DriveDistanceMeters(m_drive, 0.5, 0.5),
       new DriveToWaypoint(m_coprocessor, autoPlanPart1),
-      new InstantCommand(m_shooter::activate, m_shooter),
+      new InstantCommand(m_turret::startTracking),
+      new WaitCommand(1.0),
+      new InstantCommand(m_shooter::activate),
       new DriveToWaypoint(m_coprocessor, autoPlanPart2)
     );
 
     WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
     pursuitPlan.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_pursueCargoCommand = new SequentialCommandGroup(
-      m_ingestCargo.get(),
-      m_centralizerCargolizer.get(),
-      m_chamberCargolizer.get(),
-      m_startFlywheel.get(),
+      new ParallelDeadlineGroup(new WaitCommand(0.5), 
+        new TiltCameraDown(m_sensors),
+        m_ingestCargo.get(),
+        m_centralizerCargolizer.get(),
+        m_chamberCargolizer.get(),
+        m_startFlywheel.get()
+      ),
       new DriveToWaypoint(m_coprocessor, pursuitPlan),
       new InstantCommand(m_shooter::activate, m_shooter)
     );
@@ -282,8 +291,9 @@ public class RobotContainer {
     m_buttonBox.shooterButton.whenReleased(m_stopFlywheelRaw);
     //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    // m_buttonBox.pursueCargoButton.whenActive(m_pursueCargoCommand);
-    m_buttonBox.pursueCargoButton.whileHeld(m_allowRosCommandVelocities);
+    m_buttonBox.pursueCargoButton.whenActive(m_pursueCargoCommand);
+    m_buttonBox.pursueCargoButton.whenReleased(m_stowIntakeAndShooter);
+    // m_buttonBox.pursueCargoButton.whileHeld(m_allowRosCommandVelocities);
   }
 
   private void configureDashboardCommands() {
