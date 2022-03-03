@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -60,6 +62,7 @@ import frc.robot.util.roswaypoints.WaypointsPlan;
 import frc.robot.util.roswaypoints.Waypoint;
 import frc.robot.util.roswaypoints.WaypointMap;
 import frc.robot.commands.ros.SendCoprocessorGoals;
+import frc.robot.commands.ros.SetRobotToWaypoint;
 import frc.robot.commands.ros.WaitForCoprocessorPlan;
 import frc.robot.commands.ros.WaitForCoprocessorRunning;
 
@@ -232,17 +235,29 @@ public class RobotContainer {
   {
     // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
 
-    WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
-    autoPlanPart1.addWaypoint(new Waypoint("point1").makeContinuous(true).makeIgnoreOrientation(true));
-    autoPlanPart1.addWaypoint(new Waypoint("end"));
+    String start_name;
 
+    WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      start_name = "start_red";
+      autoPlanPart1.addWaypoint(new Waypoint("point1_red").makeContinuous(true).makeIgnoreOrientation(true));
+      autoPlanPart1.addWaypoint(new Waypoint("end_red"));
+    }
+    else {
+      start_name = "start_blue";
+      autoPlanPart1.addWaypoint(new Waypoint("point1_blue").makeContinuous(true).makeIgnoreOrientation(true));
+      autoPlanPart1.addWaypoint(new Waypoint("end_blue"));
+    }
+    
     WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     m_autoCommand = new SequentialCommandGroup(
-      // new TiltCameraDown(m_sensors),
-      // m_ingestCargo.get(),
-      // m_startFlywheel.get(),
+      new SetRobotToWaypoint(start_name, m_ros_interface, m_waypoint_map),
+      new TiltCameraDown(m_sensors),
+      m_ingestCargo.get(),
+      m_startFlywheel.get(),
+      new WaitCommand(0.25),
       new DriveDistanceMeters(m_drive, 0.5, 0.5),
       new DriveToWaypoint(m_coprocessor, autoPlanPart1),
       new InstantCommand(m_turret::startTracking),
