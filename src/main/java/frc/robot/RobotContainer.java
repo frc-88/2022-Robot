@@ -45,6 +45,7 @@ import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.commands.autos.DriveToWaypoint;
+import frc.robot.commands.LimelightHoodToggle;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.cameratilter.ToggleTiltCamera;
@@ -343,6 +344,8 @@ public class RobotContainer {
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));
     SmartDashboard.putData("Limelight Off", new LimelightToggle(m_sensors.limelight, false));
+    SmartDashboard.putData("Limelight Hood Up", new LimelightHoodToggle(m_sensors.limelight, true));
+    SmartDashboard.putData("Limelight Hood Down", new LimelightHoodToggle(m_sensors.limelight, false));
 
     // Climber Commands
     SmartDashboard.putData(m_calibrateClimber);

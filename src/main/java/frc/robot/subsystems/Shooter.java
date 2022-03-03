@@ -35,7 +35,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Boolean m_active = false;
 
   private static final double FLYWHEEL_RATIO = 3;
-  private static final double HOOD_RATIO = 2;
+  private static final double HOOD_RATIO = 20;
 
   public static final double HOOD_LOWERED = 12.5;
   public static final double HOOD_RAISED = 37.5;

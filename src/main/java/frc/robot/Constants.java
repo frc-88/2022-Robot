@@ -109,8 +109,6 @@ public final class Constants {
 	// Sensors
 	public static final int SENSORS_COAST_BUTTON_ID = 0;
 
-	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
-	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
