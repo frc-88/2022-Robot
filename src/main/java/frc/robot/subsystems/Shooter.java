@@ -38,7 +38,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double HOOD_RATIO = 20;
 
   public static final double HOOD_LOWERED = 12.5;
-  public static final double HOOD_RAISED = 37.5;
+  public static final double HOOD_RAISED = 30.0;
 
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
 
@@ -57,8 +57,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(100, 1000),
-      new ValueInterpolator.ValuePair(200, 2000)
+      new ValueInterpolator.ValuePair(92, 1600),
+      new ValueInterpolator.ValuePair(28, 700)
       );
     
       private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
