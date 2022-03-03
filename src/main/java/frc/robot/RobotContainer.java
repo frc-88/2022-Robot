@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
 import frc.robot.commands.drive.DriveDistanceMeters;
+import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.feeder.FeederOutgestCargo;
@@ -304,6 +305,7 @@ public class RobotContainer {
   private void configureDashboardCommands() {
     // Drive testing commands
     SmartDashboard.putData("Drive forwards", new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW));
+    SmartDashboard.putData("Drive Basic", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Trajectory testing commands
     SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
