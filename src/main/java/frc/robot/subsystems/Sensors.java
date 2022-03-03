@@ -15,11 +15,13 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,7 +40,9 @@ import frc.robot.util.sensors.NavX;
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
   public final Limelight limelight = new Limelight();
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
+  public final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
+
+  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
 
@@ -153,6 +157,7 @@ public class Sensors extends SubsystemBase {
     getStoragePressure();
     getWorkingPressure();
 
+    SmartDashboard.putBoolean("Coast Button", !coastButton.get());
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());

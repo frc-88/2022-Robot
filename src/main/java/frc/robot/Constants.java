@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.util.drive.Shifter;
 
@@ -63,8 +62,8 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 8.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
 
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 4, 5, 18, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 2, 3, 1, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 5, 4, 18, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 3, 2, 1, 120, 240, 150, 210);
 
 	public static final int DRIVE_SPEED_EXP_XBOX = 2;
 	public static final int DRIVE_TURN_EXP_XBOX = 2;
@@ -92,11 +91,9 @@ public final class Constants {
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
     public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
-	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
 
 	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
 	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
-    public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
@@ -108,19 +105,10 @@ public final class Constants {
 	public static final int OUTER_CLIMBER_TELESCOPE_ID = 15;
 	public static final int INNER_CLIMBER_PIVOT_ID = 16;
 	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
-	public static final int CLIMBER_COAST_BUTTON_ID = 0;
 
 	// Sensors
-	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
+	public static final int SENSORS_COAST_BUTTON_ID = 0;
 
-	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 43.5;  // inches
-	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
-	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
-	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
-	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;

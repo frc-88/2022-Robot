@@ -12,7 +12,6 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -21,7 +20,6 @@ import frc.robot.util.CargoTarget;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
-import frc.robot.util.sensors.Limelight;
 
 /**
  * Cargo is coming
@@ -34,14 +32,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
   private CargoSource[] m_sources;
   private Sensors m_sensors;
-  // private final DigitalInput m_coastButton;
   private Boolean m_active = false;
 
   private static final double FLYWHEEL_RATIO = 3;
-  private static final double HOOD_RATIO = 2;
+  private static final double HOOD_RATIO = 20;
 
   public static final double HOOD_LOWERED = 12.5;
-  public static final double HOOD_RAISED = 37.5;
+  public static final double HOOD_RAISED = 30.0;
 
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
 
@@ -60,8 +57,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(100, 1000),
-      new ValueInterpolator.ValuePair(200, 2000)
+      new ValueInterpolator.ValuePair(92, 1600),
+      new ValueInterpolator.ValuePair(28, 700)
       );
     
       private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
@@ -84,7 +81,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public Shooter(CargoSource [] sources, Sensors sensors) {
     m_sources = sources;
     m_sensors = sensors;
-    // m_coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
+
     configureFlywheel();
     configureHood();
 
@@ -144,7 +141,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     if (sourcesHaveCargo() && m_sensors.isCargoOurs()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
     }
   }
 
@@ -242,7 +239,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
   }
 
-  private void setHoodPercentOut(int direction) {
+  public void setHoodPercentOut(int direction) {
     m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue() * direction);
   }
 
@@ -280,11 +277,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    // if (!m_coastButton.get()) {
-    //     m_hood.setNeutralMode(NeutralMode.Coast);
-    // } else {
-    //     m_hood.setNeutralMode(NeutralMode.Brake);
-    // }
+    if (!m_sensors.coastButton.get()) {
+        m_hood.setNeutralMode(NeutralMode.Coast);
+    } else {
+        m_hood.setNeutralMode(NeutralMode.Brake);
+    }
 
     SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
