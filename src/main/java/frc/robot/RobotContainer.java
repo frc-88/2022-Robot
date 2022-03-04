@@ -47,6 +47,7 @@ import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
+import frc.robot.util.controllers.ButtonBox.ClimbBar;
 import frc.robot.commands.autos.DriveToWaypoint;
 import frc.robot.commands.LimelightHoodToggle;
 import frc.robot.commands.LimelightToggle;
@@ -78,7 +79,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", 0.0), new DoublePreferenceConstant("Centralizer:Out", 0.0));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.0), new DoublePreferenceConstant("Chamber:Out", 0.0));
   private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
-  private final Climber m_climber = new Climber(m_sensors.coastButton);
+  private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   
 
   /////////////////////////////////////////////////////////////////////////////
@@ -291,14 +292,43 @@ public class RobotContainer {
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo.get());
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
+
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
-    m_buttonBox.shooterButton.whenPressed(m_startFlywheelRaw);
-    m_buttonBox.shooterButton.whenReleased(m_stopFlywheelRaw);
-    //m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
-    //m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.pursueCargoButton.whenActive(m_pursueCargoCommand);
-    m_buttonBox.pursueCargoButton.whenReleased(m_stowIntakeAndShooter);
+    m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
+    m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+
+    m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
+    m_buttonBox.prepClimberButton.whenPressed(new ConditionalCommand(
+      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false), 
+      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false, () -> false),
+      () -> m_buttonBox.getClimbBar() == ClimbBar.LOW || m_buttonBox.getClimbBar() == ClimbBar.MID
+    ));
+    m_buttonBox.raiseClimberButton.whenPressed(new ConditionalCommand(
+      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false), 
+      new ConditionalCommand(
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false),
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false, () -> false),
+        () -> m_buttonBox.getClimbBar() == ClimbBar.MID
+      ),
+      () -> m_buttonBox.getClimbBar() == ClimbBar.LOW
+    ));
+    m_buttonBox.climbButton.whenPressed(new ConditionalCommand(
+      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false, () -> false), 
+      new ConditionalCommand(
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false),
+        new ConditionalCommand(
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, false, () -> false),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, false, () -> false),
+          () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
+        ),
+        () -> m_buttonBox.getClimbBar() == ClimbBar.MID
+      ),
+      () -> m_buttonBox.getClimbBar() == ClimbBar.LOW
+    ));
+
+    // m_buttonBox.pursueCargoButton.whenActive(m_pursueCargoCommand);
+    // m_buttonBox.pursueCargoButton.whenReleased(m_stowIntakeAndShooter);
     // m_buttonBox.pursueCargoButton.whileHeld(m_allowRosCommandVelocities);
   }
 
@@ -371,16 +401,10 @@ public class RobotContainer {
     SmartDashboard.putData(m_climberMotionMagicJoystick);
 
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false).withName("Climber M Stow"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_UNSTOW, false, () -> false).withName("Climber M Unstow"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID_FROM_STOW, false, () -> false).withName("Climber M Prep Low Mid From Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false).withName("Climber M Prep Low Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FROM_STOW, false, () -> false).withName("Climber M Prep High Traversal From Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false, () -> false).withName("Climber M Prep High Traversal"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW_FROM_STOW, false, () -> false).withName("Climber M Raise Low From Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false).withName("Climber M Raise Low"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID_FROM_STOW, false, () -> false).withName("Climber M Raise Mid From Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false).withName("Climber M Raise Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FROM_STOW, false, () -> false).withName("Climber M Raise High Traversal From Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false, () -> false).withName("Climber M Raise High Traversal"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false, () -> false).withName("Climber M Climb Low"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false).withName("Climber M Climb Mid"));

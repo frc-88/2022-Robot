@@ -37,7 +37,7 @@ public class ClimberArm {
     private SingleJointedArmSim m_pivotSim;
     private ElevatorSim m_telescopeSim;
 
-    private static final double PIVOT_RATIO = 360. / (7 * 7 * 46/20 * 72/16 * 2048.); // Motor ticks to actual degrees
+    private static final double PIVOT_RATIO = 360. / (7. * 7. * 46./20. * 72./16. * 2048.); // Motor ticks to actual degrees
     private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (49. * 2048.); // Motor ticks to actual inches
     // Pivot Max Speed ~75 degrees/s
     // Telescope Max Speed ~17.5 in/s

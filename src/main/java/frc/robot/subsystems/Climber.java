@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,24 +12,28 @@ import frc.robot.util.climber.ClimberArm;
 
 public class Climber extends SubsystemBase {
     
-    private final DigitalInput coastButton;
+    private final BooleanSupplier coastButton;
 
     public final ClimberArm outerArm;
     public final ClimberArm innerArm;
 
     private List<ClimberArm> allArms;
 
-    public Climber(DigitalInput coastButton) {
+    public Climber(BooleanSupplier coastButton) {
         this.coastButton = coastButton;
 
-        outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, false, true);
+        outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, false, false);
         innerArm = new ClimberArm("Inner Right", Constants.INNER_CLIMBER_PIVOT_ID, Constants.INNER_CLIMBER_TELESCOPE_ID, true, false);
 
         allArms = Arrays.asList(new ClimberArm[]{outerArm, innerArm});
     }
 
     public void calibrate() {
-        allArms.forEach(ClimberArm::calibrate);
+        if (!outerArm.isCalibrated()) {
+            outerArm.calibrate();
+        } else if (!innerArm.isCalibrated()) {
+            innerArm.calibrate();
+        }
     }
 
     public void resetCalibration() {
@@ -88,7 +93,7 @@ public class Climber extends SubsystemBase {
 
         SmartDashboard.putBoolean("All Climbers Calibrated", isCalibrated());
 
-        if (!coastButton.get()) {
+        if (coastButton.getAsBoolean()) {
             allArms.forEach(ClimberArm::coast);
         }
         else {
