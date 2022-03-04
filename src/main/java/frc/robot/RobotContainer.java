@@ -41,6 +41,7 @@ import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
 import frc.robot.util.tunnel.ThisRobotInterface;
 import frc.robot.util.tunnel.TunnelServer;
+import frc.robot.util.tunnel.TunnelServerThreadless;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
 import frc.robot.util.RapidReactTrajectories;
@@ -102,7 +103,7 @@ public class RobotContainer {
     m_intake,
     m_turret,
     m_sensors);
-  private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 30);
+  private final TunnelServerThreadless m_tunnel = new TunnelServerThreadless(m_ros_interface, 5800);
   private final WaypointMap m_waypoint_map = new WaypointMap();
   private final Coprocessor m_coprocessor = new Coprocessor(m_drive, m_waypoint_map, m_ros_interface);
 
@@ -230,6 +231,10 @@ public class RobotContainer {
 
   private void setupTunnelCallbacks(Robot robot) {
     robot.addPeriodic(this::updateJoints, 0.1, 0.05);
+    robot.addPeriodic(this::updateTunnel, 1.0 / 30.0, 0.02);
+  }
+  private void updateTunnel() {
+    m_tunnel.update();
   }
   private void updateJoints() {
     m_ros_interface.updateSlow();
