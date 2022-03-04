@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.function.Supplier;
 
+import javax.management.InstanceAlreadyExistsException;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -219,7 +221,7 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
-    setupAutonomousCommand();
+    setupAutonomousCommand(1);
     setupTunnelCallbacks(robot);
     configureButtonBox();
     configureDefaultCommands();
@@ -248,40 +250,48 @@ public class RobotContainer {
       )
     );
   }
-
-  private CommandBase setupAutonomousCommand()
-  {
-    // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
-
-    String start_name;
-
-    WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
+  private String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
-      start_name = "start_red";
-      autoPlanPart1.addWaypoint(new Waypoint("point1_red").makeContinuous(true).makeIgnoreOrientation(true));
-      autoPlanPart1.addWaypoint(new Waypoint("end_red"));
+      return "red";
     }
     else {
-      start_name = "start_blue";
-      autoPlanPart1.addWaypoint(new Waypoint("point1_blue").makeContinuous(true).makeIgnoreOrientation(true));
-      autoPlanPart1.addWaypoint(new Waypoint("end_blue"));
+      return "blue";
     }
-    
+  }
+
+
+  private CommandBase setupAutonomousCommand(int autoIndex)
+  {
+    // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
+    String team_color = getTeamColorName();
+    // new SetRobotToWaypoint(team_color + "_start_" + autoIndex, m_ros_interface, m_waypoint_map).schedule();
+
+    WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
+    autoPlanPart1.addWaypoint(new Waypoint(team_color + "_point_a_" + autoIndex));
+    autoPlanPart1.addWaypoint(new Waypoint(team_color + "_point_b_" + autoIndex));
+
     WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
+    autoPlanPart2.addWaypoint(new Waypoint(team_color + "_end_" + autoIndex));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
-    autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
+
     CommandBase autoCommand = new SequentialCommandGroup(
-      new SetRobotToWaypoint(start_name, m_ros_interface, m_waypoint_map),
-      new TiltCameraDown(m_sensors),
-      m_ingestCargo.get(),
-      m_startFlywheel.get(),
-      new WaitCommand(0.25),
-      new DriveDistanceMeters(m_drive, 0.5, 0.5),
-      new DriveToWaypoint(m_coprocessor, autoPlanPart1),
-      new InstantCommand(m_turret::startTracking),
-      new WaitCommand(1.0),
-      new InstantCommand(m_shooter::activate),
-      new DriveToWaypoint(m_coprocessor, autoPlanPart2)
+      new ParallelDeadlineGroup(new WaitCommand(14.0),
+        new SetRobotToWaypoint(team_color + "_start_" + autoIndex, m_ros_interface, m_waypoint_map),
+        new TiltCameraDown(m_sensors),
+        m_ingestCargo.get(),
+        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new RunCommand(m_shooter::raiseHood, m_shooter),
+        new WaitCommand(0.25),
+        new DriveDistanceMeters(m_drive, 0.5, 0.5),
+        new DriveToWaypoint(m_coprocessor, autoPlanPart1),
+        new InstantCommand(m_turret::startTracking),
+        new WaitCommand(1.0),
+        new InstantCommand(m_shooter::activate),
+        new WaitCommand(2.0),
+        new InstantCommand(m_shooter::deactivate),
+        new DriveToWaypoint(m_coprocessor, autoPlanPart2)
+      ),
+      new InstantCommand(m_shooter::activate)
     );
 
     WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
@@ -290,12 +300,13 @@ public class RobotContainer {
       new ParallelDeadlineGroup(new WaitCommand(0.5), 
         new TiltCameraDown(m_sensors),
         m_ingestCargo.get(),
-        m_centralizerCargolizer.get(),
-        m_chamberCargolizer.get(),
-        m_startFlywheel.get()
+        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new RunCommand(m_shooter::raiseHood, m_shooter)
       ),
       new DriveToWaypoint(m_coprocessor, pursuitPlan),
-      new InstantCommand(m_shooter::activate, m_shooter)
+      new InstantCommand(m_turret::startTracking),
+      new WaitCommand(1.0),
+      new InstantCommand(m_shooter::activate)
     );
 
     return autoCommand;
@@ -436,6 +447,11 @@ public class RobotContainer {
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false).withName("Climber M Climb Mid"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal"));
+
+    // Autonomous commands
+    SmartDashboard.putData("Set Auto start 1", new InstantCommand(() -> setupAutonomousCommand(1)));
+    SmartDashboard.putData("Set Auto start 2", new InstantCommand(() -> setupAutonomousCommand(2)));
+
   }
 
   private void configureDefaultCommands() {
