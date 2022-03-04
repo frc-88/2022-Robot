@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -24,6 +26,8 @@ public class TunnelClient extends Thread {
     private int unparsed_index = 0;
     
     private static ReentrantLock write_lock = new ReentrantLock();
+    private static ReentrantLock queue_lock = new ReentrantLock();
+    private static Queue<byte[]> write_queue = new LinkedList<byte[]>();
 
     public TunnelClient(TunnelInterface tunnel_interface, Socket clientSocket) {
         this.socket = clientSocket;
@@ -44,10 +48,27 @@ public class TunnelClient extends Thread {
     }
 
     public void writePacket(String category, Object... objects) {
+        byte[] data = protocol.makePacket(category, objects);
+        queueBuffer(data);
+    }
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    private void queueBuffer(byte[] buffer) {
+        TunnelClient.queue_lock.lock();
+        TunnelClient.write_queue.add(buffer);
+        TunnelClient.queue_lock.unlock();
+    }
+
+    private void dequeBuffer() {
         byte[] data = null;
         try {
             TunnelClient.write_lock.lock();
-            data = protocol.makePacket(category, objects);
+            data = TunnelClient.write_queue.poll();
+            if (Objects.isNull(data)) {
+                return;
+            }
             writeBuffer(data);
         }
         catch (IOException e) {
@@ -63,9 +84,6 @@ public class TunnelClient extends Thread {
         finally {
             TunnelClient.write_lock.unlock();
         }
-    }
-    public boolean isOpen() {
-        return isOpen;
     }
 
     private void writeBuffer(byte[] buffer) throws IOException
@@ -109,6 +127,8 @@ public class TunnelClient extends Thread {
         }
         
         while (true) {
+            dequeBuffer();
+            
             try {
                 int num_chars_read = input.read(buffer, unparsed_index, buffer_size - unparsed_index);
                 if (num_chars_read == 0) {
