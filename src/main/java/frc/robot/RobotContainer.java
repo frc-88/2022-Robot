@@ -221,7 +221,7 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
-    setupAutonomousCommand(1);
+    // setupAutonomousCommand(1);
     setupTunnelCallbacks(robot);
     configureButtonBox();
     configureDefaultCommands();
@@ -434,8 +434,8 @@ public class RobotContainer {
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal"));
 
     // Autonomous commands
-    SmartDashboard.putData("Set Auto start 1", new InstantCommand(() -> setupAutonomousCommand(1)));
-    SmartDashboard.putData("Set Auto start 2", new InstantCommand(() -> setupAutonomousCommand(2)));
+    // SmartDashboard.putData("Set Auto start 1", new InstantCommand(() -> setupAutonomousCommand(1)));
+    // SmartDashboard.putData("Set Auto start 2", new InstantCommand(() -> setupAutonomousCommand(2)));
 
   }
 
