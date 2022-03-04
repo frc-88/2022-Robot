@@ -40,7 +40,7 @@ import frc.robot.util.sensors.NavX;
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
   public final Limelight limelight = new Limelight();
-  public final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
+  private final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
 
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
@@ -64,6 +64,12 @@ public class Sensors extends SubsystemBase {
     CameraServer.startAutomaticCapture();
     setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
     limelight.ledOff();
+
+    SmartDashboard.putBoolean("Virtual Coast Button", false);
+  }
+
+  public boolean isCoastButtonPressed() {
+    return /*coastButton.get() ||*/ SmartDashboard.getBoolean("Virtual Coast Button", false);
   }
 
   public double getStoragePressure() {
@@ -157,7 +163,7 @@ public class Sensors extends SubsystemBase {
     getStoragePressure();
     getWorkingPressure();
 
-    SmartDashboard.putBoolean("Coast Button", !coastButton.get());
+    SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());

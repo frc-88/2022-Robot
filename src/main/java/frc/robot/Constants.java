@@ -102,7 +102,7 @@ public final class Constants {
 
 	// Climber
 	public static final int OUTER_CLIMBER_PIVOT_ID = 3;
-	public static final int OUTER_CLIMBER_TELESCOPE_ID = 15;
+	public static final int OUTER_CLIMBER_TELESCOPE_ID = 17;
 	public static final int INNER_CLIMBER_PIVOT_ID = 16;
 	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
 

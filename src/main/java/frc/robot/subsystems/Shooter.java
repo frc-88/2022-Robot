@@ -277,7 +277,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    if (!m_sensors.coastButton.get()) {
+    if (m_sensors.isCoastButtonPressed()) {
         m_hood.setNeutralMode(NeutralMode.Coast);
     } else {
         m_hood.setNeutralMode(NeutralMode.Brake);

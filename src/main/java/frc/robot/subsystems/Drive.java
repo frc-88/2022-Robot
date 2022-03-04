@@ -287,9 +287,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   public double limitAcceleration(double speed) {
     double currentSpeed = getStraightSpeed();
     if (speed - currentSpeed > 0) {
-
-        deccelerating = false;
-
         double vel = currentSpeed + accelLimit.getValue();
         if (speed < vel) {
             return speed;
@@ -297,24 +294,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
             return vel;
         }
     } else {
-
         double vel = getStraightSpeed() - accelLimit.getValue();;
-
-        if (!deccelerating) {
-            lastLimitSpeed = currentSpeed;
-            deccelerating = true;
-        }
-
         if (speed > vel) {
-            lastLimitSpeed = speed;
             return speed;
         } else {
-            if (vel > lastLimitSpeed) {
-                return lastLimitSpeed;
-            } else {
-                lastLimitSpeed = vel;
-                return vel;
-            }
+            return vel;
         }
 
     }
