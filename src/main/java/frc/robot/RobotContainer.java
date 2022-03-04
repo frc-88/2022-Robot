@@ -96,15 +96,15 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   //                                 ROS                                     //
   /////////////////////////////////////////////////////////////////////////////
-  private final ThisRobotInterface m_ros_interface = new ThisRobotInterface(
-    m_drive,
-    m_climber.outerArm, m_climber.innerArm,
-    m_intake,
-    m_turret,
-    m_sensors);
-  private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 30);
-  private final WaypointMap m_waypoint_map = new WaypointMap();
-  private final Coprocessor m_coprocessor = new Coprocessor(m_drive, m_waypoint_map, m_ros_interface);
+  // private final ThisRobotInterface m_ros_interface = new ThisRobotInterface(
+  //   m_drive,
+  //   m_climber.outerArm, m_climber.innerArm,
+  //   m_intake,
+  //   m_turret,
+  //   m_sensors);
+  // private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 30);
+  // private final WaypointMap m_waypoint_map = new WaypointMap();
+  // private final Coprocessor m_coprocessor = new Coprocessor(m_drive, m_waypoint_map, m_ros_interface);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -213,27 +213,27 @@ public class RobotContainer {
   /////////////////////////////////////
 
   private CommandBase m_autoCommand;
-  private CommandBase m_pursueCargoCommand;
-  private CommandBase m_allowRosCommandVelocities = new AllowRosCommands(m_drive, m_ros_interface);
+  // private CommandBase m_pursueCargoCommand;
+  // private CommandBase m_allowRosCommandVelocities = new AllowRosCommands(m_drive, m_ros_interface);
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
-    setupAutonomousCommand(1);
-    setupTunnelCallbacks(robot);
+    // setupAutonomousCommand(1);
+    // setupTunnelCallbacks(robot);
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
   }
 
-  private void setupTunnelCallbacks(Robot robot) {
-    robot.addPeriodic(this::updateJoints, 0.1, 0.05);
-  }
-  private void updateJoints() {
-    m_ros_interface.updateSlow();
-  }
+  // private void setupTunnelCallbacks(Robot robot) {
+  //   robot.addPeriodic(this::updateJoints, 0.1, 0.05);
+  // }
+  // private void updateJoints() {
+  //   m_ros_interface.updateSlow();
+  // }
 
   private CommandBase setupSimpleAuto() { 
     return new SequentialCommandGroup(
@@ -260,6 +260,7 @@ public class RobotContainer {
   }
 
 
+  /*
   private CommandBase setupAutonomousCommand(int autoIndex)
   {
     // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
@@ -308,10 +309,9 @@ public class RobotContainer {
       new WaitCommand(1.0),
       new InstantCommand(m_shooter::activate)
     );
-
     return autoCommand;
-  }
-
+  } */
+  
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {
       // m_autoCommand = setupAutonomousCommand();
@@ -447,11 +447,6 @@ public class RobotContainer {
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false).withName("Climber M Climb Mid"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal"));
-
-    // Autonomous commands
-    SmartDashboard.putData("Set Auto start 1", new InstantCommand(() -> setupAutonomousCommand(1)));
-    SmartDashboard.putData("Set Auto start 2", new InstantCommand(() -> setupAutonomousCommand(2)));
-
   }
 
   private void configureDefaultCommands() {
