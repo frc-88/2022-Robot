@@ -64,17 +64,12 @@ public class TunnelClient extends Thread {
     private void dequeBuffer() {
         byte[] data = null;
         try {
-            System.out.println("something 0");
             TunnelClient.write_lock.lock();
-            System.out.println("something 1");
             data = TunnelClient.write_queue.poll();
-            System.out.println("something 2");
             if (Objects.isNull(data)) {
                 return;
             }
-            System.out.println("something 3");
             writeBuffer(data);
-            System.out.println("something 4");
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -88,7 +83,6 @@ public class TunnelClient extends Thread {
         }
         finally {
             TunnelClient.write_lock.unlock();
-            System.out.println("something 5");
         }
     }
 
