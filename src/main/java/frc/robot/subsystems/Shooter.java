@@ -34,7 +34,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Sensors m_sensors;
   private Boolean m_active = false;
 
-  private static final double FLYWHEEL_RATIO = 3;
+  private static final double FLYWHEEL_RATIO = 1;
   private static final double HOOD_RATIO = 20;
 
   public static final double HOOD_LOWERED = 12.5;

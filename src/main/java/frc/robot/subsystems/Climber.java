@@ -29,10 +29,10 @@ public class Climber extends SubsystemBase {
     }
 
     public void calibrate() {
-        if (!outerArm.isCalibrated()) {
-            outerArm.calibrate();
-        } else if (!innerArm.isCalibrated()) {
+        if (!innerArm.isCalibrated()) {
             innerArm.calibrate();
+        } else if (!outerArm.isCalibrated()) {
+            outerArm.calibrate();
         }
     }
 

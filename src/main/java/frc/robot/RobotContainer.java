@@ -233,7 +233,23 @@ public class RobotContainer {
     m_ros_interface.updateSlow();
   }
 
-  private void setupAutonomousCommand()
+  private CommandBase setupSimpleAuto() { 
+    return new SequentialCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new ParallelCommandGroup(
+        m_ingestCargo.get(),
+        m_startFlywheel.get(),
+        new SequentialCommandGroup(
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate),
+          new WaitCommand(5.0),
+          new DriveDistanceMeters(m_drive, 1.5, 0.5)
+        )
+      )
+    );
+  }
+
+  private CommandBase setupAutonomousCommand()
   {
     // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
 
@@ -254,7 +270,7 @@ public class RobotContainer {
     WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
-    m_autoCommand = new SequentialCommandGroup(
+    CommandBase autoCommand = new SequentialCommandGroup(
       new SetRobotToWaypoint(start_name, m_ros_interface, m_waypoint_map),
       new TiltCameraDown(m_sensors),
       m_ingestCargo.get(),
@@ -281,11 +297,14 @@ public class RobotContainer {
       new DriveToWaypoint(m_coprocessor, pursuitPlan),
       new InstantCommand(m_shooter::activate, m_shooter)
     );
+
+    return autoCommand;
   }
 
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = null;
+      // m_autoCommand = setupAutonomousCommand();
+      m_autoCommand = setupSimpleAuto();
     }
   }
 
@@ -293,10 +312,17 @@ public class RobotContainer {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo.get());
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
 
+    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
+    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_centralizer));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_centralizer));
+
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
     m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel.get());
+    m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ConditionalCommand(
@@ -427,7 +453,7 @@ public class RobotContainer {
         new RunCommand(m_climber::calibrate, m_climber)
           .withInterrupt(m_climber::isCalibrated)
           .withName("calibrateClimber"),
-        new ClimberMotionMagicJoystick(m_climber, m_testController)
+          new RunCommand(() -> {}, m_climber)
       ));
   }
 
