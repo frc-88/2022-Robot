@@ -245,7 +245,7 @@ public class RobotContainer {
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
           new WaitCommand(5.0),
-          new DriveDistanceMeters(m_drive, 1.5, 0.5)
+          new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW).withTimeout(3)
         )
       )
     );
