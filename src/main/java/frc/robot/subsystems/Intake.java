@@ -170,7 +170,7 @@ public class Intake extends SubsystemBase implements CargoSource {
   @Override
   public boolean hasCargo() {
     // return m_IR.getDistance() < intakseSensorThreshold.getValue();
-    return m_state == State.DEPLOYED || m_state == State.DEPLOYING;
+    return m_state == State.DEPLOYED || m_state == State.DEPLOYING || m_state == State.DEPLOYED_CALIBRATING;
   }
 
   public boolean isDeployLimitTriggered() {

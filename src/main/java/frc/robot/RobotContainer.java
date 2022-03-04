@@ -235,17 +235,33 @@ public class RobotContainer {
   //   m_ros_interface.updateSlow();
   // }
 
-  // private String getTeamColorName() {
-  //   if (DriverStation.getAlliance() == Alliance.Red) {
-  //     return "red";
-  //   }
-  //   else {
-  //     return "blue";
-  //   }
-  // }
+  private CommandBase setupSimpleAuto() { 
+    return new SequentialCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new ParallelCommandGroup(
+        m_ingestCargo.get(),
+        m_startFlywheel.get(),
+        new SequentialCommandGroup(
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate),
+          new WaitCommand(5.0),
+          new DriveDistanceMeters(m_drive, 1.5, 0.5)
+        )
+      )
+    );
+  }
+  private String getTeamColorName() {
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      return "red";
+    }
+    else {
+      return "blue";
+    }
+  }
 
 
-  /*private void setupAutonomousCommand(int autoIndex)
+  /*
+  private CommandBase setupAutonomousCommand(int autoIndex)
   {
     // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
     String team_color = getTeamColorName();
@@ -259,7 +275,7 @@ public class RobotContainer {
     autoPlanPart2.addWaypoint(new Waypoint(team_color + "_end_" + autoIndex));
     autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
 
-    m_autoCommand = new SequentialCommandGroup(
+    CommandBase autoCommand = new SequentialCommandGroup(
       new ParallelDeadlineGroup(new WaitCommand(14.0),
         new SetRobotToWaypoint(team_color + "_start_" + autoIndex, m_ros_interface, m_waypoint_map),
         new TiltCameraDown(m_sensors),
@@ -293,21 +309,13 @@ public class RobotContainer {
       new WaitCommand(1.0),
       new InstantCommand(m_shooter::activate)
     );
-  }*/
-
+    return autoCommand;
+  } */
+  
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = new ParallelCommandGroup(
-        new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_shooterTestOutput.getValue());}, m_shooter),
-        new SequentialCommandGroup(
-          new WaitCommand(2),
-          new InstantCommand(m_centralizer::run, m_centralizer),
-          new InstantCommand(m_chamber::run, m_chamber),
-          new WaitCommand(2),
-          new InstantCommand(m_centralizer::stop, m_centralizer),
-          new InstantCommand(m_chamber::stop, m_chamber)
-        )
-      );
+      // m_autoCommand = setupAutonomousCommand();
+      m_autoCommand = setupSimpleAuto();
     }
   }
 
@@ -315,10 +323,17 @@ public class RobotContainer {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo.get());
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
 
+    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
+    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_centralizer));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_centralizer));
+
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
     m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
+    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel.get());
+    m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ConditionalCommand(
@@ -449,7 +464,7 @@ public class RobotContainer {
         new RunCommand(m_climber::calibrate, m_climber)
           .withInterrupt(m_climber::isCalibrated)
           .withName("calibrateClimber"),
-        new ClimberMotionMagicJoystick(m_climber, m_testController)
+          new RunCommand(() -> {}, m_climber)
       ));
   }
 

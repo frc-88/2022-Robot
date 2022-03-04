@@ -163,6 +163,9 @@ public class Sensors extends SubsystemBase {
     getStoragePressure();
     getWorkingPressure();
 
+    if (DriverStation.isEnabled()) {
+      SmartDashboard.putBoolean("Virtual Coast Button", false);
+    }
     SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
