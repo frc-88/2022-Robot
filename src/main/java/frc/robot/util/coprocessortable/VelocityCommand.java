@@ -1,4 +1,4 @@
-package frc.robot.util.tunnel;
+package frc.robot.util.coprocessortable;
 
 public class VelocityCommand {
     public double vx = 0.0;  // x velocity (robot centric) in meters per second

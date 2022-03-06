@@ -1,4 +1,4 @@
-package frc.robot.util.tunnel;
+package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -10,8 +10,10 @@ import frc.robot.subsystems.Turret;
 import frc.robot.util.Vector2D;
 import frc.robot.util.WrappedAngle;
 import frc.robot.util.climber.ClimberArm;
+import frc.robot.util.coprocessortable.ChassisInterface;
+import frc.robot.util.coprocessortable.CoprocessorTable;
 
-public class ThisRobotInterface extends ROSInterface {
+public class ThisRobotTable extends CoprocessorTable {
     final int left_outer_climber_joint = 0;
     final int left_inner_climber_joint = 1;
     final int right_outer_climber_joint = 2;
@@ -31,12 +33,14 @@ public class ThisRobotInterface extends ROSInterface {
     private Turret turret;
     private Sensors sensors;
 
-    public ThisRobotInterface(ChassisInterface chassis,
-                              ClimberArm outerArm, ClimberArm innerArm,
-                              Intake intake,
-                              Turret turret,
-                              Sensors sensors) {
-        super(chassis);
+    public ThisRobotTable(
+        ChassisInterface chassis, String address, int port, double updateInterval,
+            ClimberArm outerArm, ClimberArm innerArm,
+            Intake intake,
+            Turret turret,
+            Sensors sensors) {
+        super(chassis, address, port, updateInterval);
+
         this.outerArm = outerArm;
         this.innerArm = innerArm;
         this.intake = intake;
@@ -44,10 +48,77 @@ public class ThisRobotInterface extends ROSInterface {
         this.sensors = sensors;
     }
 
-    // @Override
-    // public void packetCallback(TunnelClient tunnel, PacketResult result) {
-    //     super.packetCallback(tunnel, result);
-    // }
+    @Override
+    public void update() {
+        super.update();
+        Vector2D outerLeftArmVector = outerArm.getPositionVector();
+        Vector2D outerRightArmVector = outerArm.getPositionVector();
+        Vector2D innerLeftArmVector = innerArm.getPositionVector();
+        Vector2D innerRightArmVector = innerArm.getPositionVector();
+
+        // outerLeftArmVector
+        setJointPosition(
+            left_outer_climber_joint,
+            convertClimberPivotAngle(outerLeftArmVector.getAngle())
+        );
+
+        setJointPosition(
+            left_outer_climber_hook_joint,
+            convertClimberTelescopeHeight(outerLeftArmVector.getMagnitude())
+        );
+
+        // innerLeftArmVector
+        setJointPosition(
+            left_inner_climber_joint,
+            convertClimberPivotAngle(innerLeftArmVector.getAngle())
+        );
+
+        setJointPosition(
+            left_inner_climber_hook_joint,
+            convertClimberTelescopeHeight(innerLeftArmVector.getMagnitude())
+        );
+
+        // outerRightArmVector
+        setJointPosition(
+            right_outer_climber_joint,
+            convertClimberPivotAngle(outerRightArmVector.getAngle())
+        );
+
+        setJointPosition(
+            right_outer_climber_hook_joint,
+            convertClimberTelescopeHeight(outerRightArmVector.getMagnitude())
+        );
+
+        // innerRightArmVector
+        setJointPosition(
+            right_inner_climber_joint,
+            convertClimberPivotAngle(innerRightArmVector.getAngle())
+        );
+
+        setJointPosition(
+            right_inner_climber_hook_joint,
+            convertClimberTelescopeHeight(innerRightArmVector.getMagnitude())
+        );
+
+        // intake
+        setJointPosition(
+            intake_joint,
+            convertIntakeAngle(intake.getArmPosition())
+        );
+
+        // turret
+        setJointPosition(
+            turret_joint,
+            convertTurretAngle(turret.getFacing())
+        );
+
+        // camera
+        setJointPosition(
+            camera_joint,
+            convertCameraTiltAngle(sensors.getCameraTilterAngle())
+        );
+    }
+
 
     private double convertClimberPivotAngle(WrappedAngle pivotAngle) {
         return Math.toRadians(pivotAngle.asDouble());
@@ -86,76 +157,5 @@ public class ThisRobotInterface extends ROSInterface {
             object_name = "cargo_blue";
         }
         return object_name;
-    }
-
-    @Override
-    public void updateSlow() {
-        super.updateSlow();
-        Vector2D outerLeftArmVector = outerArm.getPositionVector();
-        Vector2D outerRightArmVector = outerArm.getPositionVector();
-        Vector2D innerLeftArmVector = innerArm.getPositionVector();
-        Vector2D innerRightArmVector = innerArm.getPositionVector();
-
-        // outerLeftArmVector
-        TunnelServer.writePacket("joint",
-            left_outer_climber_joint,
-            convertClimberPivotAngle(outerLeftArmVector.getAngle())
-        );
-
-        TunnelServer.writePacket("joint",
-            left_outer_climber_hook_joint,
-            convertClimberTelescopeHeight(outerLeftArmVector.getMagnitude())
-        );
-
-        // innerLeftArmVector
-        TunnelServer.writePacket("joint",
-            left_inner_climber_joint,
-            convertClimberPivotAngle(innerLeftArmVector.getAngle())
-        );
-
-        TunnelServer.writePacket("joint",
-            left_inner_climber_hook_joint,
-            convertClimberTelescopeHeight(innerLeftArmVector.getMagnitude())
-        );
-
-        // outerRightArmVector
-        TunnelServer.writePacket("joint",
-            right_outer_climber_joint,
-            convertClimberPivotAngle(outerRightArmVector.getAngle())
-        );
-
-        TunnelServer.writePacket("joint",
-            right_outer_climber_hook_joint,
-            convertClimberTelescopeHeight(outerRightArmVector.getMagnitude())
-        );
-
-        // innerRightArmVector
-        TunnelServer.writePacket("joint",
-            right_inner_climber_joint,
-            convertClimberPivotAngle(innerRightArmVector.getAngle())
-        );
-
-        TunnelServer.writePacket("joint",
-            right_inner_climber_hook_joint,
-            convertClimberTelescopeHeight(innerRightArmVector.getMagnitude())
-        );
-
-        // intake
-        TunnelServer.writePacket("joint",
-            intake_joint,
-            convertIntakeAngle(intake.getArmPosition())
-        );
-
-        // turret
-        TunnelServer.writePacket("joint",
-            turret_joint,
-            convertTurretAngle(turret.getFacing())
-        );
-
-        // camera
-        TunnelServer.writePacket("joint",
-            camera_joint,
-            convertCameraTiltAngle(sensors.getCameraTilterAngle())
-        );
     }
 }

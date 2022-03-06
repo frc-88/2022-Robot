@@ -1,4 +1,4 @@
-package frc.robot.util.tunnel;
+package frc.robot.util.coprocessortable;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
