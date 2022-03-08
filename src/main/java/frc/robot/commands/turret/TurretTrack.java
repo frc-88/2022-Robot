@@ -6,16 +6,16 @@ package frc.robot.commands.turret;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class TurretTrack extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
   private double m_target;
-  private double m_offset;
-  private boolean m_circumnavigating;
+  private int m_lostCount = 0;
+  private DoublePreferenceConstant p_resetTime = new DoublePreferenceConstant("Turret Tracking Reset Time", 2.0);
 
   /** Creates a new TurretTrack. */
   public TurretTrack(Turret turret, Limelight limelight) {
@@ -29,7 +29,6 @@ public class TurretTrack extends CommandBase {
   @Override
   public void initialize() {
     m_target = 0.0;
-    m_circumnavigating = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -38,15 +37,18 @@ public class TurretTrack extends CommandBase {
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
-      if (m_limelight.onTarget()) {
-        // stay on target
-      } else if (m_limelight.hasTarget()) {
-        m_offset = m_limelight.calcTurretOffset();
-        m_target = m_turret.getFacing() - m_offset;
+      if (m_limelight.hasTarget()) {
+        // if we have a target, track it
+        m_lostCount = 0;
+        m_target = m_turret.getFacing() - m_limelight.calcTurretOffset();
+      } else if (++m_lostCount > (p_resetTime.getValue() * 50)) {
+        // if we don't have a target for too long, go to zero
+        m_target = 0.0;
       }
     } else { // not tracking
-      // turn off limelight, hold position
+      // turn off limelight, go to zero
       m_limelight.ledOff();
+      m_target = 0.0;
     }
 
     SmartDashboard.putNumber("Turret:Track Target", m_target);    
