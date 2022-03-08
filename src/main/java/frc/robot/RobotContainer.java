@@ -161,24 +161,7 @@ public class RobotContainer {
 
   private CommandBase m_autoCommand;
 
-  /////////////////////////////////////////////////////////////////////////////
-  //                                 SETUP                                   //
-  /////////////////////////////////////////////////////////////////////////////
-
-  public RobotContainer(Robot robot) {
-    setupAutonomousCommand(0);
-    configurePeriodics(robot);
-    configureButtonBox();
-    configureDefaultCommands();
-    configureDashboardCommands();
-  }
-
-  private void configurePeriodics(Robot robot) {
-    robot.addPeriodic(m_ros_interface::update, 1.0 / 60.0, 0.01);
-  }
-
-  private CommandBase setupSimpleAuto() { 
-    return new SequentialCommandGroup(
+  private CommandBase m_oneBallTaxi = new SequentialCommandGroup(
       new TiltCameraDown(m_sensors),
       new ParallelCommandGroup(
         new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
@@ -191,41 +174,58 @@ public class RobotContainer {
         )
       )
     );
-  }
+
+    private CommandBase setupROSAutonomousCommand(int autoIndex)
+    {
+      String team_color = getTeamColorName();
   
-  public String getGameObjectName() {
-    return "cargo_" + getTeamColorName();
-}
+      WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
+      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_a"));
+      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_b"));
+      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_end"));
+      autoPlan.addWaypoint(new Waypoint(getGameObjectName()));
+  
+      return new SequentialCommandGroup(
+        // new DriveDistanceMeters(m_drive, 0.5, 0.5),
+        new DriveWithWaypointsPlan(m_nav, m_drive, autoPlan)
+      );
+    }
 
-  private String getTeamColorName() {
-    if (DriverStation.getAlliance() == Alliance.Red) {
-      return "red";
+    public String getGameObjectName() {
+      return "cargo_" + getTeamColorName();
     }
-    else {
-      return "blue";
+  
+    private String getTeamColorName() {
+      if (DriverStation.getAlliance() == Alliance.Red) {
+        return "red";
+      }
+      else {
+        return "blue";
+      }
     }
+  
+
+  /////////////////////////////////////////////////////////////////////////////
+  //                                 SETUP                                   //
+  /////////////////////////////////////////////////////////////////////////////
+
+  public RobotContainer(Robot robot) {
+    configurePeriodics(robot);
+    configureButtonBox();
+    configureDefaultCommands();
+    configureDashboardCommands();
   }
 
-  private CommandBase setupAutonomousCommand(int autoIndex)
-  {
-    String team_color = getTeamColorName();
-
-    WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
-    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_a"));
-    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_b"));
-    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_end"));
-    autoPlan.addWaypoint(new Waypoint(getGameObjectName()));
-
-    return new SequentialCommandGroup(
-      // new DriveDistanceMeters(m_drive, 0.5, 0.5),
-      new DriveWithWaypointsPlan(m_nav, m_drive, autoPlan)
-    );
+  private void configurePeriodics(Robot robot) {
+    robot.addPeriodic(m_ros_interface::update, 1.0 / 60.0, 0.01);
   }
   
   public void disabledPeriodic() {
+    SmartDashboard.putString("Auto", m_autoCommand.toString());
+
     if (m_buttonBox.isShootButtonPressed()) {
-      // m_autoCommand = setupAutonomousCommand();
-      m_autoCommand = setupSimpleAuto();
+      // m_autoCommand = setupROSAutonomousCommand();
+      m_autoCommand = m_oneBallTaxi;
     }
   }
 
