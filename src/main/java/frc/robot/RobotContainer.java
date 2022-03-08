@@ -34,15 +34,13 @@ import frc.robot.commands.turret.TurretTrack;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.Coprocessor;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.DummySubsytem;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
-import frc.robot.util.tunnel.ThisRobotInterface;
-import frc.robot.util.tunnel.TunnelServer;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
 import frc.robot.util.RapidReactTrajectories;
@@ -52,25 +50,20 @@ import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
-import frc.robot.commands.autos.DriveToWaypoint;
+import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightHoodToggle;
 import frc.robot.commands.LimelightToggle;
+import frc.robot.commands.autos.DriveWithWaypointsPlan;
 import frc.robot.commands.cameratilter.TiltCameraDown;
-import frc.robot.commands.cameratilter.ToggleTiltCamera;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
-import frc.robot.commands.drive.AllowRosCommands;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
-import frc.robot.util.roswaypoints.WaypointsPlan;
 import frc.robot.util.roswaypoints.Waypoint;
-import frc.robot.util.roswaypoints.WaypointMap;
-import frc.robot.commands.ros.SendCoprocessorGoals;
-import frc.robot.commands.ros.SetRobotToWaypoint;
-import frc.robot.commands.ros.WaitForCoprocessorPlan;
-import frc.robot.commands.ros.WaitForCoprocessorRunning;
+import frc.robot.util.roswaypoints.WaypointsPlan;
+
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -99,15 +92,10 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   //                                 ROS                                     //
   /////////////////////////////////////////////////////////////////////////////
-  // private final ThisRobotInterface m_ros_interface = new ThisRobotInterface(
-  //   m_drive,
-  //   m_climber.outerArm, m_climber.innerArm,
-  //   m_intake,
-  //   m_turret,
-  //   m_sensors);
-  // private final TunnelServer m_tunnel = new TunnelServer(m_ros_interface, 5800, 30);
-  // private final WaypointMap m_waypoint_map = new WaypointMap();
-  // private final Coprocessor m_coprocessor = new Coprocessor(m_drive, m_waypoint_map, m_ros_interface);
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, "10.0.88.44", 5800, 0.01,
+    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
+  );
+  private final Navigation m_nav = new Navigation(m_ros_interface);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -224,19 +212,16 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
-    // setupAutonomousCommand(1);
-    // setupTunnelCallbacks(robot);
+    setupAutonomousCommand(0);
+    configurePeriodics(robot);
     configureButtonBox();
     configureDefaultCommands();
     configureDashboardCommands();
   }
 
-  // private void setupTunnelCallbacks(Robot robot) {
-  //   robot.addPeriodic(this::updateJoints, 0.1, 0.05);
-  // }
-  // private void updateJoints() {
-  //   m_ros_interface.updateSlow();
-  // }
+  private void configurePeriodics(Robot robot) {
+    robot.addPeriodic(m_ros_interface::update, 1.0 / 60.0, 0.01);
+  }
 
   private CommandBase setupSimpleAuto() { 
     return new SequentialCommandGroup(
@@ -265,6 +250,11 @@ public class RobotContainer {
       )
     );
   }
+  
+  public String getGameObjectName() {
+    return "cargo_" + getTeamColorName();
+}
+
   private String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
       return "red";
@@ -274,58 +264,21 @@ public class RobotContainer {
     }
   }
 
-
-  /*
   private CommandBase setupAutonomousCommand(int autoIndex)
   {
-    // AutoFollowTrajectory driveForward = new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(2.0));
     String team_color = getTeamColorName();
-    // new SetRobotToWaypoint(team_color + "_start_" + autoIndex, m_ros_interface, m_waypoint_map).schedule();
 
-    WaypointsPlan autoPlanPart1 = new WaypointsPlan(m_ros_interface);
-    autoPlanPart1.addWaypoint(new Waypoint(team_color + "_point_a_" + autoIndex));
-    autoPlanPart1.addWaypoint(new Waypoint(team_color + "_point_b_" + autoIndex));
+    WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
+    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_a"));
+    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_b"));
+    autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_end"));
+    autoPlan.addWaypoint(new Waypoint(getGameObjectName()));
 
-    WaypointsPlan autoPlanPart2 = new WaypointsPlan(m_ros_interface);
-    autoPlanPart2.addWaypoint(new Waypoint(team_color + "_end_" + autoIndex));
-    autoPlanPart2.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
-
-    CommandBase autoCommand = new SequentialCommandGroup(
-      new ParallelDeadlineGroup(new WaitCommand(14.0),
-        new SetRobotToWaypoint(team_color + "_start_" + autoIndex, m_ros_interface, m_waypoint_map),
-        new TiltCameraDown(m_sensors),
-        m_ingestCargo.get(),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new RunCommand(m_shooter::raiseHood, m_shooter),
-        new WaitCommand(0.25),
-        new DriveDistanceMeters(m_drive, 0.5, 0.5),
-        new DriveToWaypoint(m_coprocessor, autoPlanPart1),
-        new InstantCommand(m_turret::startTracking),
-        new WaitCommand(1.0),
-        new InstantCommand(m_shooter::activate),
-        new WaitCommand(2.0),
-        new InstantCommand(m_shooter::deactivate),
-        new DriveToWaypoint(m_coprocessor, autoPlanPart2)
-      ),
-      new InstantCommand(m_shooter::activate)
+    return new SequentialCommandGroup(
+      // new DriveDistanceMeters(m_drive, 0.5, 0.5),
+      new DriveWithWaypointsPlan(m_nav, m_drive, autoPlan)
     );
-
-    WaypointsPlan pursuitPlan = new WaypointsPlan(m_ros_interface);
-    pursuitPlan.addWaypoint(new Waypoint(m_ros_interface.getGameObjectName()));
-    m_pursueCargoCommand = new SequentialCommandGroup(
-      new ParallelDeadlineGroup(new WaitCommand(0.5), 
-        new TiltCameraDown(m_sensors),
-        m_ingestCargo.get(),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new RunCommand(m_shooter::raiseHood, m_shooter)
-      ),
-      new DriveToWaypoint(m_coprocessor, pursuitPlan),
-      new InstantCommand(m_turret::startTracking),
-      new WaitCommand(1.0),
-      new InstantCommand(m_shooter::activate)
-    );
-    return autoCommand;
-  } */
+  }
   
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {

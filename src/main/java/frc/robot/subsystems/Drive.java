@@ -40,8 +40,8 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
 import frc.robot.util.transmission.Falcon500;
 import frc.robot.util.transmission.ShiftingTransmission;
-import frc.robot.util.tunnel.ChassisInterface;
-import frc.robot.util.tunnel.VelocityCommand;
+import frc.robot.util.coprocessortable.ChassisInterface;
+import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class Drive extends SubsystemBase implements ChassisInterface {
   
