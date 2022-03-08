@@ -265,6 +265,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // m_active - shooter button pushed
     // onTarget()
     // m_limelight.onTarget()
+    // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
     return m_active;
   }
 
