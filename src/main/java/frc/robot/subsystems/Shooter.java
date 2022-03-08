@@ -187,9 +187,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
       case RAISED:
         setHoodPercentOut(1);
-
-        m_hoodState = HoodState.RAISED;
-
         break;
     }
   }
@@ -218,23 +215,20 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         break;
 
       case LOWERING:
-      case LOWERED:
       case RAISING:
-        setHoodMotionMagic(HOOD_RAISED);
+      case RAISED:
+        setHoodMotionMagic(HOOD_LOWERED);
 
-        if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
-          m_hoodState = HoodState.RAISED;
+        if (Math.abs(HOOD_LOWERED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+          m_hoodState = HoodState.LOWERED;
         } else {
-          m_hoodState = HoodState.RAISING;
+          m_hoodState = HoodState.LOWERING;
         }
 
         break;
 
-      case RAISED:
-        setHoodPercentOut(1);
-
-        m_hoodState = HoodState.RAISED;
-
+        case LOWERED:
+        setHoodPercentOut(-1);
         break;
     }
   }
