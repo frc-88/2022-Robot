@@ -27,6 +27,7 @@ import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.feeder.FeederOutgestCargo;
 import frc.robot.commands.feeder.FeederPassthru;
 import frc.robot.commands.turret.TurretCalibrate;
+import frc.robot.commands.turret.TurretLock;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrack;
@@ -35,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Coprocessor;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DummySubsytem;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -82,6 +84,7 @@ public class RobotContainer {
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.0), new DoublePreferenceConstant("Chamber:Out", 0.0));
   private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
+  private final DummySubsytem m_hoodDummy = new DummySubsytem();
   
 
   /////////////////////////////////////////////////////////////////////////////
@@ -177,7 +180,7 @@ public class RobotContainer {
   private CommandBase m_startFlywheelRaw = new InstantCommand(() -> {m_shooter.setFlywheelRaw(p_shooterTestOutput.getValue());}, m_shooter);
   private CommandBase m_stopFlywheelRaw = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter);
   private Supplier<CommandBase> m_startFlywheel = () -> {return new InstantCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterTestVelocity.getValue());}, m_shooter); };
-  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
+  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(-500);}, m_shooter);
 
   private CommandBase m_shoot = new SequentialCommandGroup(
     new InstantCommand(m_centralizer::run, m_centralizer),
@@ -190,9 +193,9 @@ public class RobotContainer {
 
   private CommandBase m_stowShooter = new InstantCommand(m_turret::stopTracking);
 
-  private CommandBase m_hoodUp = new RunCommand(m_shooter::raiseHood, m_shooter);
+  private CommandBase m_hoodUp = new RunCommand(m_shooter::raiseHood, m_hoodDummy);
 
-  private CommandBase m_hoodDown = new RunCommand(m_shooter::lowerHood, m_shooter);
+  private CommandBase m_hoodDown = new RunCommand(m_shooter::lowerHood, m_hoodDummy);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -205,7 +208,7 @@ public class RobotContainer {
           .withName("calibrateClimber");
 
   private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
-  private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
+  private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
   private CommandBase m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
 
   /////////////////////////////////////
@@ -240,12 +243,24 @@ public class RobotContainer {
       new TiltCameraDown(m_sensors),
       new ParallelCommandGroup(
         m_ingestCargo.get(),
-        m_startFlywheel.get(),
         new SequentialCommandGroup(
+          m_startFlywheel.get(),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
-          new WaitCommand(5.0),
-          new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW).withTimeout(3)
+          new WaitCommand(2.0),
+          new InstantCommand(m_shooter::deactivate),
+          new ParallelCommandGroup(
+            new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+            new RunCommand(m_shooter::raiseHood, m_hoodDummy),
+            new SequentialCommandGroup(
+              new ArcadeDrive(m_drive, () -> .15, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW).withTimeout(3),
+              new ParallelCommandGroup(
+                new ArcadeDrive(m_drive, () -> 0, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW),
+                new WaitCommand(1.5)
+                // new InstantCommand(m_shooter::activate)
+              )
+            )
+          )
         )
       )
     );
@@ -330,9 +345,12 @@ public class RobotContainer {
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
-    m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
-    m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel.get());
+    m_buttonBox.turretTrackSwitch.whileHeld(new TurretTrack(m_turret, m_sensors.limelight));
+    m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
+    m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
+    m_buttonBox.climbDirectionSwitch.whenPressed(m_hoodUp);
+    m_buttonBox.climbDirectionSwitch.whenReleased(m_hoodDown);
+    m_buttonBox.flywheelSwitch.whenPressed(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
@@ -355,8 +373,8 @@ public class RobotContainer {
       new ConditionalCommand(
         new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, false, () -> false),
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, false, () -> false),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, true, m_buttonBox::isCancelClimbPressed),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox::isCancelClimbPressed),
           () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
         ),
         () -> m_buttonBox.getClimbBar() == ClimbBar.MID
@@ -413,7 +431,7 @@ public class RobotContainer {
 
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:RunRaw", m_startFlywheelRaw);
-    SmartDashboard.putData("Shooter:Flywheel:RunSpeed", m_startFlywheel.get());
+    SmartDashboard.putData("Shooter:Flywheel:RunSpeed", new RunCommand(() -> m_shooter.setFlywheelSpeed(p_shooterTestVelocity.getValue()), m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:RunAuto", new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:StopRaw", m_stopFlywheelRaw);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
@@ -457,7 +475,7 @@ public class RobotContainer {
     m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
     // m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretLock(m_turret));
 
     m_climber.setDefaultCommand( 
       new SequentialCommandGroup(

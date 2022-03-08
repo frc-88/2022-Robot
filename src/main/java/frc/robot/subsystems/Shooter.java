@@ -57,13 +57,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(92, 1600),
-      new ValueInterpolator.ValuePair(28, 700)
+      new ValueInterpolator.ValuePair(28, 2000),
+      new ValueInterpolator.ValuePair(92, 2000)
       );
     
       private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-        new ValueInterpolator.ValuePair(100, 1000),
-        new ValueInterpolator.ValuePair(200, 2000)
+        new ValueInterpolator.ValuePair(95, 2200),
+        new ValueInterpolator.ValuePair(100, 2300),
+        new ValueInterpolator.ValuePair(105, 2400),
+        new ValueInterpolator.ValuePair(136, 3000)
       );
     
   // Preferences
@@ -138,11 +140,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (sourcesHaveCargo() && m_sensors.isCargoOurs()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
-    } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
-    }
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
   }
 
   public boolean onTarget() {
@@ -151,92 +149,97 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   public void raiseHood() {
     m_sensors.limelight.setHood(true);
-    switch (m_hoodState) {
-      case CALIBRATING:
-        setHoodPercentOut(1);
+      // switch (m_hoodState) {
+      // case CALIBRATING:
+      //   setHoodPercentOut(1);
 
-        double currentPosition = getHoodPosition();
-        if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
-          m_hoodCalibrationCollectsDone++;
-        } else {
-          m_hoodCalibrationCollectsDone = 0;
-          m_hoodCalibrationStartValue = currentPosition;
-        }
+      //   double currentPosition = getHoodPosition();
+      //   if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
+      //     m_hoodCalibrationCollectsDone++;
+      //   } else {
+      //     m_hoodCalibrationCollectsDone = 0;
+      //     m_hoodCalibrationStartValue = currentPosition;
+      //   }
 
-        if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
-          m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_RAISED));
-          m_hoodState = HoodState.RAISED;
-        } else {
-          m_hoodState = HoodState.CALIBRATING;
-        }
+      //   if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
+      //     m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_RAISED));
+      //     m_hoodState = HoodState.RAISED;
+      //   } else {
+      //     m_hoodState = HoodState.CALIBRATING;
+      //   }
 
-        break;
+      //   break;
 
-      case LOWERING:
-      case LOWERED:
-      case RAISING:
-        setHoodMotionMagic(HOOD_RAISED);
+      // case LOWERING:
+      // case LOWERED:
+      // case RAISING:
+      //   setHoodMotionMagic(HOOD_RAISED);
 
-        if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
-          m_hoodState = HoodState.RAISED;
-        } else {
-          m_hoodState = HoodState.RAISING;
-        }
+      //   if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+      //     m_hoodState = HoodState.RAISED;
+      //   } else {
+      //     m_hoodState = HoodState.RAISING;
+      //   }
 
-        break;
+      //   break;
 
-      case RAISED:
-        setHoodPercentOut(1);
+      // case RAISED:
+      //   setHoodPercentOut(1);
 
-        m_hoodState = HoodState.RAISED;
+      //   m_hoodState = HoodState.RAISED;
 
-        break;
-    }
+      //   break;
+
+      // }
+
+      setHoodPercentOut(1);
   }
 
   public void lowerHood() {
     m_sensors.limelight.setHood(false);
-    switch (m_hoodState) {
-      case CALIBRATING:
-        setHoodPercentOut(-1);
+    // switch (m_hoodState) {
+    //   case CALIBRATING:
+    //     setHoodPercentOut(-1);
 
-        double currentPosition = getHoodPosition();
-        if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
-          m_hoodCalibrationCollectsDone++;
-        } else {
-          m_hoodCalibrationCollectsDone = 0;
-          m_hoodCalibrationStartValue = currentPosition;
-        }
+    //     double currentPosition = getHoodPosition();
+    //     if (Math.abs(currentPosition - m_hoodCalibrationStartValue) <= HOOD_CALIBRATION_TOLERANCE) {
+    //       m_hoodCalibrationCollectsDone++;
+    //     } else {
+    //       m_hoodCalibrationCollectsDone = 0;
+    //       m_hoodCalibrationStartValue = currentPosition;
+    //     }
 
-        if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
-          m_hood.setSelectedSensorPosition(HOOD_LOWERED);
-          m_hoodState = HoodState.LOWERED;
-        } else {
-          m_hoodState = HoodState.CALIBRATING;
-        }
+    //     if (m_hoodCalibrationCollectsDone >= HOOD_CALIBRATION_COLLECT_SIZE) {
+    //       m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_LOWERED));
+    //       m_hoodState = HoodState.LOWERED;
+    //     } else {
+    //       m_hoodState = HoodState.CALIBRATING;
+    //     }
 
-        break;
+    //     break;
 
-      case LOWERING:
-      case LOWERED:
-      case RAISING:
-        setHoodMotionMagic(HOOD_RAISED);
+    //   case RAISING:
+    //   case RAISED:
+    //   case LOWERING:
+    //     setHoodMotionMagic(HOOD_LOWERED);
 
-        if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
-          m_hoodState = HoodState.RAISED;
-        } else {
-          m_hoodState = HoodState.RAISING;
-        }
+    //     if (Math.abs(HOOD_RAISED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+    //       m_hoodState = HoodState.LOWERED;
+    //     } else {
+    //       m_hoodState = HoodState.LOWERING;
+    //     }
 
-        break;
+    //     break;
 
-      case RAISED:
-        setHoodPercentOut(1);
+    //   case LOWERED:
+    //     setHoodPercentOut(-1);
 
-        m_hoodState = HoodState.RAISED;
+    //     m_hoodState = HoodState.LOWERED;
 
-        break;
-    }
+    //     break;
+    // }
+
+    setHoodPercentOut(-1);
   }
 
   public void setHoodPercentOut(int direction) {
@@ -292,6 +295,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double getFlywheelSpeedFromLimelight() {
+    if (!m_sensors.limelight.hasTarget()) {
+      return m_sensors.limelight.isHoodUp()
+        ? 2300
+        : 2000;
+    }
     return m_sensors.limelight.isHoodUp()
         ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
         : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget());
@@ -307,7 +315,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
 
   private double convertMotorPositionToHood(double motorPosition) {
-    return motorPosition / (FLYWHEEL_RATIO * 2048);
+    return motorPosition / (HOOD_RATIO * 2048.);
   }
 
   private double convertMotorVelocityToHood(double motorVelocity) {
@@ -315,7 +323,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double convertHoodPositionToMotor(double hoodPosition) {
-    return hoodPosition * HOOD_RATIO * 2048;
+    return hoodPosition * HOOD_RATIO * 2048.;
   }
 
   private double convertHoodVelocityToMotor(double hoodVelocity) {

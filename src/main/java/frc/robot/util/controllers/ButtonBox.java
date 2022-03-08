@@ -24,8 +24,8 @@ public class ButtonBox extends Joystick {
 	
     private static int INTAKE = 2;
     private static int OUTGEST = 3;
-    private static int AUX_1 = 4;
-    private static int AUX_2 = 5;
+    private static int AUX_1 = 5;
+    private static int AUX_2 = 4;
     private static int CENTRALIZER_UP = 6;
     private static int CENTRALIZER_DOWN = 7;
     private static int CHAMBER_UP = 8;
