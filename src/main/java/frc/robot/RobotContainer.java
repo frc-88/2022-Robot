@@ -159,7 +159,7 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private CommandBase m_autoCommand;
+  private CommandBase m_autoCommand = new WaitCommand(1);
 
   private CommandBase m_oneBallTaxi = new SequentialCommandGroup(
       new TiltCameraDown(m_sensors),
