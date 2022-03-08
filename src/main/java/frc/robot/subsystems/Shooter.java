@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
@@ -73,6 +74,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_hoodMaxVelocity = new DoublePreferenceConstant("Hood Max Velocity", 360);
   private DoublePreferenceConstant p_hoodMaxAcceleration = new DoublePreferenceConstant("Hood Max Acceleration", 1080);
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
+  private DoublePreferenceConstant p_hoodArbitraryF = new DoublePreferenceConstant("Hood Arbitrary F", 0.0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0, 0.0, 0.0);
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
@@ -238,7 +240,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private void setHoodMotionMagic(double setpoint) {
-    m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint));
+    m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint), DemandType.ArbitraryFeedForward, p_hoodArbitraryF.getValue());
   }
 
   public void activate() {
