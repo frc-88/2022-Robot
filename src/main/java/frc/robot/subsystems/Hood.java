@@ -20,7 +20,7 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Hood extends SubsystemBase {
-  private TalonFX m_hood = new TalonFX(Constants.SHOOTER_HOOD_ID, "1");
+  private TalonFX m_hood = new TalonFX(Constants.HOOD_ID, "1");
   private Sensors m_sensors;
 
   private static final double HOOD_RATIO = 20;
