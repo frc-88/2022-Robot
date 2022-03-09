@@ -105,8 +105,8 @@ public class Limelight {
 
     /**
      * Calculate the mount angle of the limelight assuming the target
-     * is the distance specified by the "Limelight Test Distance" value.
-     * Useful during field calibration.
+     * is the distance specified by the "Limelight Test Distance" preference
+     * value. Useful during field calibration.
      * 
      * @return The mount angle of the limelight in degrees
      */
@@ -116,6 +116,15 @@ public class Limelight {
                 - getTargetVerticalOffsetAngle();
     }
 
+    /**
+     * Calculate the degrees to rotate the turret in order to focus on the
+     * target. Distance calculations need to be accurate!
+     * 
+     * If we don't have accurate distance measurements, a proportional
+     * constant could probably be used and work just as well. 
+     * 
+     * @return The mount angle of the limelight in degrees
+     */
     public double calcTurretOffset() {
         double distance = calcDistanceToTarget();
         double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
