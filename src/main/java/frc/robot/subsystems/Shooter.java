@@ -38,8 +38,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
   private static final double HOOD_RATIO = 20;
 
-  public static final double HOOD_LOWERED = 12.5;
-  public static final double HOOD_RAISED = 30.0;
+  public static final double HOOD_LOWERED = 0.0;
+  public static final double HOOD_RAISED = 27.0;
 
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
 
@@ -270,7 +270,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public double getHoodPosition() {
-    return convertHoodPositionToMotor(m_hood.getSelectedSensorPosition());
+    return convertMotorPositionToHood(m_hood.getSelectedSensorPosition());
   }
 
   @Override
@@ -310,7 +310,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
 
   private double convertMotorPositionToHood(double motorPosition) {
-    return motorPosition / (HOOD_RATIO * 2048.);
+    return motorPosition / (HOOD_RATIO * 2048.) * 360.0;
   }
 
   private double convertMotorVelocityToHood(double motorVelocity) {
@@ -318,7 +318,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double convertHoodPositionToMotor(double hoodPosition) {
-    return hoodPosition * HOOD_RATIO * 2048.;
+    return hoodPosition / 360.0 * HOOD_RATIO * 2048.;
   }
 
   private double convertHoodVelocityToMotor(double hoodVelocity) {
