@@ -29,6 +29,7 @@ import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.DummySubsytem;
 import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
@@ -66,7 +67,8 @@ public class RobotContainer {
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
-  private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
+  private final Hood m_hood = new Hood(m_sensors);
+  private final Shooter m_shooter = new Shooter(m_hood, new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final DummySubsytem m_hoodDummy = new DummySubsytem();
   
@@ -140,8 +142,8 @@ public class RobotContainer {
   private CommandBase m_startFlywheel = new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
 
-  private CommandBase m_hoodUp = new RunCommand(m_shooter::raiseHood, m_shooter);
-  private CommandBase m_hoodDown = new RunCommand(m_shooter::lowerHood, m_shooter);
+  private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_shooter);
+  private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_shooter);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -331,13 +333,14 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:RunSpeed", new InstantCommand(() -> {m_shooter.setFlywheelSpeed(new DoublePreferenceConstant("Shooter Test Speed", 0.0).getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:RunAuto", m_startFlywheel);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
-    SmartDashboard.putData("Shooter:Hood:Raise", m_hoodUp);
-    SmartDashboard.putData("Shooter:Hood:Lower", m_hoodDown);
-    SmartDashboard.putData("Shooter:Hood:UpRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(1);}, m_shooter));
-    SmartDashboard.putData("Shooter:Hood:DownRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(-1);}, m_shooter));
-    SmartDashboard.putData("Shooter:Hood:StopRaw", new RunCommand(()->{m_shooter.setHoodPercentOut(0);}, m_shooter));
     SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
+
+    SmartDashboard.putData("Hood:Raise", m_hoodUp);
+    SmartDashboard.putData("Hood:Lower", m_hoodDown);
+    SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_shooter));
+    SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_shooter));
+    SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_shooter));
 
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));
