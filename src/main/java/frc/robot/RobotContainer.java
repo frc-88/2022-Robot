@@ -19,6 +19,7 @@ import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretCalibrate;
+import frc.robot.commands.turret.TurretLock;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrack;
@@ -26,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DummySubsytem;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Navigation;
@@ -63,10 +65,11 @@ public class RobotContainer {
   private final Drive m_drive = new Drive(m_sensors);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", 0.0), new DoublePreferenceConstant("Centralizer:Out", 0.0));
-  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.0), new DoublePreferenceConstant("Chamber:Out", 0.0));
+  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
+  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
   private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
+  private final DummySubsytem m_hoodDummy = new DummySubsytem();
   
 
   /////////////////////////////////////////////////////////////////////////////
@@ -152,7 +155,7 @@ public class RobotContainer {
           .withName("calibrateClimber");
 
   private CommandBase m_manualModeClimber = new ManualModeClimber(m_climber, m_testController);
-  private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);;
+  private CommandBase m_climberTestMotionMagic = new ClimberTestMotionMagic(m_climber);
   private CommandBase m_climberMotionMagicJoystick = new ClimberMotionMagicJoystick(m_climber, m_testController);
 
   /////////////////////////////////////
@@ -243,6 +246,11 @@ public class RobotContainer {
     m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
     m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel);
+    m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
+    m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
+    m_buttonBox.climbDirectionSwitch.whenPressed(m_hoodUp);
+    m_buttonBox.climbDirectionSwitch.whenReleased(m_hoodDown);
+    m_buttonBox.flywheelSwitch.whenPressed(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
@@ -265,8 +273,8 @@ public class RobotContainer {
       new ConditionalCommand(
         new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, false, () -> false),
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, false, () -> false),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, true, m_buttonBox::isCancelClimbPressed),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox::isCancelClimbPressed),
           () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
         ),
         () -> m_buttonBox.getClimbBar() == ClimbBar.MID
@@ -363,7 +371,7 @@ public class RobotContainer {
     m_chamber.setDefaultCommand(m_chamberCargolizer);
 
     // m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
     m_climber.setDefaultCommand( 
       new SequentialCommandGroup(

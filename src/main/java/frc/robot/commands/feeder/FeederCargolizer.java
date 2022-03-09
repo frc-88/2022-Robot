@@ -14,6 +14,7 @@ public class FeederCargolizer extends CommandBase {
   private CargoSource m_source;
   private CargoTarget m_target;
   private boolean m_cargoComing;
+  private int m_waitingCount;
 
   /** Creates a new FeederCargolizer. */
   public FeederCargolizer(Feeder feeder, CargoSource source, CargoTarget target) {
@@ -42,10 +43,12 @@ public class FeederCargolizer extends CommandBase {
       }
     } else if (m_source.hasCargo()) {
       m_cargoComing = true;
+      m_waitingCount = 0;
       m_feeder.run();
-    } else if (m_cargoComing) {
+    } else if (m_cargoComing && m_waitingCount++<25) {
       m_feeder.run();
     } else {
+      m_cargoComing = false;
       m_feeder.stop();
     }
   }
