@@ -240,7 +240,7 @@ public class Intake extends SubsystemBase implements CargoSource {
       case DEPLOYED:
       case DEPLOYED_CALIBRATING:
         enableLimits();
-        setArmMotionMagic(ARM_STOWED);
+        setArmMotionMagic(ARM_STOWED - 10);
 
         if (getArmPosition() > ARM_STOWED - ARM_SETPOINT_TOLERANCE) {
           if (m_isCalibrated) {
