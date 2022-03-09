@@ -53,7 +53,7 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  public static final double ARM_STOWED = 93;
+  public static final double ARM_STOWED = 103;
   public static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;

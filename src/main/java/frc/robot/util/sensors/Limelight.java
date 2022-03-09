@@ -138,11 +138,12 @@ public class Limelight {
     }
 
     public double calcTurretOffset() {
-        double distance = calcDistanceToTarget();
-        double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
+        // double distance = calcDistanceToTarget();
+        // double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
 
-        return hasTarget() ? Math.toDegrees(Math.atan((distance * Math.sin(angle)) /
-            (distance * Math.cos(angle) - (isHoodUp()?p_radiusHoodUp.getValue():p_radiusHoodDown.getValue())))) : 0.0;
+        // return hasTarget() ? Math.toDegrees(Math.atan((distance * Math.sin(angle)) /
+        //     (distance * Math.cos(angle) - (isHoodUp()?p_radiusHoodUp.getValue():p_radiusHoodDown.getValue())))) : 0.0;
+        return getTargetHorizontalOffsetAngle();
     }
 
     /**
