@@ -47,6 +47,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
       0.0, 0.0);
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
+  private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
+  private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed", 5000.0);
 
   /** Creates a new Shooter. */
   public Shooter(Hood hood, CargoSource[] sources, Sensors sensors) {
@@ -85,17 +87,21 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(getFlywheelSpeedFromLimelight()));
-  }
-
-  private double getFlywheelSpeedFromLimelight() {
-    if (!m_sensors.limelight.hasTarget()) {
-      return m_hood.isHoodUp() ? 2300 : 2000;
+    if (m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
     }
+  }  
 
-    return m_hood.isHoodUp()
+  private double calcSpeedFromDistance() {
+    return m_sensors.limelight.hasTarget() 
+      ? m_hood.isHoodUp()
         ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
-        : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget());
+        : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
+      : m_hood.isHoodUp() 
+        ? p_flywheelBlindUp.getValue() 
+        : p_flywheelBlindDown.getValue();
   }
 
   public boolean onTarget() {
@@ -143,6 +149,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putNumber("Shooter Flywheel Velocity",
         convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    SmartDashboard.putNumber("Flywheel Speed from Limelight", getFlywheelSpeedFromLimelight());
+    SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
   }
 }
