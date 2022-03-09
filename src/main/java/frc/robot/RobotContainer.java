@@ -73,8 +73,8 @@ public class RobotContainer {
   private final Drive m_drive = new Drive(m_sensors);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", 0.0), new DoublePreferenceConstant("Centralizer:Out", 0.0));
-  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.0), new DoublePreferenceConstant("Chamber:Out", 0.0));
+  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
+  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
   private final Shooter m_shooter = new Shooter(new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final DummySubsytem m_hoodDummy = new DummySubsytem();
@@ -298,7 +298,6 @@ public class RobotContainer {
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
-    m_buttonBox.turretTrackSwitch.whileHeld(new TurretTrack(m_turret, m_sensors.limelight));
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
     m_buttonBox.climbDirectionSwitch.whenPressed(m_hoodUp);
@@ -428,7 +427,7 @@ public class RobotContainer {
     m_chamber.setDefaultCommand(new FeederCargolizer(m_chamber, m_centralizer, m_shooter));
 
     // m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    m_turret.setDefaultCommand(new TurretLock(m_turret));
+    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
     m_climber.setDefaultCommand( 
       new SequentialCommandGroup(

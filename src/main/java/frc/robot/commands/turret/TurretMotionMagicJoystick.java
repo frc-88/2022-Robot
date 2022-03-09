@@ -10,7 +10,7 @@ public class TurretMotionMagicJoystick extends CommandBase {
     private Turret m_turret;
     private XboxController m_controller;
 
-    private static final double ROTATION_SPEED = 90;
+    private static final double ROTATION_SPEED = 30;
     
     public TurretMotionMagicJoystick(Turret turret, XboxController controller) {
         m_turret = turret;
@@ -24,11 +24,7 @@ public class TurretMotionMagicJoystick extends CommandBase {
 
         target += m_turret.getFacing();
 
-        if (m_turret.isFacingSafe(target)) {
-            System.out.println("Turret unsafe target!");
-        } else {
-            m_turret.goToFacing(target);
-        }
+        m_turret.goToFacing(target);
     }
 
     @Override
