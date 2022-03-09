@@ -150,7 +150,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void raiseHood() {
-    m_sensors.limelight.setHood(true);
     switch (m_hoodState) {
       case CALIBRATING:
         setHoodPercentOut(1);
@@ -192,7 +191,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void lowerHood() {
-    m_sensors.limelight.setHood(false);
     switch (m_hoodState) {
       case CALIBRATING:
         setHoodPercentOut(-1);
@@ -291,11 +289,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   private double getFlywheelSpeedFromLimelight() {
     if (!m_sensors.limelight.hasTarget()) {
-      return m_sensors.limelight.isHoodUp()
-        ? 2300
-        : 2000;
+      return (m_hoodState == HoodState.RAISED) ? 2300 : 2000;
     }
-    return m_sensors.limelight.isHoodUp()
+    return (m_hoodState == HoodState.RAISED)
         ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
         : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget());
   }
