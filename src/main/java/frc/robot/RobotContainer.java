@@ -19,7 +19,6 @@ import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretCalibrate;
-import frc.robot.commands.turret.TurretLock;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrack;
@@ -27,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.DummySubsytem;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
@@ -70,8 +68,6 @@ public class RobotContainer {
   private final Hood m_hood = new Hood(m_sensors);
   private final Shooter m_shooter = new Shooter(m_hood, new CargoSource[]{m_centralizer, m_chamber}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
-  private final DummySubsytem m_hoodDummy = new DummySubsytem();
-  
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
@@ -80,7 +76,6 @@ public class RobotContainer {
   private final ButtonBox m_buttonBox = new ButtonBox(Constants.BUTTON_BOX_ID);
   private final XboxController m_testController = new XboxController(Constants.TEST_CONTROLLER_ID);
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
-
   
   /////////////////////////////////////////////////////////////////////////////
   //                                 ROS                                     //
@@ -90,10 +85,10 @@ public class RobotContainer {
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
 
+
   /////////////////////////////////////////////////////////////////////////////
   //                               COMMANDS                                  //
   /////////////////////////////////////////////////////////////////////////////
-  
 
   /////////////////////////////////////
   //             DRIVE               //
