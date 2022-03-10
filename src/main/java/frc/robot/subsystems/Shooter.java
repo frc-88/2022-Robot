@@ -30,6 +30,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Hood m_hood;
   private Sensors m_sensors;
   private Boolean m_active = false;
+  private int m_cargoWaitCount = 0;
 
   private static final double FLYWHEEL_RATIO = 1;
 
@@ -49,6 +50,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed", 5000.0);
+  private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.25);
 
   /** Creates a new Shooter. */
   public Shooter(Hood hood, CargoSource[] sources, Sensors sensors) {
@@ -134,6 +136,19 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return hasCargo;
   }
 
+  private boolean isFlywheelReady() {
+    boolean ready = false;
+
+    if (m_sources[0].hasCargo()) {
+      ready = m_cargoWaitCount++ > p_shooterReady.getValue() * 50;
+    } else {
+      m_cargoWaitCount = 0;
+    }
+
+
+    return ready;
+  }
+
   @Override
   public boolean wantsCargo() {
     // TODO combine some or all of these conditions and return that
@@ -141,7 +156,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active;
+    return m_active && isFlywheelReady();
   }
 
   @Override
