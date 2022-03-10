@@ -78,6 +78,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DoublePreferenceConstant leftHighEfficiency;
   private DoublePreferenceConstant rightHighEfficiency;
   private DoublePreferenceConstant maxCurrent;
+  private DoublePreferenceConstant universalCurrentLimit;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -86,11 +87,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private static final double LARGE_DECREASE_TURN_SCALAR = 2.5;
   private double m_prevTurn = 0; // The last turn value
   private double m_negInertialAccumulator = 0; // Accumulates our current inertia value
-
-  // Acceleration limiting
-  private DoublePreferenceConstant accelLimit;
-  private boolean deccelerating;
-  private double lastLimitSpeed;
 
   // Simulation
   private DifferentialDrivetrainSim m_driveSim;
@@ -114,7 +110,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
-    accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
+    universalCurrentLimit = new DoublePreferenceConstant("Universal Current Limit", 600);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
@@ -191,16 +187,22 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
+    double leftUniversalCurrentLimit;
+    double rightUniversalCurrentLimit;
     if (totalExpectedCurrent == 0) {
       leftCurrentLimit =  maxCurrent.getValue() / 2.;
       rightCurrentLimit = maxCurrent.getValue() / 2.;
+      leftUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
+      rightUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
     } else {
       leftCurrentLimit = maxCurrent.getValue() * leftExpectedCurrent / totalExpectedCurrent;
       rightCurrentLimit = maxCurrent.getValue() * rightExpectedCurrent / totalExpectedCurrent;
+      leftUniversalCurrentLimit = universalCurrentLimit.getValue() * leftExpectedCurrent / totalExpectedCurrent;
+      rightUniversalCurrentLimit = universalCurrentLimit.getValue() * rightExpectedCurrent / totalExpectedCurrent;
     }
 
-    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
-    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
+    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit, leftUniversalCurrentLimit);
+    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit, rightUniversalCurrentLimit);
     
     m_leftCommandedSpeed = leftVelocity;
     m_rightCommandedSpeed = rightVelocity;
@@ -222,9 +224,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // Convert to feet per second
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
-
-    // Limit Acceleration
-    speed = limitAcceleration(speed);
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
@@ -282,26 +281,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   public Gear getRightGear() {
     return m_rightShifter.getGear();
-  }
-
-  public double limitAcceleration(double speed) {
-    double currentSpeed = getStraightSpeed();
-    if (speed - currentSpeed > 0) {
-        double vel = currentSpeed + accelLimit.getValue();
-        if (speed < vel) {
-            return speed;
-        } else {
-            return vel;
-        }
-    } else {
-        double vel = getStraightSpeed() - accelLimit.getValue();;
-        if (speed > vel) {
-            return speed;
-        } else {
-            return vel;
-        }
-
-    }
   }
 
   public void resetEncoderPositions() {
