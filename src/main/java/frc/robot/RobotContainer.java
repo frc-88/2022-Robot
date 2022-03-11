@@ -303,9 +303,8 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTestTrajectory()));
-    // SmartDashboard.putData("Barrel Run", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRunTrajectory()));
-    // SmartDashboard.putData("Barrel Run 2", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateBarrelRun2Trajectory()));
+    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0)));
+    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
