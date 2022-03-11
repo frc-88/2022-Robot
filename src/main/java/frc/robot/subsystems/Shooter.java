@@ -90,11 +90,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (m_sensors.limelight.hasTarget() || sourcesHaveCargo()) {
+    if (m_sensors.limelight.hasTarget()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
-    } else if (m_sensors.limelight.hasTarget()) {
+    } else if (!m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
-    } else {
+    } else if (!m_active) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
     }
   }  
