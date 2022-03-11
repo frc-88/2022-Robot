@@ -69,7 +69,7 @@ public class Sensors extends SubsystemBase {
   }
 
   public boolean isCoastButtonPressed() {
-    return /*coastButton.get() ||*/ SmartDashboard.getBoolean("Virtual Coast Button", false);
+    return !coastButton.get() || SmartDashboard.getBoolean("Virtual Coast Button", false);
   }
 
   public double getStoragePressure() {
