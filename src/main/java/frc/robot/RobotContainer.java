@@ -203,7 +203,9 @@ public class RobotContainer {
           new SequentialCommandGroup(
             new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
             new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate)
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate)
           )
         )
       );
@@ -220,10 +222,13 @@ public class RobotContainer {
             new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
-            new WaitCommand(0.5),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
             new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory()),
             new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate)
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate)
           )
         )
       );
