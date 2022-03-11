@@ -275,7 +275,7 @@ public class Transmission {
         // current draw. See if that will be too much
         if (Math.signum(targetVoltage) != Math.signum(currentBackEMF)
                 && getCurrentDraw(Math.signum(targetVoltage) * 0.01, 
-                    currentSensorVelocity) > currentLimit) {
+                    currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
 
             // Determine the voltage to command
             if (targetVoltage > 0) {
