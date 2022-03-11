@@ -47,7 +47,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
       0.0, 0.0);
-  private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 5000.0);
+  private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1300.0);
+  private DoublePreferenceConstant p_flywheelFenderShot = new DoublePreferenceConstant("Shooter Fender Shot", 2100.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed", 5000.0);
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.25);
@@ -91,8 +92,10 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public void setFlywheelSpeedAuto() {
     if (m_sensors.limelight.hasTarget() || sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
+    } else if (m_sensors.limelight.hasTarget()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
     }
   }  
 
