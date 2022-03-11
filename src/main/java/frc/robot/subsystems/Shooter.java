@@ -163,7 +163,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active && isFlywheelReady();
+    return m_active && isFlywheelReady() && onTarget();
   }
 
   @Override
