@@ -105,10 +105,10 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   private double calcSpeedFromDistance() {
     return m_sensors.limelight.hasTarget() 
-      ? m_hood.isHoodUp()
+      ? m_hood.isUp()
         ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
         : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget())
-      : m_hood.isHoodUp() 
+      : m_hood.isUp() 
         ? p_flywheelBlindUp.getValue() 
         : p_flywheelBlindDown.getValue();
   }
@@ -163,7 +163,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active && isFlywheelReady() && onTarget();
+    return m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving();
   }
 
   @Override

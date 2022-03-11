@@ -177,8 +177,16 @@ public class Hood extends SubsystemBase {
     }
   }
 
-  public boolean isHoodUp() {
+  public boolean isUp() {
     return m_hoodState == HoodState.RAISED;
+  }
+
+  public boolean isDown() {
+    return m_hoodState == HoodState.LOWERED;
+  }
+
+  public boolean isMoving() {
+    return (m_hoodState != HoodState.RAISED && m_hoodState != HoodState.LOWERED);
   }
 
   public void setHoodPercentOut(int direction) {
