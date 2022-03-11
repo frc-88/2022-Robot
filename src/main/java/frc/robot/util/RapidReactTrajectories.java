@@ -57,4 +57,15 @@ public class RapidReactTrajectories
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
+  public static Trajectory generateFourBallTrajectory() {
+    TrajectoryConfig config = basicConfig();
+
+    ArrayList<Pose2d> waypoints = new ArrayList<>();
+    waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.0D), Rotation2d.fromDegrees(45.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(16.5D), Units.feetToMeters(6.5D), Rotation2d.fromDegrees(20.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-40.0D)));
+
+    return TrajectoryGenerator.generateTrajectory(waypoints, config);
+  }
+
 }

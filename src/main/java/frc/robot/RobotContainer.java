@@ -176,7 +176,7 @@ public class RobotContainer {
         )
       );
 
-    private CommandBase m_autoTwoBall = 
+    private CommandBase m_autoTwoBallSimple = 
       new SequentialCommandGroup(
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
@@ -186,6 +186,42 @@ public class RobotContainer {
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
             new DriveDistanceMeters(m_drive, 1.5, 0.5),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate)
+          )
+        )
+      );
+
+      private CommandBase m_autoTwoBall = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate)
+          )
+        )
+      );
+
+      private CommandBase m_autoFourBall = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(0.5),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory()),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate)
           )
