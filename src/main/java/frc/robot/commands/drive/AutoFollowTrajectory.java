@@ -31,7 +31,6 @@ public class AutoFollowTrajectory extends CommandBase {
     m_duration = m_trajectory.getTotalTimeSeconds();
 
     addRequirements(m_drive);
-    addRequirements(m_sensors);
   }
 
   // Called when the command is initially scheduled.

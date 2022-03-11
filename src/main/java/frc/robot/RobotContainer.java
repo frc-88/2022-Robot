@@ -343,9 +343,16 @@ public class RobotContainer {
     SmartDashboard.putData("Drive forwards", new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW));
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
-    // Trajectory testing commands
-    SmartDashboard.putData("Ten Feet Forward", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0)));
+    // Autonomous testing
+    SmartDashboard.putData("One Ball", m_autoOneBall);
+    SmartDashboard.putData("Two Ball Simple", m_autoTwoBallSimple);
+    SmartDashboard.putData("Two Ball", m_autoTwoBall);
+    SmartDashboard.putData("Four Ball", m_autoFourBall);
+
+    // Trajectory testing
+    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0)));
     SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()));
+    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory()));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
