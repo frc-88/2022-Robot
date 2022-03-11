@@ -137,8 +137,8 @@ public class RobotContainer {
   private CommandBase m_startFlywheel = new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
 
-  private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_shooter);
-  private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_shooter);
+  private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_hood);
+  private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_hood);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -165,11 +165,27 @@ public class RobotContainer {
       new ParallelCommandGroup(
         new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
         new InstantCommand(() -> {m_shooter.setFlywheelSpeedAuto();}, m_shooter),
+        new InstantCommand(m_turret::startTracking),
         new SequentialCommandGroup(
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
           new WaitCommand(5.0),
           new DriveDistanceMeters(m_drive, 1.5, 0.5)
+        )
+      )
+    );
+
+    private CommandBase m_twoBall = new SequentialCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new ParallelCommandGroup(
+        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+        new RunCommand(m_hood::raiseHood, m_hood),
+        new InstantCommand(() -> {m_shooter.setFlywheelSpeedAuto();}, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new SequentialCommandGroup(
+          new DriveDistanceMeters(m_drive, 1.5, 0.5),
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate)
         )
       )
     );
@@ -333,9 +349,9 @@ public class RobotContainer {
 
     SmartDashboard.putData("Hood:Raise", m_hoodUp);
     SmartDashboard.putData("Hood:Lower", m_hoodDown);
-    SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_shooter));
-    SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_shooter));
-    SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_shooter));
+    SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
+    SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
+    SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
 
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));
