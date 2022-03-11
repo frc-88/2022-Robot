@@ -160,35 +160,37 @@ public class RobotContainer {
 
   private CommandBase m_autoCommand = new WaitCommand(1);
 
-  private CommandBase m_oneBallTaxi = new SequentialCommandGroup(
-      new TiltCameraDown(m_sensors),
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-        new InstantCommand(() -> {m_shooter.setFlywheelSpeedAuto();}, m_shooter),
+  private CommandBase m_autoOneBall = 
+    new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
-        new SequentialCommandGroup(
-          new WaitCommand(0.5),
-          new InstantCommand(m_shooter::activate),
-          new WaitCommand(5.0),
-          new DriveDistanceMeters(m_drive, 1.5, 0.5)
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new SequentialCommandGroup(
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(5.0),
+            new DriveDistanceMeters(m_drive, 1.5, 0.5)
+          )
         )
-      )
-    );
+      );
 
-    private CommandBase m_twoBall = new SequentialCommandGroup(
-      new TiltCameraDown(m_sensors),
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-        new RunCommand(m_hood::raiseHood, m_hood),
-        new InstantCommand(() -> {m_shooter.setFlywheelSpeedAuto();}, m_shooter),
+    private CommandBase m_autoTwoBall = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.5, 0.5),
-          new WaitCommand(0.5),
-          new InstantCommand(m_shooter::activate)
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new DriveDistanceMeters(m_drive, 1.5, 0.5),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate)
+          )
         )
-      )
-    );
+      );
 
     private CommandBase setupROSAutonomousCommand(int autoIndex)
     {
@@ -240,7 +242,7 @@ public class RobotContainer {
 
     if (m_buttonBox.isShootButtonPressed()) {
       // m_autoCommand = setupROSAutonomousCommand();
-      m_autoCommand = m_oneBallTaxi;
+      m_autoCommand = m_autoOneBall;
     }
   }
 
