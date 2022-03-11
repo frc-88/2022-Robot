@@ -76,9 +76,9 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
-	// Shooter
+	// Shooter & Hood
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
-    public static final int SHOOTER_HOOD_ID = 9;
+    public static final int HOOD_ID = 9;
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;

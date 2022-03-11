@@ -37,7 +37,11 @@ public class TurretTrack extends CommandBase {
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
-      if (m_limelight.hasTarget()) {
+      if (m_limelight.onTarget()) {
+        m_lostCount = 0;
+        m_target = m_turret.getFacing();
+        // keep on same m_target
+      } else if (m_limelight.hasTarget()) {
         // if we have a target, track it
         m_lostCount = 0;
         // TODO handle laggy data from the limelight

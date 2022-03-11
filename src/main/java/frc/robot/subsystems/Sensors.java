@@ -42,7 +42,7 @@ public class Sensors extends SubsystemBase {
   public final Limelight limelight = new Limelight();
   private final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
 
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
+  // private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
 
@@ -69,7 +69,7 @@ public class Sensors extends SubsystemBase {
   }
 
   public boolean isCoastButtonPressed() {
-    return /*coastButton.get() ||*/ SmartDashboard.getBoolean("Virtual Coast Button", false);
+    return !coastButton.get() || SmartDashboard.getBoolean("Virtual Coast Button", false);
   }
 
   public double getStoragePressure() {
@@ -138,20 +138,20 @@ public class Sensors extends SubsystemBase {
   }
 
   public boolean isCargoOurs() {
-    Color detectedColor = m_colorSensor.getColor();
-    boolean foundOurs = false;
+    // Color detectedColor = m_colorSensor.getColor();
+    boolean foundOurs = true;
 
-    if (DriverStation.getAlliance() == Alliance.Red) {
-      if (detectedColor.red > p_colorRedThreshold.getValue() &&
-          detectedColor.blue < p_colorBlueThreshold.getValue()) {
-            foundOurs = true;
-      }
-    } else {
-      if (detectedColor.red < p_colorRedThreshold.getValue() &&
-          detectedColor.blue > p_colorBlueThreshold.getValue()) {
-            foundOurs = true;
-      }
-    }
+    // if (DriverStation.getAlliance() == Alliance.Red) {
+    //   if (detectedColor.red > p_colorRedThreshold.getValue() &&
+    //       detectedColor.blue < p_colorBlueThreshold.getValue()) {
+    //         foundOurs = true;
+    //   }
+    // } else {
+    //   if (detectedColor.red < p_colorRedThreshold.getValue() &&
+    //       detectedColor.blue > p_colorBlueThreshold.getValue()) {
+    //         foundOurs = true;
+    //   }
+    // }
 
     return foundOurs;
   }
@@ -177,19 +177,18 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
     SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
     SmartDashboard.putNumber("Limelight Turret Offset", limelight.calcTurretOffset());
-    SmartDashboard.putBoolean("Limelight Hood Up?", limelight.isHoodUp());
     SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
     SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
 
     // Color Sensor data
-    Color detectedColor = m_colorSensor.getColor();
-    double IR = m_colorSensor.getIR();
+    // Color detectedColor = m_colorSensor.getColor();
+    // double IR = m_colorSensor.getIR();
 
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("IR", IR);
-    SmartDashboard.putBoolean("Our Cargo", isCargoOurs());
+    // SmartDashboard.putNumber("Red", detectedColor.red);
+    // SmartDashboard.putNumber("Green", detectedColor.green);
+    // SmartDashboard.putNumber("Blue", detectedColor.blue);
+    // SmartDashboard.putNumber("IR", IR);
+    // SmartDashboard.putBoolean("Our Cargo", isCargoOurs());
 
     // Pressure tracking
     double storagePressure = this.getStoragePressure();

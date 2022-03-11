@@ -135,9 +135,9 @@ public class TJDriveModule extends WPI_TalonFX {
      * @param currentLimit The maximum current, in amps, that we want the sum
      *                     of all the motors to draw
      */
-    public void setVelocityCurrentLimited(double targetVelocity, double currentLimit) {
+    public void setVelocityCurrentLimited(double targetVelocity, double currentLimit, double universalCurrentLimit) {
         double percentOut = m_transmission.getCurrentLimitedVoltage(
-            targetVelocity, this.getSelectedSensorVelocity(), currentLimit) / 12.;
+            targetVelocity, this.getSelectedSensorVelocity(), currentLimit, universalCurrentLimit) / 12.;
         this.set(ControlMode.PercentOutput, Math.max(-1., Math.min(1., percentOut)));
     }
 
