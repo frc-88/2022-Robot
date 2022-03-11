@@ -35,14 +35,18 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(28, 2000),
-      new ValueInterpolator.ValuePair(92, 2000));
+      new ValueInterpolator.ValuePair(44.5, 1950),
+      new ValueInterpolator.ValuePair(61, 2000),
+      new ValueInterpolator.ValuePair(82.5, 2050));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(95, 2200),
-      new ValueInterpolator.ValuePair(100, 2300),
-      new ValueInterpolator.ValuePair(105, 2400),
-      new ValueInterpolator.ValuePair(136, 3000));
+      new ValueInterpolator.ValuePair(92, 2300),
+      new ValueInterpolator.ValuePair(107, 2400),
+      new ValueInterpolator.ValuePair(126.5, 2550),
+      new ValueInterpolator.ValuePair(147, 2850),
+      new ValueInterpolator.ValuePair(179.5, 3250),
+      new ValueInterpolator.ValuePair(217, 3600),
+      new ValueInterpolator.ValuePair(254.5, 4350));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,

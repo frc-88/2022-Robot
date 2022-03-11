@@ -261,11 +261,12 @@ public class Transmission {
                     && Math.abs(targetVoltage) < Math.abs(currentBackEMF))) {
 
             // Determine the voltage to command
-            if (targetVoltage > 0) {
-                return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
-            }  else {
-                return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
-            }
+            // if (targetVoltage > 0) {
+            //     return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
+            // }
+            return targetVoltage;
 
         }
 
@@ -278,11 +279,12 @@ public class Transmission {
                     currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
 
             // Determine the voltage to command
-            if (currentBackEMF > 0) {
-                return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
-            }  else {
-                return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
-            }
+            // if (currentBackEMF > 0) {
+            //     return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
+            // }
+            return 0;
         }
         
         // Determine the voltage to command
