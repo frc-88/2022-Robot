@@ -52,6 +52,7 @@ public class Hood extends SubsystemBase {
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
   private DoublePreferenceConstant p_hoodArbitraryF = new DoublePreferenceConstant("Hood Arbitrary F", 0.0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
+  private DoublePreferenceConstant p_hoodUpDistance = new DoublePreferenceConstant("Hood Up Distance", 80.0);
 
   public Hood(Sensors sensors) {
     m_sensors = sensors;
@@ -82,6 +83,16 @@ public class Hood extends SubsystemBase {
         p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
     m_hood.setInverted(InvertType.InvertMotorOutput);
+  }
+
+  public void hoodAuto() {
+    if (m_sensors.limelight.hasTarget()) {
+      if (m_sensors.limelight.calcDistanceToTarget() < p_hoodUpDistance.getValue()) {
+        lowerHood();
+      } else {
+        raiseHood();
+      }
+    }
   }
 
   public void raiseHood() {
