@@ -93,6 +93,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private SimDouble m_gyroSim;
   private Field2d m_field;
 
+  // Acceleration limiting
+  private DoublePreferenceConstant accelLimit;
+
   public Drive(Sensors sensors) {
     m_sensors = sensors;
 
@@ -111,6 +114,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
     universalCurrentLimit = new DoublePreferenceConstant("Universal Current Limit", 600);
+    accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
@@ -224,6 +228,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // Convert to feet per second
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
+
+    speed = limitAcceleration(speed);
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
@@ -245,6 +251,25 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       m_rightTransmission.shiftToLow();
     } else if (rightGear == Gear.HIGH) {
       m_rightTransmission.shiftToHigh();
+    }
+  }
+
+  public double limitAcceleration(double speed) {
+    double currentSpeed = getStraightSpeed();
+    if (speed - currentSpeed > 0) {
+        double vel = currentSpeed + accelLimit.getValue();
+      if (speed < vel) {
+        return speed;
+      } else {
+        return vel;
+      }
+    } else {
+      double vel = getStraightSpeed() - accelLimit.getValue();;
+      if (speed > vel) {
+        return speed;
+      } else {
+        return vel;
+      }
     }
   }
 
