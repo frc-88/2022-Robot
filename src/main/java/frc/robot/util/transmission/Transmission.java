@@ -278,10 +278,10 @@ public class Transmission {
                     currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
 
             // Determine the voltage to command
-            if (targetVoltage > 0) {
-                return Math.max(targetVoltage, Math.max(0, currentBackEMF - universalMaxWindingsVoltage));
+            if (currentBackEMF > 0) {
+                return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
             }  else {
-                return Math.min(targetVoltage, Math.min(0, currentBackEMF + universalMaxWindingsVoltage));
+                return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
             }
         }
         
