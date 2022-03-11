@@ -89,7 +89,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
+    if (m_sensors.limelight.hasTarget() || sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     } else {
       m_flywheel.set(TalonFXControlMode.Velocity, p_flywheelIdle.getValue());
@@ -165,5 +165,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
     SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
+    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
+    SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }
 }
