@@ -261,11 +261,12 @@ public class Transmission {
                     && Math.abs(targetVoltage) < Math.abs(currentBackEMF))) {
 
             // Determine the voltage to command
-            if (targetVoltage > 0) {
-                return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
-            }  else {
-                return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
-            }
+            // if (targetVoltage > 0) {
+            //     return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
+            // }
+            return targetVoltage;
 
         }
 
@@ -278,11 +279,12 @@ public class Transmission {
                     currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
 
             // Determine the voltage to command
-            if (currentBackEMF > 0) {
-                return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
-            }  else {
-                return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
-            }
+            // if (currentBackEMF > 0) {
+            //     return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
+            // }
+            return 0;
         }
         
         // Determine the voltage to command
@@ -312,7 +314,15 @@ public class Transmission {
         double currentMotorVelocity = convertSensorVelocityToInput(currentSensorVelocity);
         double currentBackEMF = getBackEMF(currentMotorVelocity);
 
-        return getMotorQuantity() * Math.abs((targetVoltage - currentBackEMF)) / getMotor().getWindingsResistance();
+        // If we are deccelerating, there is no current draw
+        if (targetVoltage == 0 
+                || (Math.signum(targetVoltage) == Math.signum(currentBackEMF) 
+                    && Math.abs(targetVoltage) < Math.abs(currentBackEMF))) {
+
+            return 0;
+        } else {
+            return getMotorQuantity() * Math.abs((targetVoltage - currentBackEMF)) / getMotor().getWindingsResistance();
+        }
 
     }
 
