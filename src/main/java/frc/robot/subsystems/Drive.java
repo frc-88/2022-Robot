@@ -96,6 +96,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   // Acceleration limiting
   private DoublePreferenceConstant accelLimit;
 
+  // Locking
+  private boolean m_locked = false;
+
   public Drive(Sensors sensors) {
     m_sensors = sensors;
 
@@ -130,8 +133,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_leftTransmission.setVelocityPID(m_leftVelPID);
     m_rightTransmission.setVelocityPID(m_rightVelPID);
 
-    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID);
-    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID);
+    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID, "1");
+    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID, "1");
 
     m_leftEncoder.configFactoryDefault();
     m_rightEncoder.configFactoryDefault();
@@ -186,6 +189,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
    * limiting current draw.
    */
   public void basicDriveLimited(double leftVelocity, double rightVelocity) {
+    if (m_locked) {
+      leftVelocity = getLeftSpeed();
+      rightVelocity = getRightSpeed();
+    }
+
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
     double rightExpectedCurrent = m_rightDrive.getExpectedCurrentDraw(rightVelocity);
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
@@ -341,6 +349,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   public void setCoastMode() {
     m_leftDrive.coastAll();
     m_rightDrive.coastAll();
+  }
+
+  public void lockDrive() {
+    m_locked = true;
+  }
+
+  public void unlockDrive() {
+    m_locked = false;
   }
 
   public void setMaxSpeed(double maxSpeed) {

@@ -41,6 +41,7 @@ import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
+import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
@@ -66,7 +67,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
   private final Hood m_hood = new Hood(m_sensors);
-  private final Shooter m_shooter = new Shooter(m_hood, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
+  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -243,10 +244,12 @@ public class RobotContainer {
           new RunCommand(m_hood::raiseHood, m_hood),
           new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory()),
           new SequentialCommandGroup(
+            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
             new WaitCommand(2.25),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
+            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(0.0);}), 
             new WaitCommand(3.0),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(2.0),
@@ -310,6 +313,26 @@ public class RobotContainer {
     }
   }
 
+  public void teleopInit() {
+    new InstantCommand(m_shooter::deactivate);
+    
+    if (m_buttonBox.isHoodUpSwitchOn()) {
+      m_hoodUp.schedule();
+    } else {
+      m_hoodDown.schedule();
+    }
+    if (m_buttonBox.isFlywheelSwitchOn()) {
+      m_startFlywheel.schedule();
+    } else {
+      m_stopFlywheel.schedule();
+    }
+    if (m_buttonBox.isTrackTurretSwitchOn()) {
+      m_turret.startTracking();
+    } else {
+      m_turret.stopTracking();
+    }
+  }
+
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
@@ -323,25 +346,30 @@ public class RobotContainer {
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
     m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
-    m_buttonBox.climbDirectionSwitch.whenPressed(m_hoodUp);
-    m_buttonBox.climbDirectionSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.flywheelSwitch.whenPressed(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
+    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ConditionalCommand(
       new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false), 
-      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false, () -> false),
+      new ConditionalCommand(
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false),
+        () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+      ),
       () -> m_buttonBox.getClimbBar() == ClimbBar.LOW || m_buttonBox.getClimbBar() == ClimbBar.MID
     ));
     m_buttonBox.raiseClimberButton.whenPressed(new ConditionalCommand(
       new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false), 
       new ConditionalCommand(
         new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false),
-        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false, () -> false),
+        new ConditionalCommand(
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE, false, () -> false),
+          () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+        ),
         () -> m_buttonBox.getClimbBar() == ClimbBar.MID
       ),
       () -> m_buttonBox.getClimbBar() == ClimbBar.LOW
@@ -351,8 +379,16 @@ public class RobotContainer {
       new ConditionalCommand(
         new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH, true, m_buttonBox::isCancelClimbPressed),
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox::isCancelClimbPressed),
+          new ConditionalCommand(
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE, true, m_buttonBox::isCancelClimbPressed),
+            () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+          ),
+          new ConditionalCommand(
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE, true, m_buttonBox::isCancelClimbPressed),
+            () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+          ),
           () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
         ),
         () -> m_buttonBox.getClimbBar() == ClimbBar.MID
@@ -407,6 +443,9 @@ public class RobotContainer {
     SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
     SmartDashboard.putData("Turret Activate Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Deactivate Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Set Motion Offset", new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}));
+    SmartDashboard.putData("Turret Clear Motion Offset", new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(0.0);}));
+
     SmartDashboard.putData("Turret !!Calibrate!!", new TurretCalibrate(m_turret));
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
@@ -437,14 +476,18 @@ public class RobotContainer {
 
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false).withName("Climber M Stow"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false).withName("Climber M Prep Low Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL, false, () -> false).withName("Climber M Prep High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false).withName("Climber M Prep High Traversal Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false).withName("Climber M Prep High Traversal Reverse"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false).withName("Climber M Raise Low"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false).withName("Climber M Raise Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL, false, () -> false).withName("Climber M Raise High Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS, false, () -> false).withName("Climber M Raise High Traversal Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE, false, () -> false).withName("Climber M Raise High Traversal Reverse"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false, () -> false).withName("Climber M Climb Low"));
     SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false).withName("Climber M Climb Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High Reverse"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_FORWARDS, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_REVERSE, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal Reverse"));
   }
 
   private void configureDefaultCommands() {
