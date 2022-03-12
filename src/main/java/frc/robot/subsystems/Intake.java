@@ -71,8 +71,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   /** Creates a new Intake. */
   public Intake() {
-    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID, "1");
-    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID, "1");
+    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID);
+    m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID);
     m_IR = new SharpIR(Constants.INTAKE_IR_ID);
 
     armCurrentControlTarget = new DoublePreferenceConstant("Intake Arm Current Control Target", 8);

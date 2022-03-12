@@ -23,7 +23,7 @@ public class TJDriveModule extends WPI_TalonFX {
     private ShiftingTransmission m_transmission;
 
     public TJDriveModule(TJDriveModuleConfiguration config, ShiftingTransmission transmission) {
-        super(config.master, "1");
+        super(config.master);
         this.configFactoryDefault();
         this.configAllSettings(config.masterConfiguration);
         this.enableVoltageCompensation(config.enableVoltageCompensation);
@@ -33,7 +33,7 @@ public class TJDriveModule extends WPI_TalonFX {
 
         followers = new WPI_TalonFX [config.followers.length];
         for (int i = 0; i < config.followers.length; i++) {
-            followers[i] = new WPI_TalonFX(config.followers[i], "1");
+            followers[i] = new WPI_TalonFX(config.followers[i]);
             followers[i].configFactoryDefault();
             followers[i].configAllSettings(config.followerConfiguration);
             followers[i].follow(this);

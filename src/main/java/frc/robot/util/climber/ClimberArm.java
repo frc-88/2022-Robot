@@ -128,8 +128,8 @@ public class ClimberArm {
             staticInit();
         }
 
-        m_pivot = new WPI_TalonFX(pivotID, "1");
-        m_telescope = new WPI_TalonFX(telescopeID, "1");
+        m_pivot = new WPI_TalonFX(pivotID);
+        m_telescope = new WPI_TalonFX(telescopeID);
         m_positionLabel = positionLabel;
 
         m_pivot.configFactoryDefault();

@@ -29,7 +29,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
     m_feederName = feederName;
-    m_feederMotor = new TalonFX(feederMotorId, "1");
+    m_feederMotor = new TalonFX(feederMotorId);
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederMotorSpeed = feederMotorSpeedPref;
 

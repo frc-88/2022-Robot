@@ -20,8 +20,8 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Turret extends SubsystemBase {
-  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
-  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
+  private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID);
+  private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID);
 
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", 0.0);
