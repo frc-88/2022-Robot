@@ -37,10 +37,10 @@ public class ClimberArm {
     private SingleJointedArmSim m_pivotSim;
     private ElevatorSim m_telescopeSim;
 
-    private static final double PIVOT_RATIO = 360. / (7. * 7. * 46./20. * 72./16. * 2048.); // Motor ticks to actual degrees
-    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (49. * 2048.); // Motor ticks to actual inches
-    // Pivot Max Speed ~75 degrees/s
-    // Telescope Max Speed ~17.5 in/s
+    private static final double PIVOT_RATIO = 360. / (5. * 3. * 46./20. * 72./16. * 2048.); // Motor ticks to actual degrees
+    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (7. * 5. * 2048.); // Motor ticks to actual inches
+    // Pivot Max Speed ~230 degrees/s
+    // Telescope Max Speed ~24 in/s
 
     public static final double PIVOT_MIN_ANGLE = -48;
     public static final double PIVOT_MAX_ANGLE = 34;
@@ -158,6 +158,8 @@ public class ClimberArm {
         m_pivot.configForwardSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
         m_telescope.configReverseSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
         m_telescope.configForwardSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MAX_HEIGHT));
+
+        m_pivot.configMotionSCurveStrength(4);
 
         pivotPreferences.registerMotor(m_pivot);
         telescopePreferences.registerMotor(m_telescope);
