@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -29,9 +30,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private CargoSource[] m_sources;
   private Hood m_hood;
   private Turret m_turret;
+  private Drive m_drive;
   private Sensors m_sensors;
   private Boolean m_active = false;
   private int m_cargoWaitCount = 0;
+  private boolean m_sourcesHadCargoLastCheck = false;
+  private long m_lastCargoEnteredShooter = 0;
 
   private static final double FLYWHEEL_RATIO = 1;
 
@@ -56,11 +60,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_flywheelFenderShot = new DoublePreferenceConstant("Shooter Fender Shot", 2100.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed", 5000.0);
-  private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.25);
+  private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.5);
+  private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, Turret turret, CargoSource[] sources, Sensors sensors) {
+  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources, Sensors sensors) {
     m_hood = hood;
+    m_drive = drive;
     m_turret = turret;
     m_sources = sources;
     m_sensors = sensors;
@@ -169,7 +175,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving();
+    return m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving() && m_sensors.limelight.onTarget();
   }
 
   @Override
@@ -180,5 +186,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
     SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
+
+    if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
+      m_lastCargoEnteredShooter = RobotController.getFPGATime();
+    }
+
+    if (m_active && (RobotController.getFPGATime() - m_lastCargoEnteredShooter) <= p_cargoInShooter.getValue() * 1_000_000) {
+      m_drive.lockDrive();
+    } else {
+      m_drive.unlockDrive();
+    }
   }
 }

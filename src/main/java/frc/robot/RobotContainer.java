@@ -41,6 +41,7 @@ import frc.robot.util.controllers.DriverController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
+import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
@@ -66,7 +67,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
   private final Hood m_hood = new Hood(m_sensors);
-  private final Shooter m_shooter = new Shooter(m_hood, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
+  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -312,6 +313,26 @@ public class RobotContainer {
     }
   }
 
+  public void teleopInit() {
+    new InstantCommand(m_shooter::deactivate);
+    
+    if (m_buttonBox.isHoodUpSwitchOn()) {
+      m_hoodUp.schedule();
+    } else {
+      m_hoodDown.schedule();
+    }
+    if (m_buttonBox.isFlywheelSwitchOn()) {
+      m_startFlywheel.schedule();
+    } else {
+      m_stopFlywheel.schedule();
+    }
+    if (m_buttonBox.isTrackTurretSwitchOn()) {
+      m_turret.startTracking();
+    } else {
+      m_turret.stopTracking();
+    }
+  }
+
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
@@ -325,12 +346,9 @@ public class RobotContainer {
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
     m_buttonBox.hoodSwitch.whenPressed(m_hoodUp);
     m_buttonBox.hoodSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
-    m_buttonBox.climbDirectionSwitch.whenPressed(m_hoodUp);
-    m_buttonBox.climbDirectionSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.flywheelSwitch.whenPressed(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
+    m_buttonBox.flywheelSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
