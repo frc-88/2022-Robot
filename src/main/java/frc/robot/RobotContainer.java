@@ -234,6 +234,31 @@ public class RobotContainer {
         )
       );
 
+      private CommandBase m_autoFourBallNoStop = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory()),
+          new SequentialCommandGroup(
+            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
+            new WaitCommand(2.25),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(0.0);}), 
+            new WaitCommand(3.0),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate)
+          )
+        )
+      );
+
+
     private CommandBase setupROSAutonomousCommand(int autoIndex)
     {
       String team_color = getTeamColorName();
@@ -402,6 +427,9 @@ public class RobotContainer {
     SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
     SmartDashboard.putData("Turret Activate Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Deactivate Tracking", new InstantCommand(m_turret::stopTracking));
+    SmartDashboard.putData("Turret Set Motion Offset", new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}));
+    SmartDashboard.putData("Turret Clear Motion Offset", new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(0.0);}));
+
     SmartDashboard.putData("Turret !!Calibrate!!", new TurretCalibrate(m_turret));
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
