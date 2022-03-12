@@ -28,6 +28,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private CargoSource[] m_sources;
   private Hood m_hood;
+  private Turret m_turret;
   private Sensors m_sensors;
   private Boolean m_active = false;
   private int m_cargoWaitCount = 0;
@@ -58,8 +59,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.25);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, CargoSource[] sources, Sensors sensors) {
+  public Shooter(Hood hood, Turret turret, CargoSource[] sources, Sensors sensors) {
     m_hood = hood;
+    m_turret = turret;
     m_sources = sources;
     m_sensors = sensors;
 
@@ -94,7 +96,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (m_sensors.limelight.hasTarget()) {
+    if (!m_turret.isTracking() && sourcesHaveCargo()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
+    } else if (!m_turret.isTracking()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
+    } else if (m_sensors.limelight.hasTarget()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     } else if (!m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
