@@ -46,12 +46,16 @@ public class Navigation extends SubsystemBase {
     return new WaypointsPlan(m_coprocessor);
   }
 
-  private Pose2d getRobotPose() {
+  public Pose2d getRobotPose() {
     return m_coprocessor.getGlobalPose();
   }
 
-  private Pose2d getCenterWaypoint() {
+  public Pose2d getCenterWaypoint() {
     return m_waypointMap.getWaypoint("center");
+  }
+
+  public boolean isPoseValid(Pose2d pose) {
+    return m_waypointMap.isPoseValid(pose);
   }
 
   private Pose2d calculateNearestRingPose(double ringRadius) {
