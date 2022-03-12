@@ -50,9 +50,10 @@ public class RapidReactTrajectories
     TrajectoryConfig config = basicConfig();
 
     ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-66.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(25.7D), Units.feetToMeters(1.3D), Rotation2d.fromDegrees(0.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.0D), Rotation2d.fromDegrees(45.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-114.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(24.5D), Units.feetToMeters(1.3D), Rotation2d.fromDegrees(-180.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.0D), Rotation2d.fromDegrees(135.0D)));
 
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
