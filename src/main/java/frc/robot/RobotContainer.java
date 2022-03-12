@@ -67,7 +67,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6));
   private final Hood m_hood = new Hood(m_sensors);
-  private final Shooter m_shooter = new Shooter(m_hood, m_drive, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
+  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
 
   /////////////////////////////////////////////////////////////////////////////
