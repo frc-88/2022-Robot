@@ -233,6 +233,29 @@ public class RobotContainer {
         )
       );
 
+      private CommandBase m_autoFourBallNoStop = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory()),
+          new SequentialCommandGroup(
+            new WaitCommand(2.25),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            new WaitCommand(3.0),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate)
+          )
+        )
+      );
+
+
     private CommandBase setupROSAutonomousCommand(int autoIndex)
     {
       String team_color = getTeamColorName();
