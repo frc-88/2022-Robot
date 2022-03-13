@@ -352,14 +352,21 @@ public class RobotContainer {
     m_buttonBox.flywheelSwitch.whenReleased(m_stopFlywheel);
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
-    m_buttonBox.prepClimberButton.whenPressed(new ConditionalCommand(
-      new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false), 
+    m_buttonBox.prepClimberButton.whenPressed(new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        new InstantCommand(m_turret::stopTracking),
+        m_hoodDown,
+        m_stopFlywheel
+      ).withInterrupt(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
       new ConditionalCommand(
-        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
-        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false),
-        () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
-      ),
-      () -> m_buttonBox.getClimbBar() == ClimbBar.LOW || m_buttonBox.getClimbBar() == ClimbBar.MID
+        new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false), 
+        new ConditionalCommand(
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false),
+          () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+        ),
+        () -> m_buttonBox.getClimbBar() == ClimbBar.LOW || m_buttonBox.getClimbBar() == ClimbBar.MID
+      )
     ));
     m_buttonBox.raiseClimberButton.whenPressed(new ConditionalCommand(
       new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false), 
@@ -385,8 +392,8 @@ public class RobotContainer {
             () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
           ),
           new ConditionalCommand(
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE, true, m_buttonBox::isCancelClimbPressed),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_REVERSE, true, m_buttonBox::isCancelClimbPressed),
             () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
           ),
           () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
