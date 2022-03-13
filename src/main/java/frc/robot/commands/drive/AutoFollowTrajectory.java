@@ -60,7 +60,7 @@ public class AutoFollowTrajectory extends CommandBase {
       case 1: // reset the timer and go!
         m_timer.start();
         m_state++;
-        // fall through right away to case 4
+        // fall through right away to case 2
       case 2: // follow the trajectory, our final state
         if (m_timer.get() < m_duration) {
           double now = m_timer.get();
@@ -94,6 +94,6 @@ public class AutoFollowTrajectory extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_state > 6;
+    return m_state > 3;
   }
 }
