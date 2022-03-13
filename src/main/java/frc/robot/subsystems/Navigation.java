@@ -54,6 +54,14 @@ public class Navigation extends SubsystemBase {
     return m_waypointMap.getWaypoint("center");
   }
 
+  public Pose2d getWaypoint(String name) {
+    return m_waypointMap.getWaypoint(name);
+  }
+
+  public void setPoseEstimate(Pose2d pose) {
+    m_coprocessor.setPoseEstimate(pose);
+  }
+
   public boolean isPoseValid(Pose2d pose) {
     return m_waypointMap.isPoseValid(pose);
   }
