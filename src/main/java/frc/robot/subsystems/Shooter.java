@@ -44,6 +44,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(85, 2000),
       new ValueInterpolator.ValuePair(106.5, 2050));
 
+  private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
+      new ValueInterpolator.ValuePair(85.5, 2200),
+      new ValueInterpolator.ValuePair(102, 2200),
+      new ValueInterpolator.ValuePair(117, 2250),
+      new ValueInterpolator.ValuePair(134, 2400),
+      new ValueInterpolator.ValuePair(152, 2800),
+      new ValueInterpolator.ValuePair(166, 3100));
+
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(116, 2300),
       new ValueInterpolator.ValuePair(131, 2400),
@@ -113,16 +121,28 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     } else if (!m_active) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
     }
-  }  
+  }
+
+  public void setFlywheelFenderShot() {
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
+  }
 
   private double calcSpeedFromDistance() {
-    return m_sensors.limelight.hasTarget() 
-      ? m_hood.isUp()
-        ? hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS)
-        : hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS)
-      : m_hood.isUp() 
-        ? p_flywheelBlindUp.getValue() 
-        : p_flywheelBlindDown.getValue();
+    if (m_sensors.limelight.hasTarget()) {
+      if (m_hood.isDown()) {
+        return hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+      } else if (m_hood.isUp()) {
+        return hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+      } else {
+        return hoodMidInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+      }
+    } else {
+      if (m_hood.isDown()) {
+        return p_flywheelBlindDown.getValue();
+      } else {
+        return p_flywheelBlindUp.getValue();
+      }
+    }
   }
 
   public boolean onTarget() {
