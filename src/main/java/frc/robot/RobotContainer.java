@@ -539,6 +539,7 @@ public class RobotContainer {
     SmartDashboard.putData("Hood:Raise", m_hoodUp);
     SmartDashboard.putData("Hood:Mid", m_hoodMid);
     SmartDashboard.putData("Hood:Lower", m_hoodDown);
+    SmartDashboard.putData("Hood:Auto", m_hoodAuto);
     SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
     SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
     SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
@@ -579,13 +580,13 @@ public class RobotContainer {
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
     m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
 
-    m_climber.setDefaultCommand( 
-      new SequentialCommandGroup(
-        new RunCommand(m_climber::calibrate, m_climber)
-          .withInterrupt(m_climber::isCalibrated)
-          .withName("calibrateClimber"),
-          new RunCommand(() -> {}, m_climber)
-      ));
+    // m_climber.setDefaultCommand( 
+    //   new SequentialCommandGroup(
+    //     new RunCommand(m_climber::calibrate, m_climber)
+    //       .withInterrupt(m_climber::isCalibrated)
+    //       .withName("calibrateClimber"),
+    //       new RunCommand(() -> {}, m_climber)
+    //   ));
   }
 
   /**
