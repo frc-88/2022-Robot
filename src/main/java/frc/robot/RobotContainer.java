@@ -211,6 +211,25 @@ public class RobotContainer {
         )
       );
 
+      private CommandBase m_autoTwoBallROS = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate),
+            setupROSAutonomousCommand(0)
+          )
+        )
+      );
+
       private CommandBase m_autoFourBall = 
       new SequentialCommandGroup(
         new TiltCameraDown(m_sensors),
@@ -400,6 +419,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto One Ball", m_autoOneBall);
     SmartDashboard.putData("Auto Two Ball Simple", m_autoTwoBallSimple);
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
+    SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
     SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
     SmartDashboard.putData("Auto ROS", m_autoROS);
 
