@@ -223,9 +223,46 @@ public class RobotContainer {
             new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
-            new WaitCommand(2.0),
+            new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            setupROSAutonomousCommand(0)
+            setupROSAutonomousCommand(0),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            setupROSAutonomousCommand(0),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            setupROSAutonomousCommand(0),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate)
+          )
+        )
+      );
+
+      private CommandBase m_autoThreeBall = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateThreeBallTrajectory(), false),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate)
           )
         )
       );
@@ -427,8 +464,10 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Two Ball Simple", m_autoTwoBallSimple);
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
+    SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
     SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
     SmartDashboard.putData("Auto ROS", m_autoROS);
+    SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
     SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateStraightTrajectory(10.0), true));

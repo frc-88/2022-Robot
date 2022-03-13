@@ -28,6 +28,7 @@ public class AutoFollowTrajectory extends CommandBase {
   private Timer m_timer = new Timer();
   private double m_duration;
   private int m_state;
+  private int m_rosCount;
 
   public AutoFollowTrajectory(final Drive drive, final Sensors sensors, Navigation navigation, Trajectory trajectory, boolean resetOdometry) {
     m_drive = drive;
@@ -69,26 +70,35 @@ public class AutoFollowTrajectory extends CommandBase {
             m_state++;
           }
         } else {
-          m_state = 3;
+          m_state = 4;
         }
         break;
       case 2: // Reset the odometry to the starting pose of the Trajectory
         if (m_resetOdometry) {
-          Pose2d pose = m_navigation.getWaypoint("start");
-          if (m_navigation.isPoseValid(pose)) {
-            m_navigation.setPoseEstimate(pose);
-          }
           m_drive.resetOdometry(m_trajectory.getInitialPose(), Rotation2d.fromDegrees(m_sensors.navx.getYaw()));
           m_state++;
         } else {
-          m_state = 3;
+          m_state = 4;
         }
         break;
-      case 3: // reset the timer and go!
+      case 3: // Reset ROS
+        if (m_resetOdometry) {
+          if (m_rosCount++ > 15) {
+            Pose2d pose = m_navigation.getWaypoint("start");
+            if (m_navigation.isPoseValid(pose)) {
+              m_navigation.setPoseEstimate(pose);
+            }
+            m_state++;
+          }
+        } else {
+          m_state = 4;
+        }
+        break;
+        case 4: // reset the timer and go!
         m_timer.start();
         m_state++;
         // fall through right away to case 4
-      case 4: // follow the trajectory, our final state
+      case 5: // follow the trajectory, our final state
         if (m_timer.get() < m_duration) {
           double now = m_timer.get();
           Trajectory.State goal = m_trajectory.sample(now);
@@ -102,7 +112,7 @@ public class AutoFollowTrajectory extends CommandBase {
         }
         break;
 
-      case 5: // keep updateing the odometry until we have stopped
+      case 6: // keep updateing the odometry until we have stopped
         if ((Math.abs(m_drive.getLeftSpeed()) < 0.1) && (Math.abs(m_drive.getRightSpeed()) < 0.1)) {
           m_state++;
         }
@@ -121,6 +131,6 @@ public class AutoFollowTrajectory extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_state > 5;
+    return m_state > 6;
   }
 }
