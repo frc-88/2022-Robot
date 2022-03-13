@@ -59,8 +59,8 @@ public final class Constants {
 	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
 
 	public static final double MAX_TRAJ_VELOCITY = 16.0;
-	public static final double MAX_TRAJ_ACCELERATION = 8.0;
-	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
+	public static final double MAX_TRAJ_ACCELERATION = 6.0;
+	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
 
 	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 5, 4, 18, 120, 240, 150, 210);
 	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 3, 2, 1, 120, 240, 150, 210);

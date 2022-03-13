@@ -202,11 +202,30 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(2.0),
             new InstantCommand(m_shooter::deactivate)
+          )
+        )
+      );
+
+      private CommandBase m_autoTwoBallROS = 
+      new SequentialCommandGroup(
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(2.0),
+            new InstantCommand(m_shooter::deactivate),
+            setupROSAutonomousCommand(0)
           )
         )
       );
@@ -220,12 +239,12 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()),
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory()),
+            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallTrajectory(), false),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(2.0),
@@ -242,7 +261,7 @@ public class RobotContainer {
         new ParallelCommandGroup(
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
-          new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory()),
+          new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallNoStopTrajectory(), true),
           new SequentialCommandGroup(
             new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
             new WaitCommand(2.25),
@@ -258,19 +277,12 @@ public class RobotContainer {
         )
       );
 
-
     private CommandBase setupROSAutonomousCommand(int autoIndex)
     {
-      String team_color = getTeamColorName();
-  
       WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
-      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_a"));
-      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_point_b"));
-      autoPlan.addWaypoint(new Waypoint(team_color + "_" + autoIndex + "_end"));
       autoPlan.addWaypoint(new Waypoint(getGameObjectName()));
   
       return new SequentialCommandGroup(
-        // new DriveDistanceMeters(m_drive, 0.5, 0.5),
         new DriveWithWaypointsPlan(m_nav, m_drive, autoPlan)
       );
     }
@@ -288,6 +300,7 @@ public class RobotContainer {
       }
     }
   
+    private CommandBase m_autoROS = setupROSAutonomousCommand(0);
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -410,15 +423,17 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("One Ball", m_autoOneBall);
-    SmartDashboard.putData("Two Ball Simple", m_autoTwoBallSimple);
-    SmartDashboard.putData("Two Ball", m_autoTwoBall);
-    SmartDashboard.putData("Four Ball", m_autoFourBall);
+    SmartDashboard.putData("Auto One Ball", m_autoOneBall);
+    SmartDashboard.putData("Auto Two Ball Simple", m_autoTwoBallSimple);
+    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
+    SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
+    SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
+    SmartDashboard.putData("Auto ROS", m_autoROS);
 
     // Trajectory testing
-    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0)));
-    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory()));
-    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory()));
+    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
+    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true));
+    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallTrajectory(), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
