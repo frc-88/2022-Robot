@@ -26,6 +26,7 @@ public class Hood extends SubsystemBase {
   private static final double HOOD_RATIO = 20;
   private static final double HOOD_LOWERED = 0.0;
   private static final double HOOD_RAISED = 27.0;
+  private static final double HOOD_MID = 15.;
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
   private static final double HOOD_CALIBRATION_COLLECT_SIZE = 25;
   private static final double HOOD_CALIBRATION_TOLERANCE = 0.5;
@@ -38,6 +39,8 @@ public class Hood extends SubsystemBase {
     CALIBRATING,
     RAISING,
     RAISED,
+    MIDING,
+    MIDED,
     LOWERING,
     LOWERED
   }
@@ -52,7 +55,8 @@ public class Hood extends SubsystemBase {
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
   private DoublePreferenceConstant p_hoodArbitraryF = new DoublePreferenceConstant("Hood Arbitrary F", 0.0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
-  private DoublePreferenceConstant p_hoodUpDistance = new DoublePreferenceConstant("Hood Up Distance", 80.0);
+  private DoublePreferenceConstant p_hoodMidDistance = new DoublePreferenceConstant("Hood Mid Distance", 80.);
+  private DoublePreferenceConstant p_hoodUpDistance = new DoublePreferenceConstant("Hood Up Distance", 110.);
 
   public Hood(Sensors sensors) {
     m_sensors = sensors;
@@ -87,11 +91,22 @@ public class Hood extends SubsystemBase {
 
   public void hoodAuto() {
     if (m_sensors.limelight.hasTarget()) {
-      if (m_sensors.limelight.calcDistanceToTarget() < p_hoodUpDistance.getValue()) {
+      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodMidDistance.getValue() - 12) {
         lowerHood();
-      } else {
+      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodUpDistance.getValue() + 12) {
         raiseHood();
+      } else if (((m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodMidDistance.getValue() + 12)
+            || ((m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodUpDistance.getValue() - 12)) {
+        midHood();
+      } else if (m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) {
+        raiseHood();
+      } else if (m_hoodState == HoodState.MIDING || m_hoodState == HoodState.MIDED) {
+        midHood();
+      } else {
+        lowerHood();
       }
+    } else {
+      lowerHood();
     }
   }
 
@@ -119,6 +134,8 @@ public class Hood extends SubsystemBase {
 
       case LOWERING:
       case LOWERED:
+      case MIDING:
+      case MIDED:
       case RAISING:
         setHoodMotionMagic(HOOD_RAISED);
 
@@ -161,6 +178,8 @@ public class Hood extends SubsystemBase {
       case LOWERING:
       case RAISING:
       case RAISED:
+      case MIDING:
+      case MIDED:
         setHoodMotionMagic(HOOD_LOWERED);
 
         if (Math.abs(HOOD_LOWERED - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
@@ -177,6 +196,22 @@ public class Hood extends SubsystemBase {
     }
   }
 
+  public void midHood() {
+    if (m_hoodState == HoodState.CALIBRATING) {
+      lowerHood();
+      return;
+    }
+
+    setHoodMotionMagic(HOOD_MID);
+    if (Math.abs(HOOD_MID - getHoodPosition()) <= HOOD_SETPOINT_TOLERANCE) {
+      m_hoodState = HoodState.MIDED;
+    } else {
+      m_hoodState = HoodState.MIDING;
+    }
+  }
+
+  
+
   public boolean isUp() {
     return m_hoodState == HoodState.RAISED;
   }
@@ -185,8 +220,12 @@ public class Hood extends SubsystemBase {
     return m_hoodState == HoodState.LOWERED;
   }
 
+  public boolean isMid() {
+    return m_hoodState == HoodState.MIDED;
+  }
+
   public boolean isMoving() {
-    return (m_hoodState != HoodState.RAISED && m_hoodState != HoodState.LOWERED);
+    return (m_hoodState != HoodState.RAISED && m_hoodState != HoodState.LOWERED && m_hoodState != HoodState.MIDED);
   }
 
   public void setHoodPercentOut(int direction) {

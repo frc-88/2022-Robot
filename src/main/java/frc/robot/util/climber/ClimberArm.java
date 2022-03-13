@@ -45,7 +45,7 @@ public class ClimberArm {
     public static final double PIVOT_MIN_ANGLE = -48;
     public static final double PIVOT_MAX_ANGLE = 34;
     public static final double TELESCOPE_MIN_HEIGHT = 27;
-    public static final double TELESCOPE_MAX_HEIGHT = 55.1;
+    public static final double TELESCOPE_MAX_HEIGHT = 57;
 
     private static final Vector2D PIVOT_LOCATION = Vector2D.createCartesianCoordinates(0, 13.123);
     private static final Vector2D HOOK_TOP_CENTER = Vector2D.createCartesianCoordinates(1.773, 0.754);
