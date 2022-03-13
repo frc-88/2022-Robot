@@ -32,6 +32,7 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.drive.DriveConfiguration;
+import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.drive.Shifter.Gear;
@@ -65,6 +66,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
   private Pose2d m_pose;
+  private Pose2d m_traj_reset_pose;
+  private Pose2d m_traj_offset;
 
   private PIDPreferenceConstants velPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
@@ -436,8 +439,15 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_odometry.resetPosition(startPose, startGyro);
   }
 
+  public void resetTrajectoryPose(Pose2d startPose) {
+    m_traj_reset_pose = m_odometry.getPoseMeters();
+    m_traj_offset = startPose;
+  }
+
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    Pose2d odom_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    Pose2d reset_relative_pose = odom_pose.relativeTo(m_traj_reset_pose);
+    m_pose = DriveUtils.relativeToReverse(reset_relative_pose, m_traj_offset);
   }
 
   @Override
@@ -513,7 +523,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public void resetPosition(Pose2d pose) {
-    zeroDrive();  // TODO: is it ok to set the encoders to zero for a non zero pose?
+    zeroDrive();
     resetOdometry(pose, pose.getRotation());
   }
 
