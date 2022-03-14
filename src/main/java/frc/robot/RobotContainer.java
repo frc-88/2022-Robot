@@ -47,6 +47,7 @@ import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
+import frc.robot.commands.autos.TurretTrackWithGlobalPose;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -356,7 +357,7 @@ public class RobotContainer {
   }
 
   private void configurePeriodics(Robot robot) {
-    robot.addPeriodic(m_ros_interface::update, 1.0 / 60.0, 0.01);
+    robot.addPeriodic(m_ros_interface::update, 1.0 / 30.0, 0.01);
   }
   
   public void disabledPeriodic() {
@@ -512,11 +513,11 @@ public class RobotContainer {
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController2));
     SmartDashboard.putData("Turret Motion Magic Control",new TurretMotionMagicJoystick(m_turret, m_testController2));
-    SmartDashboard.putData("Turret Go To 180", new InstantCommand(() -> {m_turret.goToFacing(180);}, m_turret));
-    SmartDashboard.putData("Turret Go To 45", new InstantCommand(() -> {m_turret.goToFacing(45);}, m_turret));
-    SmartDashboard.putData("Turret Go To 0", new InstantCommand(() -> {m_turret.goToFacing(0);}, m_turret));
-    SmartDashboard.putData("Turret Go To -45", new InstantCommand(() -> {m_turret.goToFacing(-45);}, m_turret));
-    SmartDashboard.putData("Turret Go To -180", new InstantCommand(() -> {m_turret.goToFacing(-180);}, m_turret));
+    SmartDashboard.putData("Turret Go To 180", new RunCommand(() -> {m_turret.goToFacing(180);}, m_turret));
+    SmartDashboard.putData("Turret Go To 45", new RunCommand(() -> {m_turret.goToFacing(45);}, m_turret));
+    SmartDashboard.putData("Turret Go To 0", new RunCommand(() -> {m_turret.goToFacing(0);}, m_turret));
+    SmartDashboard.putData("Turret Go To -45", new RunCommand(() -> {m_turret.goToFacing(-45);}, m_turret));
+    SmartDashboard.putData("Turret Go To -180", new RunCommand(() -> {m_turret.goToFacing(-180);}, m_turret));
     
     SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
     SmartDashboard.putData("Turret Activate Tracking", new InstantCommand(m_turret::startTracking));
@@ -577,15 +578,16 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackWithGlobalPose(m_turret, m_nav, "center"));
 
-    m_climber.setDefaultCommand( 
-      new SequentialCommandGroup(
-        new RunCommand(m_climber::calibrate, m_climber)
-          .withInterrupt(m_climber::isCalibrated)
-          .withName("calibrateClimber"),
-          new RunCommand(() -> {}, m_climber)
-      ));
+    // m_climber.setDefaultCommand( 
+    //   new SequentialCommandGroup(
+    //     new RunCommand(m_climber::calibrate, m_climber)
+    //       .withInterrupt(m_climber::isCalibrated)
+    //       .withName("calibrateClimber"),
+    //       new RunCommand(() -> {}, m_climber)
+    //   ));
   }
 
   /**

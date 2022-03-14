@@ -5,6 +5,7 @@
 package frc.robot.commands.autos;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Navigation;
@@ -13,11 +14,13 @@ import frc.robot.subsystems.Turret;
 public class TurretTrackWithGlobalPose extends CommandBase {
   private Turret m_turret;
   private final Navigation m_nav;
+  private final String m_waypointName;
   
   /** Creates a new TurretTrackWithGlobalPose. */
-  public TurretTrackWithGlobalPose(Turret turret, Navigation nav) {
+  public TurretTrackWithGlobalPose(Turret turret, Navigation nav, String waypointName) {
     m_turret = turret;
     m_nav = nav;
+    m_waypointName = waypointName;
 
     addRequirements(turret);
     addRequirements(nav);
@@ -32,17 +35,23 @@ public class TurretTrackWithGlobalPose extends CommandBase {
   @Override
   public void execute() {
     if (!m_turret.isTracking()) {
+      m_turret.goToFacing(0.0);
       return;
     }
-    Pose2d target_map = m_nav.getCenterWaypoint();
+    Pose2d target_map = m_nav.getWaypoint(m_waypointName);
+    SmartDashboard.putBoolean("Turret:Is target valid", m_nav.isPoseValid(target_map));
     if (!m_nav.isPoseValid(target_map)) {
+      m_turret.goToFacing(0.0);
       return;
     }
     Pose2d robot_pose = m_nav.getRobotPose();
-    Pose2d target_base_link = target_map.relativeTo(robot_pose);
-    double target_angle = Math.toDegrees(Math.atan2(target_base_link.getY(), target_base_link.getX()));
-    SmartDashboard.putNumber("Turret:Track Target", target_angle);
-    m_turret.goToFacing(target_angle);
+    Translation2d target_base_link = robot_pose.getTranslation().minus(target_map.getTranslation());
+    double target_global_angle = Math.atan2(target_base_link.getY(), target_base_link.getX());
+    double target_angle = target_global_angle - robot_pose.getRotation().getRadians();
+    SmartDashboard.putNumber("Turret:Track Target", Math.toDegrees(target_angle));
+    SmartDashboard.putNumber("Turret:Target X", target_base_link.getX());
+    SmartDashboard.putNumber("Turret:Target Y", target_base_link.getY());
+    m_turret.goToFacing(Math.toDegrees(target_angle));
   }
 
   // Called once the command ends or is interrupted.
