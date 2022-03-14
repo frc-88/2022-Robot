@@ -170,7 +170,8 @@ public class RobotContainer {
 
   private CommandBase m_autoOneBall = 
     new SequentialCommandGroup(
-        new TiltCameraDown(m_sensors),
+      new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
+      new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
         new ParallelCommandGroup(
@@ -186,6 +187,7 @@ public class RobotContainer {
 
     private CommandBase m_autoTwoBallSimple = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
@@ -202,6 +204,7 @@ public class RobotContainer {
 
       private CommandBase m_autoTwoBall = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
@@ -220,10 +223,10 @@ public class RobotContainer {
 
       private CommandBase m_autoTwoBallROS = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
-        new SetGlobalPoseToWaypoint(m_nav, "start"),
         new ParallelCommandGroup(
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
@@ -231,29 +234,17 @@ public class RobotContainer {
             new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
+            new WaitCommand(0.5),
             new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
             new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
-            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate)
+            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName()))
           )
         )
       );
 
       private CommandBase m_autoThreeBall = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
@@ -277,6 +268,7 @@ public class RobotContainer {
 
       private CommandBase m_autoFourBall = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
@@ -300,6 +292,7 @@ public class RobotContainer {
 
       private CommandBase m_autoFourBallNoStop = 
       new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
@@ -522,6 +515,14 @@ public class RobotContainer {
     SmartDashboard.putData("Turret !!Calibrate!!", new TurretCalibrate(m_turret));
     SmartDashboard.putData("Turret Sync", new InstantCommand(m_turret::sync, m_turret));
 
+    // Camera tilter test commands
+    SmartDashboard.putData("Camera go to level", new RunCommand(() -> {m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_LEVEL_ANGLE);}, m_sensors));
+    SmartDashboard.putData("Camera go to down", new RunCommand(() -> {m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);}, m_sensors));
+    SmartDashboard.putData("Camera go to up", new RunCommand(() -> {m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_UP_ANGLE);}, m_sensors));
+    SmartDashboard.putData("Camera go to 0.0", new RunCommand(() -> {m_sensors.setCameraTilterAngle(0.0);}, m_sensors));
+    SmartDashboard.putData("Camera go to 180.0", new RunCommand(() -> {m_sensors.setCameraTilterAngle(180.0);}, m_sensors));
+    SmartDashboard.putData("Camera go to 90.0", new RunCommand(() -> {m_sensors.setCameraTilterAngle(90.0);}, m_sensors));
+
     // Shooter testing commands
     SmartDashboard.putData("Shooter:Flywheel:RunRaw", new InstantCommand(() -> {m_shooter.setFlywheelRaw(new DoublePreferenceConstant("Shooter Test Output", 0.0).getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:StopRaw", new InstantCommand(() -> {m_shooter.setFlywheelRaw(0.0);}, m_shooter));
@@ -576,13 +577,13 @@ public class RobotContainer {
     // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
     m_turret.setDefaultCommand(new TurretTrackWithGlobalPose(m_turret, m_nav, "center"));
 
-    // m_climber.setDefaultCommand( 
-    //   new SequentialCommandGroup(
-    //     new RunCommand(m_climber::calibrate, m_climber)
-    //       .withInterrupt(m_climber::isCalibrated)
-    //       .withName("calibrateClimber"),
-    //       new RunCommand(() -> {}, m_climber)
-    //   ));
+    m_climber.setDefaultCommand(
+      new SequentialCommandGroup(
+        new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .withName("calibrateClimber"),
+          new RunCommand(() -> {}, m_climber)
+      ));
   }
 
   /**
