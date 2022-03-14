@@ -91,12 +91,12 @@ public class Hood extends SubsystemBase {
 
   public void hoodAuto() {
     if (m_sensors.limelight.hasTarget()) {
-      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodMidDistance.getValue() - 12) {
+      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodMidDistance.getValue() - 6) {
         lowerHood();
-      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodUpDistance.getValue() + 12) {
+      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodUpDistance.getValue() + 6) {
         raiseHood();
-      } else if (((m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodMidDistance.getValue() + 12)
-            || ((m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodUpDistance.getValue() - 12)) {
+      } else if (((m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && m_sensors.limelight.calcDistanceToTarget() > p_hoodMidDistance.getValue() + 6)
+            || ((m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && m_sensors.limelight.calcDistanceToTarget() < p_hoodUpDistance.getValue() - 6)) {
         midHood();
       } else if (m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) {
         raiseHood();

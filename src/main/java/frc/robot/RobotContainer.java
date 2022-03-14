@@ -540,6 +540,7 @@ public class RobotContainer {
     SmartDashboard.putData("Hood:Raise", m_hoodUp);
     SmartDashboard.putData("Hood:Mid", m_hoodMid);
     SmartDashboard.putData("Hood:Lower", m_hoodDown);
+    SmartDashboard.putData("Hood:Auto", m_hoodAuto);
     SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
     SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
     SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
