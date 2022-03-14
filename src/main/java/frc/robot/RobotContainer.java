@@ -48,6 +48,7 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
 import frc.robot.commands.autos.TurretTrackWithGlobalPose;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -208,7 +209,7 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(2.0),
@@ -222,26 +223,27 @@ public class RobotContainer {
         new TiltCameraDown(m_sensors),
         new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
         new InstantCommand(m_turret::startTracking),
+        new SetGlobalPoseToWaypoint(m_nav, "start"),
         new ParallelCommandGroup(
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            setupROSAutonomousCommand(0),
+            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
             new WaitCommand(2.0),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            setupROSAutonomousCommand(0),
+            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
             new WaitCommand(2.0),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            setupROSAutonomousCommand(0),
+            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
             new WaitCommand(2.0),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
@@ -259,12 +261,12 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateThreeBallTrajectory(), false),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateThreeBallTrajectory(), false),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
@@ -282,12 +284,12 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
           new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(1.0),
             new InstantCommand(m_shooter::deactivate),
-            new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallTrajectory(), false),
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory(), false),
             new WaitCommand(0.5),
             new InstantCommand(m_shooter::activate),
             new WaitCommand(2.0),
@@ -304,7 +306,7 @@ public class RobotContainer {
         new ParallelCommandGroup(
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
           new RunCommand(m_hood::raiseHood, m_hood),
-          new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallNoStopTrajectory(), true),
+          new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory(), true),
           new SequentialCommandGroup(
             new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
             new WaitCommand(2.25),
@@ -320,14 +322,10 @@ public class RobotContainer {
         )
       );
 
-    private CommandBase setupROSAutonomousCommand(int autoIndex)
-    {
+    private WaypointsPlan getSingleWaypointPlan(String waypointName) {
       WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
-      autoPlan.addWaypoint(new Waypoint(getGameObjectName()));
-  
-      return new SequentialCommandGroup(
-        new DriveWithWaypointsPlan(m_nav, m_drive, autoPlan)
-      );
+      autoPlan.addWaypoint(new Waypoint(waypointName));
+      return autoPlan;
     }
 
     public String getGameObjectName() {
@@ -343,8 +341,6 @@ public class RobotContainer {
       }
     }
   
-    private CommandBase m_autoROS = setupROSAutonomousCommand(0);
-
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
@@ -364,7 +360,6 @@ public class RobotContainer {
     SmartDashboard.putString("Auto", m_autoCommand.toString());
 
     if (m_buttonBox.isShootButtonPressed()) {
-      // m_autoCommand = setupROSAutonomousCommand();
       m_autoCommand = m_autoOneBall;
     }
   }
@@ -484,13 +479,12 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
     SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
     SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
-    SmartDashboard.putData("Auto ROS", m_autoROS);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
-    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateTwoBallTrajectory(), true));
-    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, m_nav, RapidReactTrajectories.generateFourBallTrajectory(), true));
+    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
+    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true));
+    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory(), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
