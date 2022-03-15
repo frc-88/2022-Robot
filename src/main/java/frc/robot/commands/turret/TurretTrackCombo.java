@@ -4,10 +4,9 @@
 
 package frc.robot.commands.turret;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.sensors.Limelight;
@@ -16,13 +15,11 @@ public class TurretTrackCombo extends CommandBase {
   private Turret m_turret;
   private final Navigation m_nav;
   private Limelight m_limelight;
-  private final String m_waypointName;
   
   /** Creates a new TurretTrackWithGlobalPose. */
-  public TurretTrackCombo(Turret turret, Navigation nav, Limelight limelight, String waypointName) {
+  public TurretTrackCombo(Turret turret, Navigation nav, Limelight limelight) {
     m_turret = turret;
     m_nav = nav;
-    m_waypointName = waypointName;
     m_limelight = limelight;
 
     addRequirements(turret);
@@ -45,48 +42,9 @@ public class TurretTrackCombo extends CommandBase {
     
     m_limelight.ledOn();
 
-    double limelight_target = Double.NaN;
-    if (m_limelight.onTarget()) {
-      // keep on same target
-      limelight_target = m_turret.getFacing();
-    }
-    else if (m_limelight.hasTarget()) {
-      // if we have a target, track it
-      limelight_target = m_turret.getFacing() - m_limelight.calcTurretOffset();
-    }
+    Pair<Double, Double> turret_target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME, m_limelight, m_turret);
 
-    Pose2d target_map = m_nav.getWaypoint(m_waypointName);
-    SmartDashboard.putBoolean("Turret:Is target valid", m_nav.isPoseValid(target_map));
-    if (!m_nav.isPoseValid(target_map)) {
-      m_turret.goToFacing(0.0);
-      return;
-    }
-    Pose2d robot_pose = m_nav.getRobotPose();
-    Translation2d robot_relative_to_target = robot_pose.getTranslation().minus(target_map.getTranslation());
-    double target_global_angle = Math.atan2(robot_relative_to_target.getY(), robot_relative_to_target.getX());
-    double waypoint_target_angle = target_global_angle - robot_pose.getRotation().getRadians();
-    waypoint_target_angle = Math.toDegrees(waypoint_target_angle);
-    waypoint_target_angle = waypoint_target_angle % 360.0;
-    
-    double turret_target = 0.0;
-    if (Double.isNaN(limelight_target)) {
-      turret_target = waypoint_target_angle;
-    }
-    else {
-      double limelight_global_delta = Math.abs((limelight_target % 360) - waypoint_target_angle);
-      if (limelight_global_delta > 45.0) {
-        turret_target = waypoint_target_angle;
-      }
-      else {
-        turret_target = limelight_target;
-      }
-    }
-
-    SmartDashboard.putNumber("Turret:Waypoint target", waypoint_target_angle);
-    SmartDashboard.putNumber("Turret:Limelight target", limelight_target);
-    SmartDashboard.putNumber("Turret:Track Target", turret_target);
-
-    m_turret.goToFacing(Math.toDegrees(turret_target));
+    m_turret.goToFacing(turret_target.getSecond());
   }
 
   // Called once the command ends or is interrupted.

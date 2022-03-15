@@ -18,7 +18,9 @@ import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.turret.TurretCalibrate;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
-import frc.robot.commands.turret.TurretTrack;
+import frc.robot.commands.turret.TurretTrackLimelight;
+import frc.robot.commands.turret.TurretTrackWithGlobalPose;
+import frc.robot.commands.turret.TurretTrackCombo;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
@@ -43,7 +45,6 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.Autonomous;
-import frc.robot.commands.autos.TurretTrackWithGlobalPose;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -63,8 +64,12 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3), new DoublePreferenceConstant("Centralizer:Idle", 0.0));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6), new DoublePreferenceConstant("Chamber:Idle", -0.1));
   private final Hood m_hood = new Hood(m_sensors);
-  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
+    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
+  );
+  private final Navigation m_nav = new Navigation(m_ros_interface);
+  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
@@ -74,13 +79,6 @@ public class RobotContainer {
   private final XboxController m_testController = new XboxController(Constants.TEST_CONTROLLER_ID);
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
-  /////////////////////////////////////////////////////////////////////////////
-  //                                 ROS                                     //
-  /////////////////////////////////////////////////////////////////////////////
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, "10.0.88.44", 5800, 0.01,
-    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
-  );
-  private final Navigation m_nav = new Navigation(m_ros_interface);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -172,7 +170,7 @@ public class RobotContainer {
   }
 
   private void configurePeriodics(Robot robot) {
-    robot.addPeriodic(m_ros_interface::update, 1.0 / 30.0, 0.01);
+    robot.addPeriodic(m_ros_interface::update, Constants.COPROCESSOR_PERIODIC_UPDATE_DELAY, Constants.COPROCESSOR_PERIODIC_UPDATE_OFFSET);
   }
   
   public void disabledPeriodic() {
@@ -332,7 +330,7 @@ public class RobotContainer {
     SmartDashboard.putData("Turret Go To -45", new RunCommand(() -> {m_turret.goToFacing(-45);}, m_turret));
     SmartDashboard.putData("Turret Go To -180", new RunCommand(() -> {m_turret.goToFacing(-180);}, m_turret));
     
-    SmartDashboard.putData("Turret Track", new TurretTrack(m_turret, m_sensors.limelight));
+    SmartDashboard.putData("Turret Track", new TurretTrackLimelight(m_turret, m_sensors.limelight));
     SmartDashboard.putData("Turret Activate Tracking", new InstantCommand(m_turret::startTracking));
     SmartDashboard.putData("Turret Deactivate Tracking", new InstantCommand(m_turret::stopTracking));
     SmartDashboard.putData("Turret Set Motion Offset", new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}));
@@ -400,8 +398,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrack(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackWithGlobalPose(m_turret, m_nav, "center"));
+    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

@@ -9,10 +9,13 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.commands.turret.TurretTargetResolver;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.ValueInterpolator;
@@ -32,6 +35,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Turret m_turret;
   private Drive m_drive;
   private Sensors m_sensors;
+  private Navigation m_nav;
   private Boolean m_active = false;
   private int m_cargoWaitCount = 0;
   private boolean m_sourcesHadCargoLastCheck = false;
@@ -67,17 +71,19 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1300.0);
   private DoublePreferenceConstant p_flywheelFenderShot = new DoublePreferenceConstant("Shooter Fender Shot", 2100.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
-  private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed", 5000.0);
+  private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed",
+      5000.0);
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.5);
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources, Sensors sensors) {
+  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources, Sensors sensors, Navigation nav) {
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
     m_sources = sources;
     m_sensors = sensors;
+    m_nav = nav;
 
     configureFlywheel();
 
@@ -114,12 +120,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
     } else if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
-    } else if (m_sensors.limelight.hasTarget()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     } else if (!m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
     } else if (!m_active) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     }
   }
 
@@ -128,13 +134,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private double calcSpeedFromDistance() {
-    if (m_sensors.limelight.hasTarget()) {
+    Pair<Double, Double> target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME,
+        m_sensors.limelight, m_turret);
+    double target_dist = Units.metersToInches(target.getFirst());
+    if (target_dist > 0.0) {
       if (m_hood.isDown()) {
-        return hoodDownInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+        return hoodDownInterpolator.getInterpolatedValue(target_dist);
       } else if (m_hood.isUp()) {
-        return hoodUpInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+        return hoodUpInterpolator.getInterpolatedValue(target_dist);
       } else {
-        return hoodMidInterpolator.getInterpolatedValue(m_sensors.limelight.calcDistanceToTarget() + Constants.FIELD_UPPER_HUB_RADIUS);
+        return hoodMidInterpolator.getInterpolatedValue(target_dist);
       }
     } else {
       if (m_hood.isDown()) {
@@ -184,7 +193,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       m_cargoWaitCount = 0;
     }
 
-
     return ready;
   }
 
@@ -211,7 +219,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
-    if (m_active && (RobotController.getFPGATime() - m_lastCargoEnteredShooter) <= p_cargoInShooter.getValue() * 1_000_000) {
+    if (m_active
+        && (RobotController.getFPGATime() - m_lastCargoEnteredShooter) <= p_cargoInShooter.getValue() * 1_000_000) {
       m_drive.lockDrive();
     } else {
       m_drive.unlockDrive();

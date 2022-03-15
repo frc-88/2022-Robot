@@ -19,7 +19,7 @@ import frc.robot.util.coprocessortable.VelocityCommand;
 public class Navigation extends SubsystemBase {
   private final WaypointMap m_waypointMap = new WaypointMap();
   private final CoprocessorTable m_coprocessor;
-  private final String m_centerWaypoint = "center";
+  public static final String CENTER_WAYPOINT_NAME = "center";
 
   public static enum RosAutoState {
     SEND_PLAN, WAIT_FOR_RUNNING, WAIT_FOR_FINISHED, FINISHED
@@ -56,7 +56,7 @@ public class Navigation extends SubsystemBase {
   }
 
   public Pose2d getCenterWaypoint() {
-    return getWaypoint(m_centerWaypoint);
+    return getWaypoint(CENTER_WAYPOINT_NAME);
   }
 
   public void setPoseEstimate(Pose2d pose) {
