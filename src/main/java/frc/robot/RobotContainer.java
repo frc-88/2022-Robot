@@ -288,7 +288,6 @@ public class RobotContainer {
 
   private void configureDashboardCommands() {
     // Drive testing commands
-    SmartDashboard.putData("Drive forwards", new ArcadeDrive(m_drive, () -> 5, () -> 0, () -> m_drive.shiftToLow(), () -> Constants.MAX_SPEED_LOW));
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
@@ -302,9 +301,9 @@ public class RobotContainer {
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
-    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true));
-    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory(), true));
+    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
+    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateTwoBallTrajectory(), true));
+    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFourBallTrajectory(), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);

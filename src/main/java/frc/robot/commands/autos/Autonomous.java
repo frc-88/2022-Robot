@@ -79,7 +79,7 @@ public class Autonomous {
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
             new SequentialCommandGroup(
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                 new WaitCommand(0.5),
                 generateShootCmd(shooter)
             )
@@ -90,7 +90,7 @@ public class Autonomous {
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
             new SequentialCommandGroup(
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                 new WaitCommand(0.5),
                 new InstantCommand(shooter::activate),
                 new WaitCommand(0.5),
@@ -105,10 +105,10 @@ public class Autonomous {
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
             new SequentialCommandGroup(
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                 new WaitCommand(0.5),
                 generateShootCmd(shooter),
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateThreeBallTrajectory(), false),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateThreeBallTrajectory(), false),
                 new WaitCommand(0.5),
                 generateShootCmd(shooter)
             )
@@ -119,7 +119,7 @@ public class Autonomous {
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
             new SequentialCommandGroup(
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                 new WaitCommand(0.5),
                 generateShootCmd(shooter),
                 new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D))),
@@ -133,7 +133,7 @@ public class Autonomous {
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
             new SequentialCommandGroup(
-                new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                 new WaitCommand(0.5),
                 generateShootCmd(shooter),
                 new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto 4 X", 5.5).getValue()), 
@@ -149,7 +149,7 @@ public class Autonomous {
         Trajectory trajectory = RapidReactTrajectories.generateFourBallNoStopTrajectory();
         return new ParallelCommandGroup(
             generatePrepareCmd(nav, sensors, shooter, turret, intake, hood, true),
-            new AutoFollowTrajectory(drive, sensors, trajectory, true),
+            new AutoFollowTrajectory(drive, trajectory, true),
             new SequentialCommandGroup(
                 new InstantCommand(() -> {sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
                 new WaitCommand(new DoublePreferenceConstant("Auto 4X Shot Delay", 2.25).getValue()),

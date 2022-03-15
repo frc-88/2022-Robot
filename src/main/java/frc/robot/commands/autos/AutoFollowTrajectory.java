@@ -6,18 +6,15 @@ package frc.robot.commands.autos;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.controller.RamseteController;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Sensors;
 
 public class AutoFollowTrajectory extends CommandBase {
   private Drive m_drive;
-  private Sensors m_sensors;
   private Trajectory m_trajectory;
   private boolean m_resetOdometry;
   private RamseteController m_controller = new RamseteController();
@@ -25,9 +22,8 @@ public class AutoFollowTrajectory extends CommandBase {
   private double m_duration;
   private int m_state;
 
-  public AutoFollowTrajectory(final Drive drive, final Sensors sensors, Trajectory trajectory, boolean resetOdometry) {
+  public AutoFollowTrajectory(final Drive drive, Trajectory trajectory, boolean resetOdometry) {
     m_drive = drive;
-    m_sensors = sensors;
     m_resetOdometry = resetOdometry;
     m_trajectory = trajectory;
     m_duration = m_trajectory.getTotalTimeSeconds();
