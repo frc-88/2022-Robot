@@ -12,7 +12,9 @@ import frc.robot.util.sensors.Limelight;
 
 public class TurretTargetResolver {
     private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 45.0;
+    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 0.0;  // always use waypoint for angle targeting if waypoint is valid
     private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = 3.0;
+    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = 0.0;  // always use waypoint for distance targeting if waypoint is valid
 
     private static Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
         double angle = Double.NaN;
@@ -24,7 +26,7 @@ public class TurretTargetResolver {
             angle = turret.getFacing() - limelight.calcTurretOffset();
         }
         double distance = limelight.calcDistanceToTarget();
-        if (distance == 0.0) {
+        if (distance <= 0.0) {
             distance = Double.NaN;
         }
         else {
@@ -37,7 +39,7 @@ public class TurretTargetResolver {
 
     private static Pair<Double, Double> getWaypointTarget(Navigation nav, String waypointName) {
         Pose2d target_map = nav.getWaypoint(waypointName);
-        SmartDashboard.putBoolean("Turret:Is target valid", nav.isPoseValid(target_map));
+        SmartDashboard.putBoolean("Turret:Is waypoint target valid", nav.isPoseValid(target_map));
         if (!nav.isPoseValid(target_map)) {
             return new Pair<Double, Double>(Double.NaN, Double.NaN);
         }
@@ -54,6 +56,12 @@ public class TurretTargetResolver {
         return new Pair<Double, Double>(waypoint_target_distance, waypoint_target_angle);
     }
 
+    /**
+     * Get the turret angle and shooter distance
+     * @return a Pair containing the shooter distance (meters) and turret angle (degrees) in that order.
+     *         0.0 for the shooter distance indicates no target. Shoot blindly
+     *         0.0 for the turret angle indicates no target. Return to the zero position
+     */
     public static Pair<Double, Double> getTurretTarget(Navigation nav, String waypointName, Limelight limelight, Turret turret) {
         double turret_target_angle = 0.0;
         double turret_target_dist = Double.NaN;
@@ -67,20 +75,30 @@ public class TurretTargetResolver {
         double waypoint_target_angle = waypoint_target.getSecond();
 
         if (Double.isNaN(limelight_target_angle) && Double.isNaN(waypoint_target_angle)) {
+            // If neither the limelight or waypoint have valid targets, tell the turret to return to zero
             turret_target_angle = 0.0;
+            turret_target_dist = 0.0;
         }
         else if (Double.isNaN(limelight_target_angle)) {
+            // If the limelight doesn't have a target, use the waypoint angle and distance
             turret_target_angle = waypoint_target_angle;
+            turret_target_dist = waypoint_target_dist;
         }
         else if (Double.isNaN(waypoint_target_angle)) {
+            // If the waypoint doesn't have a target, use the limelight angle and distance
             turret_target_angle = limelight_target_angle;
+            turret_target_dist = limelight_target_dist;
         }
         else {
+            // If both the limelight and waypoint have a target,
             double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
-            if (LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES == 0.0 || limelight_global_delta > 45.0) {
+            SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
+            if (LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES == 0.0 || limelight_global_delta > LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
+                // if the limelight and waypoint target are not within a threshold of agreement, use the waypoint's target value
                 turret_target_angle = waypoint_target_angle;
-                turret_target_dist = waypoint_target_dist;  // use waypoint distance if the limelight is out of agreement
+                turret_target_dist = waypoint_target_dist;
             } else {
+                // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
                 turret_target_angle = limelight_target_angle;
             }
         }
@@ -90,20 +108,28 @@ public class TurretTargetResolver {
         SmartDashboard.putNumber("Turret:Track target angle (degrees)", turret_target_angle);
 
         if (Double.isNaN(turret_target_dist)) {
+            // If the target distance hasn't been set yet,
             if (Double.isNaN(limelight_target_dist) && Double.isNaN(waypoint_target_dist)) {
+                // If neither the limelight or waypoint have valid targets, tell the shooter to shoot blindly
                 turret_target_dist = 0.0;
             }
             else if (Double.isNaN(limelight_target_dist)) {
+                // If the limelight doesn't have a target, use the waypoint distance to shoot
                 turret_target_dist = waypoint_target_dist;
             }
             else if (Double.isNaN(waypoint_target_dist)) {
+                // If the waypoint doesn't have a target, use the limelight distance to shoot
                 turret_target_dist = limelight_target_dist;
             }
             else {
-                if (Math.abs(limelight_target_dist - waypoint_target_dist) > LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS) {
+                // If both the limelight and waypoint have a target,
+                if (LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS == 0.0 || 
+                    Math.abs(limelight_target_dist - waypoint_target_dist) > LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS) {
+                    // if the limelight and waypoint target are not within a threshold of agreement, use the waypoint's distance
                     turret_target_dist = waypoint_target_dist;
                 }
                 else {
+                    // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target distance
                     turret_target_dist = limelight_target_dist;
                 }
             }
