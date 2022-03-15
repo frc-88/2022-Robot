@@ -35,7 +35,7 @@ public class TurretTargetResolver {
         return new Pair<Double, Double>(distance, angle);
     }
 
-    private static Pair<Double, Double> getWaypointTarget(Navigation nav, String waypointName, Turret turret) {
+    private static Pair<Double, Double> getWaypointTarget(Navigation nav, String waypointName) {
         Pose2d target_map = nav.getWaypoint(waypointName);
         SmartDashboard.putBoolean("Turret:Is target valid", nav.isPoseValid(target_map));
         if (!nav.isPoseValid(target_map)) {
@@ -58,7 +58,7 @@ public class TurretTargetResolver {
         double turret_target_angle = 0.0;
         double turret_target_dist = Double.NaN;
         Pair<Double, Double> limelight_target = getLimelightTarget(limelight, turret);
-        Pair<Double, Double> waypoint_target = getWaypointTarget(nav, waypointName, turret);
+        Pair<Double, Double> waypoint_target = getWaypointTarget(nav, waypointName);
         
         double limelight_target_dist = limelight_target.getFirst();
         double limelight_target_angle = limelight_target.getSecond();

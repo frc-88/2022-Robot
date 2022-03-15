@@ -59,16 +59,16 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
   private final Drive m_drive = new Drive(m_sensors);
+  private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3), new DoublePreferenceConstant("Centralizer:Idle", 0.0));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6), new DoublePreferenceConstant("Chamber:Idle", -0.1));
-  private final Hood m_hood = new Hood(m_sensors);
-  private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
+  private final Hood m_hood = new Hood(m_sensors, m_turret, m_nav);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
 
   /////////////////////////////////////////////////////////////////////////////
