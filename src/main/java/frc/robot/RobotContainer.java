@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.drive.AutoFollowTrajectory;
+import frc.robot.commands.drive.AutoGoToPose;
 import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
@@ -266,6 +270,30 @@ public class RobotContainer {
         )
       );
 
+      private CommandBase m_autoThreeBallDynamic = 
+      new SequentialCommandGroup(
+        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
+        new TiltCameraDown(m_sensors),
+        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
+        new InstantCommand(m_turret::startTracking),
+        new ParallelCommandGroup(
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new RunCommand(m_hood::raiseHood, m_hood),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate),
+            new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D))),
+            new WaitCommand(0.5),
+            new InstantCommand(m_shooter::activate),
+            new WaitCommand(1.0),
+            new InstantCommand(m_shooter::deactivate)
+          )
+        )
+      );
+
       private CommandBase m_autoFourBall = 
       new SequentialCommandGroup(
         new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
@@ -471,6 +499,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
     SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
+    SmartDashboard.putData("Auto Three Ball Dynamic", m_autoThreeBallDynamic);
     SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
