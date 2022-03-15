@@ -4,21 +4,14 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
-import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
@@ -49,10 +42,8 @@ import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
-import frc.robot.commands.autos.AutoGoToPose;
-import frc.robot.commands.autos.DriveWithWaypointsPlan;
+import frc.robot.commands.autos.Autonomous;
 import frc.robot.commands.autos.TurretTrackWithGlobalPose;
-import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -60,9 +51,6 @@ import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
-import frc.robot.util.roswaypoints.Waypoint;
-import frc.robot.util.roswaypoints.WaypointsPlan;
-
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -172,196 +160,6 @@ public class RobotContainer {
 
   private CommandBase m_autoCommand = new WaitCommand(1);
 
-  private CommandBase m_autoOneBall = 
-    new SequentialCommandGroup(
-      new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-      new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new SequentialCommandGroup(
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(5.0),
-            new DriveDistanceMeters(m_drive, 1.5, 0.5)
-          )
-        )
-      );
-
-    private CommandBase m_autoTwoBallSimple = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new DriveDistanceMeters(m_drive, 1.5, 0.5),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate)
-          )
-        )
-      );
-
-      private CommandBase m_autoTwoBall = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::deactivate)
-          )
-        )
-      );
-
-      private CommandBase m_autoTwoBallROS = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(0.5),
-            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
-            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName())),
-            new DriveWithWaypointsPlan(m_nav, m_drive, getSingleWaypointPlan(getGameObjectName()))
-          )
-        )
-      );
-
-      private CommandBase m_autoThreeBall = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateThreeBallTrajectory(), false),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate)
-          )
-        )
-      );
-
-      private CommandBase m_autoThreeBallDynamic = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
-            new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D))),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate)
-          )
-        )
-      );
-
-      private CommandBase m_autoFourBall = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
-            new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallTrajectory(), false),
-            new WaitCommand(0.5),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::deactivate)
-          )
-        )
-      );
-
-      private CommandBase m_autoFourBallNoStop = 
-      new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(m_nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(m_sensors),
-        new InstantCommand(m_shooter::setFlywheelSpeedAuto, m_shooter),
-        new InstantCommand(m_turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-          new RunCommand(m_hood::raiseHood, m_hood),
-          new AutoFollowTrajectory(m_drive, m_sensors, RapidReactTrajectories.generateFourBallNoStopTrajectory(), true),
-          new SequentialCommandGroup(
-            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
-            new WaitCommand(2.25),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(m_shooter::deactivate),
-            new InstantCommand(() -> {m_sensors.limelight.setMotionOffset(0.0);}), 
-            new WaitCommand(3.0),
-            new InstantCommand(m_shooter::activate),
-            new WaitCommand(2.0),
-            new InstantCommand(m_shooter::deactivate)
-          )
-        )
-      );
-
-    private WaypointsPlan getSingleWaypointPlan(String waypointName) {
-      WaypointsPlan autoPlan = new WaypointsPlan(m_ros_interface);
-      autoPlan.addWaypoint(new Waypoint(waypointName));
-      return autoPlan;
-    }
-
-    public String getGameObjectName() {
-      return "cargo_" + getTeamColorName();
-    }
-  
-    private String getTeamColorName() {
-      if (DriverStation.getAlliance() == Alliance.Red) {
-        return "red";
-      }
-      else {
-        return "blue";
-      }
-    }
-  
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
@@ -381,7 +179,7 @@ public class RobotContainer {
     SmartDashboard.putString("Auto", m_autoCommand.toString());
 
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = m_autoOneBall;
+      m_autoCommand = Autonomous.generateOneBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake);
     }
   }
 
@@ -494,13 +292,13 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("Auto One Ball", m_autoOneBall);
-    SmartDashboard.putData("Auto Two Ball Simple", m_autoTwoBallSimple);
-    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
-    SmartDashboard.putData("Auto Two Ball ROS", m_autoTwoBallROS);
-    SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
-    SmartDashboard.putData("Auto Three Ball Dynamic", m_autoThreeBallDynamic);
-    SmartDashboard.putData("Auto Four Ball", m_autoFourBall);
+    SmartDashboard.putData("Auto One Ball", Autonomous.generateOneBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake));
+    SmartDashboard.putData("Auto Two Ball Simple", Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Two Ball", Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
+    SmartDashboard.putData("Auto Three Ball", Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Three Ball Dynamic", Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Four Ball", Autonomous.generateFourBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
