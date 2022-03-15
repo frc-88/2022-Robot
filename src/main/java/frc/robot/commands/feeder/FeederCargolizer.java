@@ -13,7 +13,7 @@ public class FeederCargolizer extends CommandBase {
   private Feeder m_feeder;
   private CargoSource m_source;
   private CargoTarget m_target;
-  private boolean m_cargoComing;
+  private boolean m_sawOne, m_cargoComing;
   private int m_waitingCount;
 
   /** Creates a new FeederCargolizer. */
@@ -28,6 +28,7 @@ public class FeederCargolizer extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    m_sawOne = false;
     m_cargoComing = false;
   }
 
@@ -35,6 +36,7 @@ public class FeederCargolizer extends CommandBase {
   @Override
   public void execute() {
     if (m_feeder.hasCargo()) {
+      m_sawOne = true;
       m_cargoComing = false;
       if (m_target.wantsCargo()) {
         m_feeder.run();
@@ -49,7 +51,11 @@ public class FeederCargolizer extends CommandBase {
       m_feeder.run();
     } else {
       m_cargoComing = false;
-      m_feeder.stop();
+      if (m_sawOne) {
+        m_feeder.idle();
+      } else {
+        m_feeder.stop();
+      }
     }
   }
 

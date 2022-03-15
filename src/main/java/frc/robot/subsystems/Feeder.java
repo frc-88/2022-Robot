@@ -27,8 +27,9 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private DigitalInput m_feederBeambreak;
   private DoublePreferenceConstant p_feederInSpeed;
   private DoublePreferenceConstant p_feederOutSpeed;
+  private DoublePreferenceConstant p_feederIdleSpeed;
 
-  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederInSpeedPref, DoublePreferenceConstant feederOutSpeedPref) {
+  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederInSpeedPref, DoublePreferenceConstant feederOutSpeedPref, DoublePreferenceConstant feederIdleSpeedPref) {
     m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
@@ -49,6 +50,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   public void stop() {
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
+  }
+
+  public void idle() {
+    m_feederMotor.set(ControlMode.PercentOutput, hasCargo()?0.0:p_feederIdleSpeed.getValue());
   }
 
   @Override
