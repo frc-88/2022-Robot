@@ -160,29 +160,31 @@ public class Autonomous {
       );
     }
 
-      public static CommandBase generateFourBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
+    public static CommandBase generateFourBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
-        new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-        new TiltCameraDown(sensors),
-        new InstantCommand(shooter::setFlywheelSpeedAuto, shooter),
-        new InstantCommand(turret::startTracking),
-        new ParallelCommandGroup(
-          new RunCommand(() -> {intake.deploy(); intake.rollerIntake();}, intake),
-          new RunCommand(hood::raiseHood, hood),
-          new SequentialCommandGroup(
-            new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-            new WaitCommand(0.5),
-            new InstantCommand(shooter::activate),
-            new WaitCommand(1.0),
-            new InstantCommand(shooter::deactivate),
-            new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateFourBallTrajectory(), false),
-            new WaitCommand(0.5),
-            new InstantCommand(shooter::activate),
-            new WaitCommand(2.0),
-            new InstantCommand(shooter::deactivate)
-          )
-        )
-      );
+            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new TiltCameraDown(sensors),
+            new InstantCommand(shooter::setFlywheelSpeedAuto, shooter),
+            new InstantCommand(turret::startTracking),
+            new ParallelCommandGroup(
+                new RunCommand(() -> {intake.deploy(); intake.rollerIntake();}, intake),
+                new RunCommand(hood::raiseHood, hood),
+                new SequentialCommandGroup(
+                    new AutoFollowTrajectory(drive, sensors, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                    new WaitCommand(0.5),
+                    new InstantCommand(shooter::activate),
+                    new WaitCommand(1.0),
+                    new InstantCommand(shooter::deactivate),
+                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto 4 X", 5.5).getValue()), 
+                        Units.feetToMeters(new DoublePreferenceConstant("Auto 4 Y", 5.5).getValue()), 
+                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto 4 Rotation", -140.0).getValue()))),
+                    new WaitCommand(new DoublePreferenceConstant("Auto 4 Delay", 3.0).getValue()),
+                    new InstantCommand(shooter::activate),
+                    new WaitCommand(2.0),
+                    new InstantCommand(shooter::deactivate)
+                )
+            )
+        );
     }
 
       public static CommandBase generateFourBallNoStop(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
