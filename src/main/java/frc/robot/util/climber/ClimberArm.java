@@ -43,7 +43,7 @@ public class ClimberArm {
     // Telescope Max Speed ~24 in/s
 
     public static final double PIVOT_MIN_ANGLE = -48;
-    public static final double PIVOT_MAX_ANGLE = 34;
+    public static final double PIVOT_MAX_ANGLE = 31;
     public static final double TELESCOPE_MIN_HEIGHT = 27;
     public static final double TELESCOPE_MAX_HEIGHT = 57;
 
