@@ -105,8 +105,9 @@ public class Autonomous {
                     new InstantCommand(shooter::activate),
                     new WaitCommand(0.5),
                     new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable)),
-                    new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable)),
-                    new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable))
+                    new WaitCommand(0.5),
+                    new InstantCommand(shooter::activate),
+                    new WaitCommand(0.5)
                 )
             )
         );
@@ -138,7 +139,7 @@ public class Autonomous {
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter),
-                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D))),
+                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D)), false),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter)
                 )
@@ -155,11 +156,17 @@ public class Autonomous {
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter),
-                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto 4 X", 5.5).getValue()), 
-                        Units.feetToMeters(new DoublePreferenceConstant("Auto 4 Y", 5.5).getValue()), 
-                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto 4 Rotation", -140.0).getValue()))),
-                    new WaitCommand(new DoublePreferenceConstant("Auto 4 Delay", 3.0).getValue()),
+                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+                        Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+                    new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
                     generateShootCmd(shooter)
+                    // possible follow up to get to good spot for ROS to see cargo
+                    // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
+                    //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
+                    //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
+                    // new WaitCommand(0.5),
+                    // generateShootCmd(shooter)
                 )
             )
         );

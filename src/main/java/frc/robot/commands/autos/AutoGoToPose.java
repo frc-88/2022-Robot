@@ -22,6 +22,7 @@ import frc.robot.util.RapidReactTrajectories;
 public class AutoGoToPose extends CommandBase {
   private Drive m_drive;
   private Pose2d m_targetPose;
+  private boolean m_reverse;
   private Trajectory m_trajectory;
   private RamseteController m_controller = new RamseteController();
   private Timer m_timer = new Timer();
@@ -29,9 +30,10 @@ public class AutoGoToPose extends CommandBase {
   private int m_state;
 
   /** Creates a new AutoGoToPose. */
-  public AutoGoToPose(Drive drive, Pose2d pose) {
+  public AutoGoToPose(Drive drive, Pose2d pose, boolean reverse) {
     m_drive = drive;
     m_targetPose = pose;
+    m_reverse = reverse;
 
     addRequirements(m_drive);
   }
@@ -40,6 +42,7 @@ public class AutoGoToPose extends CommandBase {
   @Override
   public void initialize() {
     TrajectoryConfig config = RapidReactTrajectories.basicConfig();
+    config.setReversed(m_reverse);
     ArrayList<Pose2d> waypoints = new ArrayList<>();
     waypoints.add(m_drive.getCurrentPose());
     waypoints.add(m_targetPose);
