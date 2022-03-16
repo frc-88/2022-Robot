@@ -50,7 +50,7 @@ public class RapidReactTrajectories
     TrajectoryConfig config = basicConfig();
 
     ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-114.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-111.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(24.0D), Units.feetToMeters(1.5D), Rotation2d.fromDegrees(-180.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(20.0D), Units.feetToMeters(2.5D), Rotation2d.fromDegrees(150.0D)));
@@ -73,7 +73,7 @@ public class RapidReactTrajectories
 
     ArrayList<Pose2d> waypoints = new ArrayList<>();
     waypoints.add(new Pose2d(Units.feetToMeters(20.0D), Units.feetToMeters(2.5D), Rotation2d.fromDegrees(150.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-140.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-133.75D)));
 
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
@@ -87,7 +87,7 @@ public class RapidReactTrajectories
     waypoints.add(new Pose2d(Units.feetToMeters(24.5D), Units.feetToMeters(1.3D), Rotation2d.fromDegrees(-180.0D)));
     // waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.0D), Rotation2d.fromDegrees(135.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(16.5D), Units.feetToMeters(6.5D), Rotation2d.fromDegrees(170.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-140.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-133.75D)));
 
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }

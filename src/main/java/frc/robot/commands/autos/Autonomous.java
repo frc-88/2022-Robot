@@ -105,8 +105,9 @@ public class Autonomous {
                     new InstantCommand(shooter::activate),
                     new WaitCommand(0.5),
                     new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable)),
-                    new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable)),
-                    new DriveWithWaypointsPlan(nav, drive, getSingleWaypointPlan(getGameObjectName(), rosTable))
+                    new WaitCommand(0.5),
+                    new InstantCommand(shooter::activate),
+                    new WaitCommand(0.5)
                 )
             )
         );
@@ -157,7 +158,7 @@ public class Autonomous {
                     generateShootCmd(shooter),
                     new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto 4 X", 5.5).getValue()), 
                         Units.feetToMeters(new DoublePreferenceConstant("Auto 4 Y", 5.5).getValue()), 
-                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto 4 Rotation", -140.0).getValue()))),
+                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto 4 Rotation", -133.75).getValue()))),
                     new WaitCommand(new DoublePreferenceConstant("Auto 4 Delay", 3.0).getValue()),
                     generateShootCmd(shooter)
                 )

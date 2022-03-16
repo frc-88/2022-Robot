@@ -296,6 +296,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Three Ball", Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Three Ball Dynamic", Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Four Ball", Autonomous.generateFourBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
