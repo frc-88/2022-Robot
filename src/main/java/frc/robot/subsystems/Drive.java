@@ -180,6 +180,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
     m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
+  
+    resetTrajectoryPose(new Pose2d());
   }
 
   public void basicDrive(double leftSpeed, double rightSpeed) {

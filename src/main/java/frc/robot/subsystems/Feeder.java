@@ -35,6 +35,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     m_feederBeambreak = new DigitalInput(feederSensorId);
     p_feederInSpeed = feederInSpeedPref;
     p_feederOutSpeed = feederOutSpeedPref;
+    p_feederIdleSpeed = feederIdleSpeedPref;
 
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);

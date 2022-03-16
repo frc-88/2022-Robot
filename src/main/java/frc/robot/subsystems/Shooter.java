@@ -46,13 +46,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(68.5, 1950),
       new ValueInterpolator.ValuePair(85, 2000),
-      new ValueInterpolator.ValuePair(106.5, 2050));
+      new ValueInterpolator.ValuePair(106.5, 2050),
+      new ValueInterpolator.ValuePair(120, 2200));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
       new ValueInterpolator.ValuePair(102, 2200),
       new ValueInterpolator.ValuePair(117, 2250),
-      new ValueInterpolator.ValuePair(134, 2400),
+      new ValueInterpolator.ValuePair(134, 2375),
       new ValueInterpolator.ValuePair(152, 2800),
       new ValueInterpolator.ValuePair(166, 3100));
 
@@ -116,15 +117,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (!m_turret.isTracking() && sourcesHaveCargo()) {
+    if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
-    } else if (!m_turret.isTracking()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
-    } else if (!m_sensors.limelight.hasTarget() && sourcesHaveCargo()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
-    } else if (!m_active) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
-    } else {
+    }  else {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     }
   }

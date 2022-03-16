@@ -33,7 +33,7 @@ public class Hood extends SubsystemBase {
   private static final double HOOD_RAISED = 27.0;
   private static final double HOOD_MID = 15.;
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
-  private static final double HOOD_CALIBRATION_COLLECT_SIZE = 25;
+  private static final double HOOD_CALIBRATION_COLLECT_SIZE = 50;
   private static final double HOOD_CALIBRATION_TOLERANCE = 0.5;
   private double m_hoodCalibrationStartValue = 0;
   private int m_hoodCalibrationCollectsDone = 0;
