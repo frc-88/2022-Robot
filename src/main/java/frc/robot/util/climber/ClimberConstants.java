@@ -116,34 +116,35 @@ public class ClimberConstants {
 
     public static final ClimberState S_HIGH_REVERSE_FIRST_LIFT = new ClimberState(10, 27, -28, 52);
     public static final ClimberState S_HIGH_REVERSE_HIT_HIGH_BAR = new ClimberState(10, 27, -20, 52);
-    public static final ClimberState S_HIGH_REVERSE_LIFT_ONTO_HIGH_BAR = new ClimberState(10, 27, -20, 48);
-    public static final ClimberState S_HIGH_REVERSE_TRANSITION_TO_HIGH_BAR = new ClimberState(31, 38, -15, 42, ClimberState.DEFAULT_PIVOT_TOLERANCE, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, true);
-    public static final ClimberState S_HIGH_REVERSE_RAISE_ABOVE_MID_BAR = new ClimberState(31, 39, 0, 42);
-    public static final ClimberState S_HIGH_REVERSE_PIVOT_UNDER_HIGH_BAR = new ClimberState(-15, 38, -3, 42, 10, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
-    public static final ClimberState S_HIGH_REVERSE_RAISE_TO_HIGH_BAR = new ClimberState(-15, 52, -3, 42, ClimberState.DEFAULT_PIVOT_TOLERANCE, 8, false);
-    public static final ClimberState S_HIGH_REVERSE_PIVOT_ONTO_HIGH_BAR = new ClimberState(-3, 52, -3, 42, 6, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
-    public static final ClimberState S_HIGH_REVERSE_MATCH_HEIGHTS = new ClimberState(-3, 42, -3, 42, ClimberState.DEFAULT_PIVOT_TOLERANCE, 10, false);
-    public static final ClimberState S_HIGH_REVERSE_LIFT_FULLY = new ClimberState(-3, 28.5, -3, 28.5);
+    public static final ClimberState S_HIGH_REVERSE_LIFT_ONTO_HIGH_BAR = new ClimberState(-15, 35, 0, 38);
+    public static final ClimberState S_HIGH_REVERSE_LIFT_ABOVE_HIGH_BAR = new ClimberState(-15, 42, 0, 38);
+    public static final ClimberState S_HIGH_REVERSE_PIVOT_ONTO_HIGH_BAR = new ClimberState(0, 42, 0, 38);
+    public static final ClimberState S_HIGH_REVERSE_LIFT_FULLY = new ClimberState(0, 27, 0, 27);
 
     public static final ClimberStateMachine M_CLIMB_HIGH_REVERSE_TRANSFERABLE = new ClimberStateMachine(S_HIGH_REVERSE_FIRST_LIFT)
                                                             .addState(S_HIGH_REVERSE_HIT_HIGH_BAR)
+                                                            .addState(S_HIGH_REVERSE_LIFT_ONTO_HIGH_BAR);
+    public static final ClimberStateMachine M_CLIMB_HIGH_REVERSE = M_CLIMB_HIGH_REVERSE_TRANSFERABLE
                                                             .addState(S_HIGH_REVERSE_LIFT_ONTO_HIGH_BAR)
-                                                            .addState(S_HIGH_REVERSE_TRANSITION_TO_HIGH_BAR);
-                                                            // .addState(S_HIGH_REVERSE_RAISE_ABOVE_MID_BAR);
-    public static final ClimberStateMachine M_CLIMB_HIGH_REVERSE = M_CLIMB_HIGH_REVERSE_TRANSFERABLE;
-                                                            // .addState(S_HIGH_REVERSE_PIVOT_UNDER_HIGH_BAR)
-                                                            // .addState(S_HIGH_REVERSE_RAISE_TO_HIGH_BAR)
-                                                            // .addState(S_HIGH_REVERSE_PIVOT_ONTO_HIGH_BAR)
-                                                            // .addState(S_HIGH_REVERSE_MATCH_HEIGHTS)
-                                                            // .addState(S_HIGH_REVERSE_LIFT_FULLY);
+                                                            .addState(S_HIGH_REVERSE_LIFT_ABOVE_HIGH_BAR)
+                                                            .addState(S_HIGH_REVERSE_PIVOT_ONTO_HIGH_BAR)
+                                                            .addState(S_HIGH_REVERSE_LIFT_FULLY);
 
-    public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_HIGH_BAR = new ClimberState(-45, 38, -3, 42, 34, 2, false);
-    public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR = new ClimberState(-45, 46, -3, 27.5, ClimberState.DEFAULT_PIVOT_TOLERANCE, 100, false);
-    public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR = new ClimberState(-45, 57, -3, 27.5);
-    public static final ClimberState S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR = new ClimberState(-19, 57, -3, 27.5);
-    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(-19, 30, -3, 35);
+    public static final ClimberState S_TRAVERSAL_REVERSE_TRANSITION_TO_HIGH_BAR = new ClimberState(31, 31, 9.4, 43.2, ClimberState.DEFAULT_PIVOT_TOLERANCE, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, true);
+    public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_MID_BAR = new ClimberState(31, 35, 10, 43);
+    public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_HIGH_BAR = new ClimberState(-28, 40, 10, 43, 34, 2, false);
+    public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR = new ClimberState(-28, 44, 10, 27, ClimberState.DEFAULT_PIVOT_TOLERANCE, 100, false);
+    public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR = new ClimberState(-28, 52, 10, 27);
+    public static final ClimberState S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR = new ClimberState(-20, 52, 10, 27);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(0, 38, -15, 35);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ABOVE_TRAVERSAL_BAR = new ClimberState(0, 38, -15, 42);
+    public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_ONTO_TRAVERSAL_BAR = new ClimberState(0, 38, 0, 42);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_FULLY = new ClimberState(0, 27, 0, 27);
+    
 
     public static final ClimberStateMachine M_CLIMB_TRAVERSAL_REVERSE = M_CLIMB_HIGH_REVERSE_TRANSFERABLE
+                                                            .addState(S_TRAVERSAL_REVERSE_TRANSITION_TO_HIGH_BAR)
+                                                            .addState(S_TRAVERSAL_REVERSE_RAISE_ABOVE_MID_BAR)
                                                             .addState(S_TRAVERSAL_REVERSE_PIVOT_UNDER_HIGH_BAR)
                                                             .addState(S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR)
                                                             .addState(S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR)
