@@ -454,6 +454,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     }
   }
 
+  public Field2d getField() {
+    return m_field;
+  }
+
   @Override
   public void periodic() {
     if (SmartDashboard.getBoolean("Zero Drive", false)) {
