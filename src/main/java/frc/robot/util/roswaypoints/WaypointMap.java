@@ -9,8 +9,14 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class WaypointMap {
     private NetworkTable table;
-    public WaypointMap() {
+    private NewWaypointInterface m_callback;
+    public WaypointMap(NewWaypointInterface callback) {
         table = NetworkTableInstance.getDefault().getTable("ROS/status/waypoints");
+        table.addSubTableListener((parent, name, table) -> {newWaypointCallback(name);}, true);
+        m_callback = callback;
+    }
+    private void newWaypointCallback(String name) {
+        m_callback.newWaypointCallback(this, name);
     }
     public Set<String> getWaypointNames() {
         return table.getSubTables();

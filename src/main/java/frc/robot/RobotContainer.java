@@ -45,6 +45,7 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.Autonomous;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -67,7 +68,7 @@ public class RobotContainer {
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
   );
-  private final Navigation m_nav = new Navigation(m_ros_interface);
+  private final Navigation m_nav = new Navigation(m_drive, m_ros_interface);
   private final Hood m_hood = new Hood(m_sensors, m_turret, m_nav);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
 
