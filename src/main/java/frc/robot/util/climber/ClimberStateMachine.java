@@ -92,11 +92,11 @@ public class ClimberStateMachine {
                 state.getOuterTelescope(),
                 ClimberArm.getPivotMaxVelocity() * durations[0] / durations[maxDurationIndex], 
                 ClimberArm.getTelescopeMaxVelocity() * durations[1] / durations[maxDurationIndex]);
-            climber.setOuterMotionMagic(
-                state.getOuterPivot(),
-                state.getOuterTelescope(),
-                ClimberArm.getPivotMaxVelocity() * durations[0] / durations[maxDurationIndex], 
-                ClimberArm.getTelescopeMaxVelocity() * durations[1] / durations[maxDurationIndex]);
+            climber.setInnerMotionMagic(
+                state.getInnerPivot(),
+                state.getInnerTelescope(),
+                ClimberArm.getPivotMaxVelocity() * durations[2] / durations[maxDurationIndex], 
+                ClimberArm.getTelescopeMaxVelocity() * durations[3] / durations[maxDurationIndex]);
         } else {
             climber.setOuterMotionMagic(state.getOuterPivot(), state.getOuterTelescope());
             climber.setInnerMotionMagic(state.getInnerPivot(), state.getInnerTelescope());
