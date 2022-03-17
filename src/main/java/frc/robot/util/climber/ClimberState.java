@@ -8,6 +8,7 @@ public class ClimberState {
     private final double m_pivotTolerance;
     private final double m_telescopeTolerance;
     private final boolean m_synchronize;
+    private final double m_pause;
 
     public static final double DEFAULT_PIVOT_TOLERANCE = 2;
     public static final double DEFAULT_TELESCOPE_TOLERANCE = 1;
@@ -28,10 +29,23 @@ public class ClimberState {
         m_pivotTolerance = pivotTolerance;
         m_telescopeTolerance = telescopeTolerance;
         m_synchronize = synchronize;
+        m_pause = -1;
+        
     }
 
     public ClimberState(double outerPivot, double outerTelescope, double innerPivot, double innerTelescope) {
         this(outerPivot, outerTelescope, innerPivot, innerTelescope, DEFAULT_PIVOT_TOLERANCE, DEFAULT_TELESCOPE_TOLERANCE, false);
+    }
+
+    public ClimberState(double pause) {
+        m_outerPivot = 0;
+        m_outerTelescope = 0;
+        m_innerPivot = 0;
+        m_innerTelescope = 0;
+        m_pivotTolerance = 0;
+        m_telescopeTolerance = 0;
+        m_synchronize = false;
+        m_pause = pause;
     }
 
     public double getOuterPivot() {
@@ -60,5 +74,13 @@ public class ClimberState {
 
     public boolean isSynchronized() {
         return m_synchronize;
+    }
+
+    public boolean isPause() {
+        return m_pause > 0;
+    }
+
+    public double getPause() {
+        return m_pause;
     }
 }

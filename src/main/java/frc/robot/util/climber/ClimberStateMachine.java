@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.Climber;
 
 public class ClimberStateMachine {
@@ -12,6 +13,8 @@ public class ClimberStateMachine {
     private int m_currentState;
 
     private ClimberState m_initialState;
+
+    private double m_startPauseTime = -1;
 
     public ClimberStateMachine(ClimberState firstState) {
         m_states = new ArrayList<>();
@@ -57,6 +60,7 @@ public class ClimberStateMachine {
             executeState(m_states.get(m_currentState), previousState, climber);
 
             if (onTarget(m_states.get(m_currentState), climber)) {
+                m_startPauseTime = -1;
                 m_currentState++;
             }
         }
@@ -72,6 +76,13 @@ public class ClimberStateMachine {
     }
 
     private void executeState(ClimberState state, ClimberState previousState, Climber climber) {
+        if (state.isPause()) {
+            if (m_startPauseTime < 0) {
+                m_startPauseTime = RobotController.getFPGATime() / 1_000_000;
+            }
+            return;
+        }
+
         if (state.isSynchronized()) {
             double[] durations = new double[] {
                 Math.abs(state.getOuterPivot() - previousState.getOuterPivot()) / ClimberArm.getPivotMaxVelocity(),
@@ -104,6 +115,10 @@ public class ClimberStateMachine {
     }
 
     private boolean onTarget(ClimberState state, Climber climber) {
+        if (state.isPause()) {
+            return RobotController.getFPGATime() / 1_000_000. - m_startPauseTime >= state.getPause();
+        }
+
         return Math.abs(state.getOuterPivot() - climber.getAverageOuterPivotAngle()) < state.getPivotTolerance()
                 && Math.abs(state.getOuterTelescope() - climber.getAverageOuterTelescopeHeight()) < state.getTelescopeTolerance()
                 && Math.abs(state.getInnerPivot() - climber.getAverageInnerPivotAngle()) < state.getPivotTolerance()

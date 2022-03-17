@@ -1,7 +1,7 @@
 import math
 
-w = 23
-h = 16
+w = 22
+h = 17
 
 def calcFixedForwards(h1, o1):
     o1 = o1 * 3.14159 / 180.
