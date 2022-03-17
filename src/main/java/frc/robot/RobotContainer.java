@@ -190,6 +190,17 @@ public class RobotContainer {
       m_autoCommandName = "Wait 1";
     }
 
+
+    if (m_buttonBox.isCentralizerUpButtonPressed()) {
+      m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "3 Cargo";
+    }
+
+    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+      m_autoCommand = Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "5 Cargo";
+    }
+
     SmartDashboard.putString("Auto", m_autoCommandName);
   }
 
