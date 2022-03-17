@@ -44,7 +44,7 @@ public class Autonomous {
     private static CommandBase generateShootCmd(Shooter shooter) {
         return new SequentialCommandGroup(
             new InstantCommand(shooter::activate),
-            new WaitCommand(1.0),
+            new WaitCommand(1.5),
             new InstantCommand(shooter::deactivate)
         );
     }

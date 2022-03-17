@@ -176,7 +176,7 @@ public class RobotContainer {
   
   public void disabledPeriodic() {
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo";
     }
 
@@ -412,8 +412,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(
