@@ -81,15 +81,15 @@ public class ButtonBox extends Joystick {
     }
 
     public boolean isCentralizerDownButtonPressed() {
-        return centralizerUp.get();
+        return centralizerDown.get();
     }
 
     public boolean isChamberUpButtonPressed() {
-        return centralizerUp.get();
+        return chamberUp.get();
     }
 
     public boolean isChamberDownButtonPressed() {
-        return centralizerUp.get();
+        return chamberDown.get();
     }
 
     public boolean isStowClimberButtonPressed() {

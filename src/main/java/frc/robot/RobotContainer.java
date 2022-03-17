@@ -45,6 +45,7 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.Autonomous;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -67,7 +68,7 @@ public class RobotContainer {
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
   );
-  private final Navigation m_nav = new Navigation(m_ros_interface);
+  private final Navigation m_nav = new Navigation(m_drive, m_ros_interface);
   private final Hood m_hood = new Hood(m_sensors, m_turret, m_nav);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
 
@@ -156,7 +157,8 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private CommandBase m_autoCommand = new WaitCommand(1);
+  private CommandBase m_autoCommand = new WaitCommand(15);
+  private String m_autoCommandName = "Wait 1";
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -174,11 +176,33 @@ public class RobotContainer {
   }
   
   public void disabledPeriodic() {
-    SmartDashboard.putString("Auto", m_autoCommand.toString());
-
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = Autonomous.generateOneBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "2 Cargo";
     }
+
+    if (m_buttonBox.isChamberUpButtonPressed()) {
+      m_autoCommand = Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "2 Cargo Simple";
+    }
+
+    if (m_buttonBox.isChamberDownButtonPressed()) {
+      m_autoCommand = new WaitCommand(1.0);
+      m_autoCommandName = "Wait 1";
+    }
+
+
+    if (m_buttonBox.isCentralizerUpButtonPressed()) {
+      m_autoCommand = Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "3 Cargo";
+    }
+
+    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+      m_autoCommand = Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "2 Cargo ROS";
+    }
+
+    SmartDashboard.putString("Auto", m_autoCommandName);
   }
 
   public void teleopInit() {
@@ -202,8 +226,8 @@ public class RobotContainer {
 
     m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
     m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
-    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_centralizer));
-    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_chamber));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_chamber));
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
@@ -297,6 +321,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Three Ball Dynamic", Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Four Ball", Autonomous.generateFourBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Five Ball", Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
@@ -399,8 +424,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

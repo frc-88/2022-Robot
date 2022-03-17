@@ -11,10 +11,10 @@ import frc.robot.subsystems.Turret;
 import frc.robot.util.sensors.Limelight;
 
 public class TurretTargetResolver {
-    private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 45.0;
-    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 0.0;  // always use waypoint for angle targeting if waypoint is valid
-    private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = 3.0;
-    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = 0.0;  // always use waypoint for distance targeting if waypoint is valid
+    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
+    private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = Double.NaN;  // always use limelight for angle targeting if waypoint is valid
+    // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = 3.0;
+    private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS = Double.NaN;  // always use limelight for distance targeting if waypoint is valid
 
     private static Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
         double angle = Double.NaN;
@@ -93,13 +93,13 @@ public class TurretTargetResolver {
             // If both the limelight and waypoint have a target,
             double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
             SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
-            if (LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES == 0.0 || limelight_global_delta > LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
+            if (Double.isNaN(LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) || limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
+                // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
+                turret_target_angle = limelight_target_angle;
+            } else {
                 // if the limelight and waypoint target are not within a threshold of agreement, use the waypoint's target value
                 turret_target_angle = waypoint_target_angle;
                 turret_target_dist = waypoint_target_dist;
-            } else {
-                // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
-                turret_target_angle = limelight_target_angle;
             }
         }
 
@@ -123,14 +123,14 @@ public class TurretTargetResolver {
             }
             else {
                 // If both the limelight and waypoint have a target,
-                if (LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS == 0.0 || 
-                    Math.abs(limelight_target_dist - waypoint_target_dist) > LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS) {
-                    // if the limelight and waypoint target are not within a threshold of agreement, use the waypoint's distance
-                    turret_target_dist = waypoint_target_dist;
-                }
-                else {
+                if (Double.isNaN(LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS) || 
+                    Math.abs(limelight_target_dist - waypoint_target_dist) <= LIMELIGHT_WAYPOINT_AGREEMENT_DIST_METERS) {
                     // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target distance
                     turret_target_dist = limelight_target_dist;
+                }
+                else {
+                    // if the limelight and waypoint target are not within a threshold of agreement, use the waypoint's distance
+                    turret_target_dist = waypoint_target_dist;
                 }
             }
         }

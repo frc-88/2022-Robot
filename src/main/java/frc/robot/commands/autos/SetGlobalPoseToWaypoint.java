@@ -15,8 +15,8 @@ public class SetGlobalPoseToWaypoint extends InstantCommand {
   public SetGlobalPoseToWaypoint(Navigation nav, String waypointName) {
     m_nav = nav;
     m_waypointName = waypointName;
-    addRequirements(m_nav);
-    // Use addRequirements() here to declare subsystem dependencies.
+    // addRequirements(m_nav);
+    // // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
