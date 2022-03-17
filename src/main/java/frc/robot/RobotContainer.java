@@ -156,7 +156,8 @@ public class RobotContainer {
   //              AUTO               //
   /////////////////////////////////////
 
-  private CommandBase m_autoCommand = new WaitCommand(1);
+  private CommandBase m_autoCommand = new WaitCommand(15);
+  private String m_autoCommandName = "Wait 1";
 
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
@@ -174,11 +175,22 @@ public class RobotContainer {
   }
   
   public void disabledPeriodic() {
-    SmartDashboard.putString("Auto", m_autoCommand.toString());
-
     if (m_buttonBox.isShootButtonPressed()) {
-      m_autoCommand = Autonomous.generateOneBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "2 Cargo";
     }
+
+    if (m_buttonBox.isChamberUpButtonPressed()) {
+      m_autoCommand = Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommandName = "2 Cargo Simple";
+    }
+
+    if (m_buttonBox.isChamberDownButtonPressed()) {
+      m_autoCommand = new WaitCommand(1.0);
+      m_autoCommandName = "Wait 1";
+    }
+
+    SmartDashboard.putString("Auto", m_autoCommandName);
   }
 
   public void teleopInit() {
@@ -202,8 +214,8 @@ public class RobotContainer {
 
     m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
     m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
-    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_centralizer));
-    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_chamber));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_chamber));
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
@@ -297,6 +309,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Three Ball Dynamic", Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Four Ball", Autonomous.generateFourBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Five Ball", Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
