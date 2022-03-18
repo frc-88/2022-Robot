@@ -232,6 +232,10 @@ public class CoprocessorTable {
         }
     }
 
+    public boolean isConected() {
+        return instance.isConnected();
+    }
+
     private double getTime() {
         return RobotController.getFPGATime() * 1E-6;
     }

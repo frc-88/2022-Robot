@@ -40,7 +40,7 @@ public class TurretTargetResolver {
     private static Pair<Double, Double> getWaypointTarget(Navigation nav, String waypointName) {
         Pose2d target_map = nav.getWaypoint(waypointName);
         SmartDashboard.putBoolean("Turret:Is waypoint target valid", nav.isPoseValid(target_map));
-        if (!nav.isPoseValid(target_map)) {
+        if (!nav.isConnected() || !nav.isPoseValid(target_map)) {
             return new Pair<Double, Double>(Double.NaN, Double.NaN);
         }
         Pose2d robot_pose = nav.getRobotPose();
