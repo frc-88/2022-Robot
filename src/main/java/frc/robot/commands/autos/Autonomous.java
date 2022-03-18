@@ -100,7 +100,7 @@ public class Autonomous {
                     // new InstantCommand(() -> System.out.println("7")),
                     new WaitCommand(1.5),
                     // new InstantCommand(() -> System.out.println("8")),
-                    new RunCommand(shooter::deactivate).withInterrupt(() -> true),
+                    new RunCommand(shooter::deactivate).withInterrupt(() -> true)
                     // new InstantCommand(() -> System.out.println("9"))
                 // )
             )
