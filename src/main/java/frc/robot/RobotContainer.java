@@ -180,7 +180,7 @@ public class RobotContainer {
     if (m_buttonBox.isROSDisableSwitchOn()) {
       m_ros_interface.stopComms();
     }
-    
+
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo";
@@ -223,6 +223,12 @@ public class RobotContainer {
       m_flywheelFenderShot.schedule();
       m_hoodDown.schedule();
     }
+
+    if (m_buttonBox.isDefaultTurretSwitchOn()) {
+      m_turret.setDefaultFacing(180.);
+    } else {
+      m_turret.setDefaultFacing(0.);
+    }
   }
 
   private void configureButtonBox() {
@@ -254,6 +260,8 @@ public class RobotContainer {
         return true;
       }
     });
+    m_buttonBox.defaultTurretSwitch.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
+    m_buttonBox.defaultTurretSwitch.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
@@ -438,8 +446,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

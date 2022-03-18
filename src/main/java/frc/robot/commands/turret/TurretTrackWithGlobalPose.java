@@ -35,13 +35,13 @@ public class TurretTrackWithGlobalPose extends CommandBase {
   @Override
   public void execute() {
     if (!m_turret.isTracking()) {
-      m_turret.goToFacing(0.0);
+      m_turret.goToDefaultFacing();
       return;
     }
     Pose2d target_map = m_nav.getWaypoint(m_waypointName);
     SmartDashboard.putBoolean("Turret:Is target valid", m_nav.isPoseValid(target_map));
     if (!m_nav.isPoseValid(target_map)) {
-      m_turret.goToFacing(0.0);
+      m_turret.goToDefaultFacing();
       return;
     }
     Pose2d robot_pose = m_nav.getRobotPose();

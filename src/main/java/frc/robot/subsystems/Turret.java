@@ -47,6 +47,8 @@ public class Turret extends SubsystemBase {
   private boolean m_circumnavigating = false;
   private double m_circumnavigationTarget;
 
+  private double m_defaultFacing = 0.;
+
   /** Creates a new Turret. */
   public Turret() {
     configureFalcon();
@@ -137,6 +139,18 @@ public class Turret extends SubsystemBase {
       System.out.println("Turret unsafe target: " + target);
       // target is unsafe and circumnavigation target is unsafe, ignore it
     }
+  }
+
+  public void goToDefaultFacing() {
+    goToFacing(m_defaultFacing);
+  }
+
+  public void setDefaultFacing(double facing) {
+    m_defaultFacing = facing;
+  }
+
+  public double getDefaultFacing() {
+    return m_defaultFacing;
   }
 
   private double calcCircumnavigationTarget(double origin) {

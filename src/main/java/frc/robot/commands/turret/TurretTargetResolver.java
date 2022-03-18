@@ -63,7 +63,7 @@ public class TurretTargetResolver {
      *         0.0 for the turret angle indicates no target. Return to the zero position
      */
     public static Pair<Double, Double> getTurretTarget(Navigation nav, String waypointName, Limelight limelight, Turret turret) {
-        double turret_target_angle = 0.0;
+        double turret_target_angle = turret.getDefaultFacing();
         double turret_target_dist = Double.NaN;
         Pair<Double, Double> limelight_target = getLimelightTarget(limelight, turret);
         Pair<Double, Double> waypoint_target = getWaypointTarget(nav, waypointName);
@@ -75,8 +75,8 @@ public class TurretTargetResolver {
         double waypoint_target_angle = waypoint_target.getSecond();
 
         if (Double.isNaN(limelight_target_angle) && Double.isNaN(waypoint_target_angle)) {
-            // If neither the limelight or waypoint have valid targets, tell the turret to return to zero
-            turret_target_angle = 0.0;
+            // If neither the limelight or waypoint have valid targets, tell the turret to return to default
+            turret_target_angle = turret.getDefaultFacing();
             turret_target_dist = 0.0;
         }
         else if (Double.isNaN(limelight_target_angle)) {

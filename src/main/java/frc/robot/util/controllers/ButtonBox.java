@@ -65,7 +65,7 @@ public class ButtonBox extends Joystick {
     public Button midBarSwitch = new JoystickButton(this, MID_BAR);
     public Button lowBarSwitch = new Button(() -> !(traversalBarSwitch.get() || highBarSwitch.get() || midBarSwitch.get()));
     public Button rosDisableSwitch = new JoystickButton(this, AUX_4);
-    public Button flywheelSwitch = new JoystickButton(this, AUX_3);
+    public Button defaultTurretSwitch = new JoystickButton(this, AUX_3);
     public Button cancelClimb = new JoystickButton(this, AUX_2);
 
 	public boolean isIntakeButtonPressed() {
@@ -136,8 +136,8 @@ public class ButtonBox extends Joystick {
         return rosDisableSwitch.get();
     }
 
-    public boolean isFlywheelSwitchOn() {
-        return flywheelSwitch.get();
+    public boolean isDefaultTurretSwitchOn() {
+        return defaultTurretSwitch.get();
     }
 
     public boolean isCancelClimbPressed() {
