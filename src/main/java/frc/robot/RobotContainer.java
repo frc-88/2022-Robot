@@ -194,7 +194,7 @@ public class RobotContainer {
 
 
     if (m_buttonBox.isCentralizerUpButtonPressed()) {
-      m_autoCommand = Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "3 Cargo";
     }
 
@@ -316,18 +316,16 @@ public class RobotContainer {
     // Autonomous testing
     SmartDashboard.putData("Auto Two Ball Simple", Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Two Ball", Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
+    // SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
     SmartDashboard.putData("Auto Three Ball", Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Three Ball Dynamic", Autonomous.generateThreeBallDynamic(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Four Ball", Autonomous.generateFourBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    // SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Five Ball", Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
     SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
     SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateTwoBallTrajectory(), true));
-    SmartDashboard.putData("Four Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFourBallTrajectory(), true));
+    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);

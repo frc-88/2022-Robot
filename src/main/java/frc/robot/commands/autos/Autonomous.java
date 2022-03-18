@@ -106,54 +106,14 @@ public class Autonomous {
             new ParallelCommandGroup(
                 generatePrepareCmd(sensors, turret, intake),
                 new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateThreeBallTrajectory(), true),
+                    generateShootCmd(shooter),
+                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+                    new WaitCommand(0.5),
                     generateShootCmd(shooter)
                 )
             )
         );
     }   
-
-      public static CommandBase generateThreeBallDynamic(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            // new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, turret, intake),
-                new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter),
-                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D)), false),
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter)
-                )
-            )
-        );
-    }
-
-    public static CommandBase generateFourBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            // new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, turret, intake),
-                new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter),
-                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-                        Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-                    new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-                    generateShootCmd(shooter)
-                    // possible follow up to get to good spot for ROS to see cargo
-                    // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
-                    //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
-                    //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
-                    // new WaitCommand(0.5),
-                    // generateShootCmd(shooter)
-                )
-            )
-        );
-    }
 
     public static CommandBase generateFiveBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
@@ -164,13 +124,13 @@ public class Autonomous {
                     generateShootCmd(shooter),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
                     new WaitCommand(0.5),
-                    generateShootCmd(shooter)
+                    generateShootCmd(shooter),
 
                     // Go to the terminal
-                    // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-                    //     Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-                    //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-                    // new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
+                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+                        Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+                        Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+                    new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
 
                     // Go to shooting spot, with view of hub, drive in reverse
                     // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
@@ -178,7 +138,8 @@ public class Autonomous {
                     //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
                     // new WaitCommand(0.5),
 
-                    // generateShootCmd(shooter)
+                    // shoot!
+                    generateShootCmd(shooter)
                 )
             )
         );
