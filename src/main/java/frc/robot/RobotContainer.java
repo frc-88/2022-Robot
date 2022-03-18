@@ -177,28 +177,32 @@ public class RobotContainer {
   }
   
   public void disabledPeriodic() {
+    if (m_buttonBox.isROSDisableSwitchOn()) {
+      m_ros_interface.stopComms();
+    }
+    
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo";
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo Simple";
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
     }
 
 
-    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
+    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "3 Cargo";
     }
 
-    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
+    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "5 Cargo";
     }
@@ -238,6 +242,18 @@ public class RobotContainer {
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(m_flywheelFenderShot);
     m_buttonBox.turretTrackSwitch.whenReleased(m_hoodDown);
+    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
+      @Override
+      public boolean runsWhenDisabled() {
+        return true;
+      }
+    });
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_ros_interface::startComms) {
+      @Override
+      public boolean runsWhenDisabled() {
+        return true;
+      }
+    });
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
