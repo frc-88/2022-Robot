@@ -103,10 +103,10 @@ public class Autonomous {
     public static CommandBase generateThreeBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
             // new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            generateShootCmd(shooter),
             new ParallelCommandGroup(
                 generatePrepareCmd(sensors, turret, intake),
                 new SequentialCommandGroup(
-                    generateShootCmd(shooter),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter)
@@ -118,10 +118,10 @@ public class Autonomous {
     public static CommandBase generateFiveBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
             // new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            generateShootCmd(shooter),
             new ParallelCommandGroup(
                 generatePrepareCmd(sensors, turret, intake),
                 new SequentialCommandGroup(
-                    generateShootCmd(shooter),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter),
