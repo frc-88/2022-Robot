@@ -10,7 +10,7 @@ import frc.robot.subsystems.Turret;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
-public class TurretTrack extends CommandBase {
+public class TurretTrackLimelight extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
   private double m_target;
@@ -18,7 +18,7 @@ public class TurretTrack extends CommandBase {
   private DoublePreferenceConstant p_resetTime = new DoublePreferenceConstant("Turret Tracking Reset Time", 2.0);
 
   /** Creates a new TurretTrack. */
-  public TurretTrack(Turret turret, Limelight limelight) {
+  public TurretTrackLimelight(Turret turret, Limelight limelight) {
     m_turret = turret;
     m_limelight = limelight;
 

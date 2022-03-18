@@ -180,6 +180,10 @@ public class Turret extends SubsystemBase {
     return m_tracking;
   }
 
+  public boolean isSafeForClimber() {
+    return Math.abs(getPosition()) % 180 < 10;
+  }
+
   private double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
@@ -196,8 +200,8 @@ public class Turret extends SubsystemBase {
   private double cancoderPostionToFalconPosition(double position) {
     double normalPosition = (position - p_zeroPosition.getValue());
 
-    if (normalPosition > 180) { normalPosition -= 360; }
-    if (normalPosition < -180) { normalPosition += 360; }
+    if (normalPosition > 180) { normalPosition -= 340; }
+    if (normalPosition < -180) { normalPosition += 340; }
 
     return turretFacingToEncoderPosition(normalPosition *
     (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));

@@ -7,6 +7,7 @@ package frc.robot.commands.climber;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Sensors;
 import frc.robot.util.climber.ClimberStateMachine;
@@ -58,11 +59,17 @@ public class ClimberStateMachineExecutor extends CommandBase {
       return;
     }
 
+    m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_UP_ANGLE);  // tilt camera to look up at the bars
     m_stateMachine.run(m_climber);
   }
 
   @Override
   public boolean isFinished() {
     return false;
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);  // tilt camera to look down at the intake
   }
 }

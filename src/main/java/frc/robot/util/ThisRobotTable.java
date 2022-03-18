@@ -48,9 +48,13 @@ public class ThisRobotTable extends CoprocessorTable {
         this.sensors = sensors;
     }
 
-    @Override
-    public void update() {
-        super.update();
+    // @Override
+    // public void update() {
+    //     super.update();
+    // }
+
+    public void updateSlow() {
+        
         Vector2D outerLeftArmVector = outerArm.getPositionVector();
         Vector2D outerRightArmVector = outerArm.getPositionVector();
         Vector2D innerLeftArmVector = innerArm.getPositionVector();

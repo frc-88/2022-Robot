@@ -29,6 +29,8 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
+    private double m_motionOffset;
+
     private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
     private final DoublePreferenceConstant p_angle = new DoublePreferenceConstant("Limelight Angle", 0);
     private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
@@ -79,7 +81,15 @@ public class Limelight {
     }
 
     public boolean onTarget() {
-        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle()) < p_targetThreshold.getValue());
+        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle() + m_motionOffset) < p_targetThreshold.getValue());
+    }
+
+    public void setMotionOffset(double motionOffset) {
+        m_motionOffset = motionOffset;
+    }
+
+    public double getMotionOffset() {
+        return m_motionOffset;
     }
 
     /**
@@ -129,7 +139,7 @@ public class Limelight {
         double distance = calcDistanceToTarget();
         double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
 
-        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/distance)))) : 0.0;
+        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/distance)))) + m_motionOffset : 0.0;
     }
 
     /**

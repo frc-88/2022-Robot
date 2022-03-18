@@ -58,9 +58,9 @@ public final class Constants {
 	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
 	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
 
-	public static final double MAX_TRAJ_VELOCITY = 16.0;
-	public static final double MAX_TRAJ_ACCELERATION = 8.0;
-	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
+	public static final double MAX_TRAJ_VELOCITY = 4.0;
+	public static final double MAX_TRAJ_ACCELERATION = 4.0;
+	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
 
 	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 5, 4, 18, 120, 240, 150, 210);
 	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 3, 2, 1, 120, 240, 150, 210);
@@ -138,4 +138,15 @@ public final class Constants {
 	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
 	public static final double SHOOTING_ZONE_OUTER_RADIUS_METERS = 0.3;
 	public static final double FIELD_VISION_TARGET_HEIGHT = 102;
+	public static final double FIELD_UPPER_HUB_RADIUS = 20.0;
+
+	// ROS Interface
+	public static final String COPROCESSOR_ADDRESS = "10.0.88.44";
+	public static final int COPROCESSOR_PORT = 5800;
+	public static final double COPROCESSOR_TABLE_UPDATE_DELAY = 1.0 / 30.0;
+	public static final double COPROCESSOR_PERIODIC_UPDATE_DELAY = 1.0 / 30.0;
+	public static final double COPROCESSOR_PERIODIC_UPDATE_OFFSET = 1.0 / 60.0;
+	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY = 0.5;
+	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET = 0.025;
+
 }

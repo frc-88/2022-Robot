@@ -32,6 +32,7 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.drive.DriveConfiguration;
+import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.drive.Shifter.Gear;
@@ -65,6 +66,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
   private Pose2d m_pose;
+  private Pose2d m_traj_reset_pose;
+  private Pose2d m_traj_offset;
 
   private PIDPreferenceConstants velPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
@@ -95,6 +98,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   // Acceleration limiting
   private DoublePreferenceConstant accelLimit;
+
+  // Locking
+  private boolean m_locked = false;
 
   public Drive(Sensors sensors) {
     m_sensors = sensors;
@@ -130,8 +136,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_leftTransmission.setVelocityPID(m_leftVelPID);
     m_rightTransmission.setVelocityPID(m_rightVelPID);
 
-    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID);
-    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID);
+    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID, "1");
+    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID, "1");
 
     m_leftEncoder.configFactoryDefault();
     m_rightEncoder.configFactoryDefault();
@@ -174,6 +180,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
     m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
+  
+    resetTrajectoryPose(new Pose2d());
   }
 
   public void basicDrive(double leftSpeed, double rightSpeed) {
@@ -186,6 +194,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
    * limiting current draw.
    */
   public void basicDriveLimited(double leftVelocity, double rightVelocity) {
+    if (m_locked) {
+      leftVelocity = getLeftSpeed();
+      rightVelocity = getRightSpeed();
+    }
+
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
     double rightExpectedCurrent = m_rightDrive.getExpectedCurrentDraw(rightVelocity);
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
@@ -343,6 +356,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_rightDrive.coastAll();
   }
 
+  public void lockDrive() {
+    m_locked = true;
+  }
+
+  public void unlockDrive() {
+    m_locked = false;
+  }
+
   public void setMaxSpeed(double maxSpeed) {
     m_maxSpeed = maxSpeed;
   }
@@ -420,8 +441,23 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_odometry.resetPosition(startPose, startGyro);
   }
 
+  public void resetTrajectoryPose(Pose2d startPose) {
+    m_traj_reset_pose = m_odometry.getPoseMeters();
+    m_traj_offset = startPose;
+  }
+
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    Pose2d odom_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    if (m_traj_reset_pose == null || m_traj_offset == null) {
+      m_pose = odom_pose;
+    } else {
+      Pose2d reset_relative_pose = odom_pose.relativeTo(m_traj_reset_pose);
+      m_pose = DriveUtils.relativeToReverse(reset_relative_pose, m_traj_offset);
+    }
+  }
+
+  public Field2d getField() {
+    return m_field;
   }
 
   @Override
@@ -497,7 +533,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public void resetPosition(Pose2d pose) {
-    zeroDrive();  // TODO: is it ok to set the encoders to zero for a non zero pose?
+    zeroDrive();
     resetOdometry(pose, pose.getRotation());
   }
 
