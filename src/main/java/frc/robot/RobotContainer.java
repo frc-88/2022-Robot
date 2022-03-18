@@ -177,28 +177,28 @@ public class RobotContainer {
   }
   
   public void disabledPeriodic() {
-    if (m_buttonBox.isShootButtonPressed()) {
+    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo";
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed()) {
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
       m_autoCommand = Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "2 Cargo Simple";
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed()) {
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
     }
 
 
-    if (m_buttonBox.isCentralizerUpButtonPressed()) {
+    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
       m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "3 Cargo";
     }
 
-    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
       m_autoCommand = Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
       m_autoCommandName = "5 Cargo";
     }
