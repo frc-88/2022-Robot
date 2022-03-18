@@ -194,6 +194,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       }
     } else {
       ready = true;
+      m_cargoWaiting = false;
     }
 
     return ready;
