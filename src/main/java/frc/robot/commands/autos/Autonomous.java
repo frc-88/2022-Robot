@@ -81,27 +81,28 @@ public class Autonomous {
     }
 
     public static CommandBase generateTwoBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            new InstantCommand(() -> System.out.println("1")),
-            new InstantCommand(() -> System.out.println("1.5:"+getTeamColorName())),
+        return 
+            // new SequentialCommandGroup(
+            // new InstantCommand(() -> System.out.println("1")),
+            // new InstantCommand(() -> System.out.println("1.5:"+getTeamColorName())),
             //new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new InstantCommand(() -> System.out.println("2")),
+            // new InstantCommand(() -> System.out.println("2")),
             new ParallelCommandGroup(
-                new InstantCommand(() -> System.out.println("3")),
+                // new InstantCommand(() -> System.out.println("3")),
                 generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
                 new SequentialCommandGroup(
-                    new InstantCommand(() -> System.out.println("4")),
+                    // new InstantCommand(() -> System.out.println("4")),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-                    new InstantCommand(() -> System.out.println("5")),
+                    // new InstantCommand(() -> System.out.println("5")),
                     new WaitCommand(0.5),
-                    new InstantCommand(() -> System.out.println("6")),
+                    // new InstantCommand(() -> System.out.println("6")),
                     new RunCommand(shooter::activate).withInterrupt(() -> true),
-                    new InstantCommand(() -> System.out.println("7")),
+                    // new InstantCommand(() -> System.out.println("7")),
                     new WaitCommand(1.5),
-                    new InstantCommand(() -> System.out.println("8")),
+                    // new InstantCommand(() -> System.out.println("8")),
                     new RunCommand(shooter::deactivate).withInterrupt(() -> true),
-                    new InstantCommand(() -> System.out.println("9"))
-                )
+                    // new InstantCommand(() -> System.out.println("9"))
+                // )
             )
         );
     }   
