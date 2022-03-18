@@ -49,21 +49,6 @@ public class Autonomous {
         );
     }
 
-    public static CommandBase generateOneBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            // new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, turret, intake),
-                new SequentialCommandGroup(
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter),
-                    new WaitCommand(3.0),
-                    new DriveDistanceMeters(drive, 1.5, 0.5)
-                )
-            )
-        );
-    }
-
     public static CommandBase generateTwoBallSimple(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return 
         new SequentialCommandGroup(

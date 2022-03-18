@@ -314,7 +314,6 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("Auto One Ball", Autonomous.generateOneBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Two Ball Simple", Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Two Ball", Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
