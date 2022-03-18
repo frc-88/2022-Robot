@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -37,7 +38,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Sensors m_sensors;
   private Navigation m_nav;
   private Boolean m_active = false;
-  private int m_cargoWaitCount = 0;
+  private Timer m_cargoWaitTimer;
+  private boolean m_cargoWaiting = false;
   private boolean m_sourcesHadCargoLastCheck = false;
   private long m_lastCargoEnteredShooter = 0;
 
@@ -183,9 +185,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     boolean ready = false;
 
     if (m_sources[0].hasCargo()) {
-      ready = m_cargoWaitCount++ > p_shooterReady.getValue() * 50;
+      if (!m_cargoWaiting) {
+        m_cargoWaiting = true;
+        m_cargoWaitTimer.reset();
+        m_cargoWaitTimer.start();
+      } else if (m_cargoWaitTimer.get() > p_shooterReady.getValue()) {
+        ready = true;
+      }
     } else {
-      m_cargoWaitCount = 0;
+      ready = true;
     }
 
     return ready;
