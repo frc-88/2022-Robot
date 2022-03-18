@@ -66,7 +66,7 @@ public class Autonomous {
 
     public static CommandBase generateTwoBallSimple(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, "start2_" + getTeamColorName()),
             new ParallelCommandGroup(
                 generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
                 new SequentialCommandGroup(
