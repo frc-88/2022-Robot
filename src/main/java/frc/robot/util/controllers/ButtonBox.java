@@ -117,7 +117,8 @@ public class ButtonBox extends Joystick {
     }
 
     public ClimbDirection getClimbDirection() {
-		return climbDirectionSwitch.get() ? ClimbDirection.FORWARDS : ClimbDirection.BACKWARDS;
+		// return climbDirectionSwitch.get() ? ClimbDirection.FORWARDS : ClimbDirection.BACKWARDS;
+        return ClimbDirection.BACKWARDS;
 	}
 
     public ClimbBar getClimbBar() {
