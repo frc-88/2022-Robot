@@ -5,10 +5,11 @@
 package frc.robot.commands.autos;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.Navigation;
 
-public class SetGlobalPoseToWaypoint extends InstantCommand {
+public class SetGlobalPoseToWaypoint extends CommandBase {
   private final Navigation m_nav;
   private final String m_waypointName;
   /** Creates a new SetGlobalPoseToWaypoint. */
@@ -29,6 +30,10 @@ public class SetGlobalPoseToWaypoint extends InstantCommand {
     else {
       System.out.println("Warning: " + m_waypointName + " is not a valid waypoint name");
     }
+  }
+
+  public boolean isFinished() {
+    return true;
   }
 
   @Override

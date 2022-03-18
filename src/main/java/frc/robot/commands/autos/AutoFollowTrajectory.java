@@ -5,6 +5,7 @@
 package frc.robot.commands.autos;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
@@ -35,12 +36,14 @@ public class AutoFollowTrajectory extends CommandBase {
   @Override
   public void initialize() {
     m_state = 0;
+    SmartDashboard.putNumber("Auto State", m_state);
     m_timer.reset();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    SmartDashboard.putNumber("Auto State", m_state);
     double leftSpeed = 0.0;
     double rightSpeed = 0.0;
 
@@ -77,7 +80,8 @@ public class AutoFollowTrajectory extends CommandBase {
         }
       default:
         break;
-    }
+      }
+
     m_drive.basicDriveLimited(leftSpeed, rightSpeed);
   }
 
