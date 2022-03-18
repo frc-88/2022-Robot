@@ -46,12 +46,12 @@ public class ClimberConstants {
 
 
 
-    public static final ClimberState S_LOW_CLIMBED = new ClimberState(0, 28.5, 0, 30);
+    public static final ClimberState S_LOW_CLIMBED = new ClimberState(0, 27, 0, 27);
 
     public static final ClimberStateMachine M_CLIMB_LOW = new ClimberStateMachine(S_LOW_CLIMBED);
 
 
-    public static final ClimberState S_MID_CLIMBED = new ClimberState(0, 28.5, 0, 30);
+    public static final ClimberState S_MID_CLIMBED = new ClimberState(0, 27, 0, 27);
 
     public static final ClimberStateMachine M_CLIMB_MID = new ClimberStateMachine(S_MID_CLIMBED);
 
