@@ -446,8 +446,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(
