@@ -72,7 +72,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
       0.0, 0.0);
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1300.0);
-  private DoublePreferenceConstant p_flywheelFenderShot = new DoublePreferenceConstant("Shooter Fender Shot", 2100.0);
+  private DoublePreferenceConstant p_flywheelFenderShotLow = new DoublePreferenceConstant("Shooter Fender Shot Low", 1500.0);
+  private DoublePreferenceConstant p_flywheelFenderShotHigh = new DoublePreferenceConstant("Shooter Fender Shot Low", 2400.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed",
       5000.0);
@@ -119,15 +120,21 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto() {
-    if (!m_turret.isTracking()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
-    }  else {
+    if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    } else if (!m_turret.isTracking()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    } else {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
     }
   }
 
   public void setFlywheelFenderShot() {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShot.getValue()));
+    if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    }
   }
 
   private double calcSpeedFromDistance() {
