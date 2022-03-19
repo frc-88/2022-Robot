@@ -163,6 +163,7 @@ public class RobotContainer {
 
   private CommandBase m_autoTwoBallSimple = 
     new ParallelCommandGroup(
+      // new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_2"),
       new TiltCameraDown(m_sensors),
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
