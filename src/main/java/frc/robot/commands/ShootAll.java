@@ -11,10 +11,9 @@ import frc.robot.util.CargoSource;
 public class ShootAll extends CommandBase {
   /** Creates a new ShootAll. */
   private Shooter m_shooter;
-  private CargoSource [] m_sources;
-  private Integer m_count;
+    private Integer m_count;
 
-  public ShootAll(Shooter shooter, CargoSource [] sources) {
+  public ShootAll(Shooter shooter) {
     m_shooter = shooter;
   }
 
