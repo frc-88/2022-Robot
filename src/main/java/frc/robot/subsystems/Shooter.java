@@ -178,7 +178,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return flywheelVelocity * FLYWHEEL_RATIO * 2048 / 600;
   }
 
-  private boolean sourcesHaveCargo() {
+  public boolean sourcesHaveCargo() {
     boolean hasCargo = false;
 
     for (CargoSource source : m_sources) {
