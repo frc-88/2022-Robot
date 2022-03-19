@@ -131,7 +131,7 @@ public class ClimberConstants {
 
     public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_HIGH_BAR = new ClimberState(10, 27, -20, 48);
     public static final ClimberState S_TRAVERSAL_REVERSE_TRANSITION_TO_HIGH_BAR = new ClimberState(31, 31, 7.9, 44, 15, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, true);
-    public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_MID_BAR = new ClimberState(31, 35, 7.9, 44);
+    public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_MID_BAR = new ClimberState(31, 37, 7.9, 44);
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_HIGH_BAR = new ClimberState(-28, 41, 10, 44, 34, 2, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR = new ClimberState(-28, 44, 10, 27, ClimberState.DEFAULT_PIVOT_TOLERANCE, 100, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR = new ClimberState(-28, 52, 10, 27);
