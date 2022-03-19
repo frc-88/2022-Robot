@@ -38,7 +38,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Sensors m_sensors;
   private Navigation m_nav;
   private Boolean m_active = false;
-  private Timer m_cargoWaitTimer;
+  private Timer m_cargoWaitTimer = new Timer();
   private boolean m_cargoWaiting = false;
   private boolean m_sourcesHadCargoLastCheck = false;
   private long m_lastCargoEnteredShooter = 0;
