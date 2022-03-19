@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -44,6 +47,7 @@ import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
+import frc.robot.commands.autos.AutoGoToPose;
 import frc.robot.commands.autos.Autonomous;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
@@ -199,6 +203,42 @@ public class RobotContainer {
           )
     );
 
+  private CommandBase m_autoFiveBall = 
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+      new SequentialCommandGroup(
+        new DriveDistanceMeters(m_drive, 0.6, 0.5),
+        new WaitCommand(0.5),
+        new InstantCommand(m_shooter::activate),
+        new WaitCommand(3.0),
+        new InstantCommand(m_shooter::deactivate),
+        new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+        new WaitCommand(0.5),
+        new InstantCommand(m_shooter::activate),
+        new WaitCommand(5.0),
+        new InstantCommand(m_shooter::deactivate),
+        // Go to the terminal
+        new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+        new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+            Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+            Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+        new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
+        // Go to shooting spot, with view of hub, drive in reverse
+        // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
+        //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
+        //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
+        // new WaitCommand(0.5),
+        // shoot!
+        new InstantCommand(m_shooter::activate),
+        new WaitCommand(5.0),
+        new InstantCommand(m_shooter::deactivate)
+      )
+  );
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
@@ -235,14 +275,13 @@ public class RobotContainer {
       m_autoCommandName = "Wait 1";
     }
 
-
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
       m_autoCommand = m_autoThreeBall;
       m_autoCommandName = "3 Cargo";
     }
 
     if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
-      m_autoCommand = Autonomous.generateFiveBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = m_autoFiveBall;
       m_autoCommandName = "5 Cargo";
     }
 
