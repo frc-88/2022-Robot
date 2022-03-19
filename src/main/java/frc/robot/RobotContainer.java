@@ -52,6 +52,7 @@ import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
+import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 public class RobotContainer {
@@ -160,6 +161,42 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
+  private CommandBase m_autoTwoBallSimple = 
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SequentialCommandGroup(
+          new DriveDistanceMeters(m_drive, 1.5, 0.5),
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate),
+          new WaitCommand(1.5),
+          new InstantCommand(m_shooter::deactivate)
+      )
+  );
+
+  private CommandBase m_autoThreeBall = 
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SequentialCommandGroup(
+          new DriveDistanceMeters(m_drive, 0.6, 0.5),
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate),
+          new WaitCommand(1.5),
+          new InstantCommand(m_shooter::deactivate),
+          new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+          new WaitCommand(0.5),
+          new InstantCommand(m_shooter::activate),
+          new WaitCommand(1.5),
+          new InstantCommand(m_shooter::deactivate)
+          )
+    );
+
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
@@ -187,7 +224,7 @@ public class RobotContainer {
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
-      m_autoCommand = Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = m_autoTwoBallSimple;
       m_autoCommandName = "2 Cargo Simple";
     }
 
@@ -198,7 +235,7 @@ public class RobotContainer {
 
 
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
-      m_autoCommand = Autonomous.generateThreeBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = m_autoThreeBall;
       m_autoCommandName = "3 Cargo";
     }
 
