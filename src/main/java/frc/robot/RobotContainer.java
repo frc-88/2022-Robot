@@ -502,6 +502,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
+    System.out.println("Auto: " + m_autoCommandName);
     return m_autoCommand;
   }
 }
