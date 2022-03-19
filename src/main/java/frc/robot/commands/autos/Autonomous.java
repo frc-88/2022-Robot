@@ -132,6 +132,7 @@ public class Autonomous {
                     generateShootCmd(shooter),
                     new InstantCommand(() -> turret.setDefaultFacing(90)),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter),
 
