@@ -172,7 +172,7 @@ public class RobotContainer {
           new DriveDistanceMeters(m_drive, 1.5, 0.5),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
-          new WaitCommand(1.5),
+          new WaitCommand(4.5),
           new InstantCommand(m_shooter::deactivate)
       )
   );
@@ -188,13 +188,13 @@ public class RobotContainer {
           new DriveDistanceMeters(m_drive, 0.6, 0.5),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
-          new WaitCommand(1.5),
+          new WaitCommand(2.0),
           new InstantCommand(m_shooter::deactivate),
           new InstantCommand(() -> m_turret.setDefaultFacing(90)),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
-          new WaitCommand(1.5),
+          new WaitCommand(5.0),
           new InstantCommand(m_shooter::deactivate)
           )
     );
@@ -485,8 +485,8 @@ public class RobotContainer {
 
     m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(
