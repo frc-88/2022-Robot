@@ -289,7 +289,7 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    new InstantCommand(m_shooter::deactivate);
+    m_shooter.deactivate();
     
     if (m_buttonBox.isTrackTurretSwitchOn()) {
       m_turret.startTracking();
