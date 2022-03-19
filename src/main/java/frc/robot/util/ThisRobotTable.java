@@ -54,6 +54,9 @@ public class ThisRobotTable extends CoprocessorTable {
     // }
 
     public void updateSlow() {
+        if (!isConected()) {
+            return;
+        }
         
         Vector2D outerLeftArmVector = outerArm.getPositionVector();
         Vector2D outerRightArmVector = outerArm.getPositionVector();
