@@ -42,6 +42,6 @@ public class ShootAll extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_count > 5;
+    return m_count > 25;
   }
 }
