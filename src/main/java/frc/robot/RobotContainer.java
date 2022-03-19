@@ -163,7 +163,7 @@ public class RobotContainer {
 
   private CommandBase m_autoTwoBallSimple = 
     new ParallelCommandGroup(
-      // new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_2"),
+      new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_2"),
       new TiltCameraDown(m_sensors),
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
@@ -183,6 +183,7 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
       new SequentialCommandGroup(
           new DriveDistanceMeters(m_drive, 0.6, 0.5),
           new WaitCommand(0.5),

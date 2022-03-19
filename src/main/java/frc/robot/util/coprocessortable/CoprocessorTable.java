@@ -203,6 +203,10 @@ public class CoprocessorTable {
     }
 
     public void update() {
+        if (!instance.isConnected()) {
+            return;
+        }
+        
         Pose2d pose = this.chassis.getOdometryPose();
         ChassisSpeeds velocity = this.chassis.getChassisVelocity();
         odomEntryX.setDouble(pose.getX());
