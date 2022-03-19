@@ -188,7 +188,7 @@ public class RobotContainer {
           new DriveDistanceMeters(m_drive, 0.6, 0.5),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
-          new WaitCommand(2.0),
+          new WaitCommand(3.0),
           new InstantCommand(m_shooter::deactivate),
           new InstantCommand(() -> m_turret.setDefaultFacing(90)),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),

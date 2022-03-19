@@ -87,7 +87,7 @@ public class RapidReactTrajectories
     waypoints.add(new Pose2d(Units.feetToMeters(26.0D), Units.feetToMeters(7.0D), Rotation2d.fromDegrees(-111.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
     waypoints.add(new Pose2d(Units.feetToMeters(24.0D), Units.feetToMeters(1.5D), Rotation2d.fromDegrees(-180.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(15.0D), Units.feetToMeters(8.0D), Rotation2d.fromDegrees(115.0D)));
+    waypoints.add(new Pose2d(Units.feetToMeters(16.5D), Units.feetToMeters(6.25D), Rotation2d.fromDegrees(115.0D)));
 
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
