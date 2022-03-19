@@ -46,6 +46,7 @@ import frc.robot.util.controllers.ButtonBox.ClimbBar;
 import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
+import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.AutoGoToPose;
 import frc.robot.commands.autos.Autonomous;
@@ -175,9 +176,7 @@ public class RobotContainer {
       new SequentialCommandGroup(
           new DriveDistanceMeters(m_drive, 1.5, 0.5),
           new WaitCommand(0.5),
-          new InstantCommand(m_shooter::activate),
-          new WaitCommand(4.5),
-          new InstantCommand(m_shooter::deactivate)
+          new ShootAll(m_shooter)
       )
   );
 
@@ -213,15 +212,11 @@ public class RobotContainer {
       new SequentialCommandGroup(
         new DriveDistanceMeters(m_drive, 0.6, 0.5),
         new WaitCommand(0.5),
-        new InstantCommand(m_shooter::activate),
-        new WaitCommand(3.0),
-        new InstantCommand(m_shooter::deactivate),
+        new ShootAll(m_shooter),
         new InstantCommand(() -> m_turret.setDefaultFacing(90)),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
         new WaitCommand(0.5),
-        new InstantCommand(m_shooter::activate),
-        new WaitCommand(5.0),
-        new InstantCommand(m_shooter::deactivate),
+        new ShootAll(m_shooter),
         // Go to the terminal
         new InstantCommand(() -> m_turret.setDefaultFacing(0)),
         new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
