@@ -315,12 +315,12 @@ public class Intake extends SubsystemBase implements CargoSource {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Intake Arm Position", getArmPosition());
-    SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
-    SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
-    SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
+    // SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
+    // SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
     SmartDashboard.putBoolean("Intake Arm Deploy Limit", isDeployLimitTriggered());
 
-    SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
     SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
     SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());

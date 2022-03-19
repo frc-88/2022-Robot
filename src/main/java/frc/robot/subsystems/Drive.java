@@ -471,20 +471,20 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     updateOdometry();
     m_field.setRobotPose(getCurrentPose());
 
-    SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
-    SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
+    // SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
+    // SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
     SmartDashboard.putNumber("L Drive Speed", m_leftDrive.getScaledSensorVelocity());
     SmartDashboard.putNumber("R Drive Speed", m_rightDrive.getScaledSensorVelocity());
-    SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
-    SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
-    SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
-    SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
-    SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
-    SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
+    // SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
+    // SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
+    // SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
+    // SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
+    // SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
+    // SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
     SmartDashboard.putString("L Drive Gear", getLeftGear().toString());
     SmartDashboard.putString("R Drive Gear", getRightGear().toString());
-    SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
-    SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
+    // SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
+    // SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
 
     SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
     SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));

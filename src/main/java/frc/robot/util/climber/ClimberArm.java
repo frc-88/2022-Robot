@@ -308,9 +308,9 @@ public class ClimberArm {
     public void publishData() {
         SmartDashboard.putNumber(m_positionLabel + " Climber Pivot Angle", getPivotAngle());
         SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Height", getTelescopeHeight());
-        SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
-        SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
-        SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
         SmartDashboard.putBoolean(m_positionLabel + " Climber Is Calibrated", isCalibrated());
     }
 
