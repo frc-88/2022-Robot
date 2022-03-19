@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
@@ -12,11 +13,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.MagnetFieldStrength;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
@@ -106,7 +109,11 @@ public class Turret extends SubsystemBase {
   }
 
   public void sync() {
-    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
+    if (isEncoderConnected()) {
+        m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
+    } else {
+      m_turret.setSelectedSensorPosition(0.0);
+    }
   }
 
   public void calibrate() {
@@ -116,6 +123,16 @@ public class Turret extends SubsystemBase {
     // position could cause the turret to move to unsafe positions.
     p_zeroPosition.setValue(m_cancoder.getAbsolutePosition());
     sync();
+  }
+
+  public boolean isEncoderConnected() {
+    if (m_cancoder.getLastError() == ErrorCode.SensorNotPresent
+            || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.BadRange_RedLED
+            || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.Invalid_Unknown
+            || Robot.isSimulation()) {
+        return false;
+    } 
+    return true;
   }
 
   public void setPercentOutput(double percentOutput) {

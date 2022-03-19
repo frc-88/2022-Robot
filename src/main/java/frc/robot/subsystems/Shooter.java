@@ -214,7 +214,20 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving();
+    boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
+
+    if (m_active && !wantsCargo) {
+      System.out.println("***Shot blocked***");
+      System.out.println("isFlywheelReasdy:" + isFlywheelReady());
+      System.out.println("onTarget:" + onTarget());
+      System.out.println("hoodMoving:" + !m_hood.isMoving());
+    }
+
+    if (m_active && wantsCargo) {
+      System.out.println("!!!SHOOT!!!");
+    }
+
+    return wantsCargo;
   }
 
   @Override

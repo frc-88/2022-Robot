@@ -33,7 +33,7 @@ public class Hood extends SubsystemBase {
   private static final double HOOD_RAISED = 27.0;
   private static final double HOOD_MID = 15.;
   private static final double HOOD_SETPOINT_TOLERANCE = 3;
-  private static final double HOOD_CALIBRATION_COLLECT_SIZE = 50;
+  private static final double HOOD_CALIBRATION_COLLECT_SIZE = 20;
   private static final double HOOD_CALIBRATION_TOLERANCE = 0.5;
   private double m_hoodCalibrationStartValue = 0;
   private int m_hoodCalibrationCollectsDone = 0;
@@ -235,7 +235,7 @@ public class Hood extends SubsystemBase {
   }
 
   public boolean isMoving() {
-    return (m_hoodState != HoodState.RAISED && m_hoodState != HoodState.LOWERED && m_hoodState != HoodState.MIDED);
+    return (m_hoodState != HoodState.RAISED && m_hoodState != HoodState.LOWERED && m_hoodState != HoodState.MIDED && m_hoodState != HoodState.CALIBRATING);
   }
 
   public void setHoodPercentOut(int direction) {
