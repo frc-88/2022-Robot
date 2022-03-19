@@ -188,7 +188,7 @@ public class RobotContainer {
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
       new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 0.6, 0.5),
+          new DriveDistanceMeters(m_drive, 0.7, 0.5),
           new WaitCommand(0.5),
           new InstantCommand(m_shooter::activate),
           new WaitCommand(3.0),
@@ -210,7 +210,7 @@ public class RobotContainer {
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
       new SequentialCommandGroup(
-        new DriveDistanceMeters(m_drive, 0.6, 0.5),
+        new DriveDistanceMeters(m_drive, 0.7, 0.5),
         new WaitCommand(0.5),
         new ShootAll(m_shooter),
         new InstantCommand(() -> m_turret.setDefaultFacing(90)),
@@ -338,6 +338,7 @@ public class RobotContainer {
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
+      new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
       new RunCommand(m_hood::lowerHood, m_hood),
       new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
@@ -355,6 +356,7 @@ public class RobotContainer {
       )
     ));
     m_buttonBox.raiseClimberButton.whenPressed(new ParallelCommandGroup(
+      new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
       new RunCommand(m_hood::lowerHood, m_hood),
       new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
