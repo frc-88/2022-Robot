@@ -322,8 +322,8 @@ public class Intake extends SubsystemBase implements CargoSource {
 
     // SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
-    SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
-    SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
+    // SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
+    // SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
 
     SmartDashboard.putString("Intake State", m_state.toString());
   }

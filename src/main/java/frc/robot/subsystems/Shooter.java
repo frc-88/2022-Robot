@@ -235,20 +235,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public void periodic() {
     SmartDashboard.putNumber("Shooter Flywheel Velocity",
         convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
-    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
-    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
+    // SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
+    // SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
 
     if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
-    if (m_active
-        && (RobotController.getFPGATime() - m_lastCargoEnteredShooter) <= p_cargoInShooter.getValue() * 1_000_000) {
-      m_drive.lockDrive();
-    } else {
-      m_drive.unlockDrive();
-    }
+    m_drive.unlockDrive();
   }
 }

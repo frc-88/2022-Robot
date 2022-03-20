@@ -88,7 +88,7 @@ public class RobotContainer {
   private final XboxController m_testController = new XboxController(Constants.TEST_CONTROLLER_ID);
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
-
+  private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
 
   /////////////////////////////////////////////////////////////////////////////
   //                               COMMANDS                                  //
@@ -203,7 +203,9 @@ public class RobotContainer {
           new WaitCommand(0.5),
           new ShootAll(m_shooter)
         ),
-        new TurretLock(m_turret)
+        new TurretLock(m_turret),
+        new RunCommand(m_hood::lowerHood, m_hood),
+        new RunCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterAutoSpeed.getValue());}, m_shooter)    
       ),
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
@@ -212,7 +214,9 @@ public class RobotContainer {
           new WaitCommand(0.5),
           new ShootAll(m_shooter)
         ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight)
+        new TurretTrackLimelight(m_turret, m_sensors.limelight),
+        new RunCommand(m_hood::hoodAuto, m_hood),
+        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)    
       )
     )
   );
