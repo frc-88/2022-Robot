@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.drive.TankDrive;
@@ -168,36 +169,53 @@ public class RobotContainer {
   private String m_autoCommandName = "Wait 1";
 
   private CommandBase m_autoTwoBallSimple = 
-    new ParallelCommandGroup(
-      //new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_2"),
-      new TiltCameraDown(m_sensors),
-      new InstantCommand(m_turret::startTracking),
-      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-      new SequentialCommandGroup(
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    new SequentialCommandGroup(
+      new ParallelDeadlineGroup(
+        new SequentialCommandGroup(
           new DriveDistanceMeters(m_drive, 1.5, 0.5),
           new WaitCommand(0.5),
           new ShootAll(m_shooter)
+        ),
+        new TurretLock(m_turret)
       )
+    )
   );
 
   private CommandBase m_autoThreeBall = 
-    new ParallelCommandGroup(
-      new TiltCameraDown(m_sensors),
-      new InstantCommand(m_turret::startTracking),
-      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-      // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
-      new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 0.7, 0.5),
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    new SequentialCommandGroup(
+      new ParallelDeadlineGroup(
+        new SequentialCommandGroup(
+          new DriveDistanceMeters(m_drive, 1.0, 0.5),
           new WaitCommand(0.5),
-          new ShootAll(m_shooter),
+          new ShootAll(m_shooter)
+        ),
+        new TurretLock(m_turret)
+      ),
+      new ParallelDeadlineGroup(
+        new SequentialCommandGroup(
           new InstantCommand(() -> m_turret.setDefaultFacing(90)),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
           new WaitCommand(0.5),
           new ShootAll(m_shooter)
-          )
-    );
+        ),
+        new TurretTrackLimelight(m_turret, m_sensors.limelight)
+      )
+    )
+  );
 
   private CommandBase m_autoFiveBall = 
     new ParallelCommandGroup(

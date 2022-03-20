@@ -29,6 +29,8 @@ public class ShootAll extends CommandBase {
   public void execute() {
     if (!m_shooter.sourcesHaveCargo()) {
       m_count++;
+    } else {
+      m_count = 0;
     }
   }
 

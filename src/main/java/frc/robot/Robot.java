@@ -76,8 +76,8 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
     if (m_autoRestartCounter < 25 && m_autonomousCommand != null && !m_autonomousCommand.isScheduled()) {
       m_autonomousCommand.schedule();
-      m_autoRestartCounter++;
     }
+    m_autoRestartCounter++;
   }
 
   @Override
