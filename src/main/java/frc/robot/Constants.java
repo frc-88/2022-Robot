@@ -58,7 +58,7 @@ public final class Constants {
 	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
 	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
 
-	public static final double MAX_TRAJ_VELOCITY = 4.0;
+	public static final double MAX_TRAJ_VELOCITY = 6.0;
 	public static final double MAX_TRAJ_ACCELERATION = 4.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
 
