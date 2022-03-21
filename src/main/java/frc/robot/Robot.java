@@ -20,6 +20,8 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  private int m_autoRestartCounter = 0;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -71,7 +73,12 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    if (m_autoRestartCounter < 25 && m_autonomousCommand != null && !m_autonomousCommand.isScheduled()) {
+      m_autonomousCommand.schedule();
+    }
+    m_autoRestartCounter++;
+  }
 
   @Override
   public void teleopInit() {

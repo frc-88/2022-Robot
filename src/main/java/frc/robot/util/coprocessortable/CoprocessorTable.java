@@ -18,6 +18,8 @@ public class CoprocessorTable {
     protected ChassisInterface chassis;
 
     private NetworkTableInstance instance;
+    private String address;
+    private int port;
     protected NetworkTable rootTable;
     private double updateInterval = 0.01;
     private NetworkTableEntry pingEntry;
@@ -95,6 +97,8 @@ public class CoprocessorTable {
 
     public CoprocessorTable(ChassisInterface chassis, String address, int port, double updateInterval) {
         this.chassis = chassis;
+        this.address = address;
+        this.port = port;
 
         instance = NetworkTableInstance.create();
         instance.startClient(address, port);
@@ -199,6 +203,10 @@ public class CoprocessorTable {
     }
 
     public void update() {
+        if (!instance.isConnected()) {
+            return;
+        }
+        
         Pose2d pose = this.chassis.getOdometryPose();
         ChassisSpeeds velocity = this.chassis.getChassisVelocity();
         odomEntryX.setDouble(pose.getX());
@@ -214,6 +222,22 @@ public class CoprocessorTable {
             DriverStation.getMatchTime(),
             DriverStation.getAlliance()
         );
+    }
+
+    public void stopComms() {
+        if (instance.isConnected()) {
+            instance.stopClient();
+        }
+    }
+
+    public void startComms() {
+        if (!instance.isConnected()) {
+            instance.startClient(address, port);
+        }
+    }
+
+    public boolean isConected() {
+        return instance.isConnected();
     }
 
     private double getTime() {

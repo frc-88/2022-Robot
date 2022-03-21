@@ -35,7 +35,7 @@ public class TurretTrackCombo extends CommandBase {
   @Override
   public void execute() {
     if (!m_turret.isTracking()) {
-      m_turret.goToFacing(0.0);
+      m_turret.goToDefaultFacing();
       m_limelight.ledOff();
       return;
     }

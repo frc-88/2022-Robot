@@ -61,6 +61,10 @@ public class Navigation extends SubsystemBase {
     return m_waypointMap.doesWaypointExist(waypointName);
   }
 
+  public boolean isConnected() {
+    return m_coprocessor.isConected();
+  }
+
   public WaypointsPlan makeEmptyWaypointPlan() {
     return new WaypointsPlan(m_coprocessor);
   }

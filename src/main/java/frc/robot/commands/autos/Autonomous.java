@@ -33,7 +33,7 @@ import frc.robot.util.roswaypoints.WaypointsPlan;
 
 /** Add your docs here. */
 public class Autonomous {
-    private static CommandBase generatePrepareCmd(Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood, boolean hoodUp) {
+    private static CommandBase generatePrepareCmd(Sensors sensors, Turret turret, Intake intake) {
         return new ParallelCommandGroup(
             new TiltCameraDown(sensors),
             new InstantCommand(turret::startTracking),
@@ -49,26 +49,12 @@ public class Autonomous {
         );
     }
 
-    public static CommandBase generateOneBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
-                new SequentialCommandGroup(
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter),
-                    new WaitCommand(3.0),
-                    new DriveDistanceMeters(drive, 1.5, 0.5)
-                )
-            )
-        );
-    }
-
     public static CommandBase generateTwoBallSimple(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
-            // new SetGlobalPoseToWaypoint(nav, "start2_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_2"),
             new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(0)),
                 new SequentialCommandGroup(
                     new DriveDistanceMeters(drive, 1.5, 0.5),
                     new WaitCommand(0.5),
@@ -81,37 +67,28 @@ public class Autonomous {
     }
 
     public static CommandBase generateTwoBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return 
-            // new SequentialCommandGroup(
-            // new InstantCommand(() -> System.out.println("1")),
-            // new InstantCommand(() -> System.out.println("1.5:"+getTeamColorName())),
-            //new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            // new InstantCommand(() -> System.out.println("2")),
+        return new SequentialCommandGroup(
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_1"),
             new ParallelCommandGroup(
-                // new InstantCommand(() -> System.out.println("3")),
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(90)),
                 new SequentialCommandGroup(
-                    // new InstantCommand(() -> System.out.println("4")),
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-                    // new InstantCommand(() -> System.out.println("5")),
                     new WaitCommand(0.5),
-                    // new InstantCommand(() -> System.out.println("6")),
-                    new RunCommand(shooter::activate).withInterrupt(() -> true),
-                    // new InstantCommand(() -> System.out.println("7")),
+                    new InstantCommand(shooter::activate),
                     new WaitCommand(1.5),
-                    // new InstantCommand(() -> System.out.println("8")),
-                    new RunCommand(shooter::deactivate).withInterrupt(() -> true)
-                    // new InstantCommand(() -> System.out.println("9"))
-                // )
+                    new InstantCommand(shooter::deactivate)
+                )
             )
         );
     }   
 
       public static CommandBase generateTwoBallROS(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood, CoprocessorTable rosTable) {
         return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_1"),
             new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(0)),
                 new SequentialCommandGroup(
                     new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
                     new WaitCommand(0.5),
@@ -126,76 +103,44 @@ public class Autonomous {
 
     public static CommandBase generateThreeBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_1"),
             new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(0)),
                 new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateThreeBallTrajectory(), true),
+                    new DriveDistanceMeters(drive, 0.6, 0.5),
+                    new WaitCommand(0.5),
+                    generateShootCmd(shooter),
+                    new InstantCommand(() -> turret.setDefaultFacing(90)),
+                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+                    new WaitCommand(0.5),
                     generateShootCmd(shooter)
                 )
             )
         );
     }   
 
-      public static CommandBase generateThreeBallDynamic(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
+    public static CommandBase generateFiveBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_1"),
             new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(0)),
                 new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
+                    new DriveDistanceMeters(drive, 0.6, 0.5),
                     new WaitCommand(0.5),
                     generateShootCmd(shooter),
-                    new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(5.5D), Rotation2d.fromDegrees(150.0D)), false),
+                    new InstantCommand(() -> turret.setDefaultFacing(90)),
+                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
                     new WaitCommand(0.5),
-                    generateShootCmd(shooter)
-                )
-            )
-        );
-    }
+                    generateShootCmd(shooter),
 
-    public static CommandBase generateFourBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
-                new SequentialCommandGroup(
-                    new AutoFollowTrajectory(drive, RapidReactTrajectories.generateTwoBallTrajectory(), true),
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter),
+                    // Go to the terminal
+                    new InstantCommand(() -> turret.setDefaultFacing(0)),
                     new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
                         Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
                         Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
                     new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-                    generateShootCmd(shooter)
-                    // possible follow up to get to good spot for ROS to see cargo
-                    // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
-                    //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
-                    //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
-                    // new WaitCommand(0.5),
-                    // generateShootCmd(shooter)
-                )
-            )
-        );
-    }
-
-    public static CommandBase generateFiveBall(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
-        return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
-            new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
-                new SequentialCommandGroup(
-                    new ParallelCommandGroup(
-                        new AutoFollowTrajectory(drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
-                        generateShootCmd(shooter)),
-                    new WaitCommand(0.5),
-                    generateShootCmd(shooter)
-
-                    // Go to the terminal
-                    // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-                    //     Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-                    //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-                    // new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
 
                     // Go to shooting spot, with view of hub, drive in reverse
                     // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
@@ -203,7 +148,8 @@ public class Autonomous {
                     //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
                     // new WaitCommand(0.5),
 
-                    // generateShootCmd(shooter)
+                    // shoot!
+                    generateShootCmd(shooter)
                 )
             )
         );
@@ -212,15 +158,17 @@ public class Autonomous {
     public static CommandBase generateFourBallNoStop(Drive drive, Navigation nav, Sensors sensors, Shooter shooter, Turret turret, Intake intake, Hood hood) {
         Trajectory trajectory = RapidReactTrajectories.generateFourBallNoStopTrajectory();
         return new SequentialCommandGroup(
-            new SetGlobalPoseToWaypoint(nav, "start_" + getTeamColorName()),
+            new SetGlobalPoseToWaypoint(nav, getTeamColorName() + "_start_1"),
             new ParallelCommandGroup(
-                generatePrepareCmd(sensors, shooter, turret, intake, hood, false),
+                generatePrepareCmd(sensors, turret, intake),
+                new InstantCommand(() -> turret.setDefaultFacing(90)),
                 new AutoFollowTrajectory(drive, trajectory, true),
                 new SequentialCommandGroup(
                     new InstantCommand(() -> {sensors.limelight.setMotionOffset(new DoublePreferenceConstant("Auto Motion Offset", 0.0).getValue());}), 
                     new WaitCommand(new DoublePreferenceConstant("Auto 4X Shot Delay", 2.25).getValue()),
                     generateShootCmd(shooter),
-                    new InstantCommand(() -> {sensors.limelight.setMotionOffset(0.0);}), 
+                    new InstantCommand(() -> {sensors.limelight.setMotionOffset(0.0);}),
+                    new InstantCommand(() -> turret.setDefaultFacing(0)),
                     new WaitCommand(trajectory.getTotalTimeSeconds()),
                     generateShootCmd(shooter)
                 )
@@ -238,7 +186,7 @@ public class Autonomous {
       return "cargo_" + getTeamColorName();
     }
   
-    private static  String getTeamColorName() {
+    public static  String getTeamColorName() {
       if (DriverStation.getAlliance() == Alliance.Red) {
         return "red";
       }

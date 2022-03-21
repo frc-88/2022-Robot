@@ -48,14 +48,14 @@ public class Intake extends SubsystemBase implements CargoSource {
   private static final int MOTION_MAGIC_PID_SLOT = 0;
   private static final int CURRENT_CONTROL_PID_SLOT = 1;
 
-  private static final double CALIBRATION_COLLECT_SIZE = 25;
-  private static final double CALIBRATION_TOLERANCE = 0.5;
+  private static final double CALIBRATION_COLLECT_SIZE = 50;
+  private static final double CALIBRATION_TOLERANCE = 1;
   private double m_calibrationStartValue = 0;
   private double m_calibrationCollectsDone = 0;
 
   private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  public static final double ARM_STOWED = 103;
+  public static final double ARM_STOWED = 120;
   public static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
@@ -315,15 +315,15 @@ public class Intake extends SubsystemBase implements CargoSource {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Intake Arm Position", getArmPosition());
-    SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
-    SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
-    SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
+    // SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
+    // SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
     SmartDashboard.putBoolean("Intake Arm Deploy Limit", isDeployLimitTriggered());
 
-    SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
-    SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
-    SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
+    // SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
+    // SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
 
     SmartDashboard.putString("Intake State", m_state.toString());
   }
