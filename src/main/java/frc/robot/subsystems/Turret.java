@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -11,13 +13,21 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.MagnetFieldStrength;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
+
+/**
+ * a green glowing eye
+ * rises up and lights the way
+ * turn towards the light
+ **/
 
 public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
@@ -34,9 +44,13 @@ public class Turret extends SubsystemBase {
   private DoublePreferenceConstant p_nominalReverse = new DoublePreferenceConstant("Turret Nominal Reverse", 0.0);
   private DoublePreferenceConstant p_forwardLimit = new DoublePreferenceConstant("Turret Forward Limit", 0.0);
   private DoublePreferenceConstant p_reverseLimit = new DoublePreferenceConstant("Turret Reverse Limit", 0.0);
- 
-  // 
+
+  //
   private boolean m_tracking = false;
+  private boolean m_circumnavigating = false;
+  private double m_circumnavigationTarget;
+
+  private double m_defaultFacing = 0.;
 
   /** Creates a new Turret. */
   public Turret() {
@@ -91,11 +105,15 @@ public class Turret extends SubsystemBase {
     // sensorCoefficient = 360.0 / 4096.0
     // unitString = "deg"
     // sensorTimeBase = SensorTimeBase.PerSecond
-    m_cancoder.configAllSettings(encConfig);   
+    m_cancoder.configAllSettings(encConfig);
   }
 
   public void sync() {
-    m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
+    if (isEncoderConnected()) {
+        m_turret.setSelectedSensorPosition(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()));
+    } else {
+      m_turret.setSelectedSensorPosition(0.0);
+    }
   }
 
   public void calibrate() {
@@ -107,12 +125,61 @@ public class Turret extends SubsystemBase {
     sync();
   }
 
+  public boolean isEncoderConnected() {
+    if (m_cancoder.getLastError() == ErrorCode.SensorNotPresent
+            || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.BadRange_RedLED
+            || m_cancoder.getMagnetFieldStrength() == MagnetFieldStrength.Invalid_Unknown
+            || Robot.isSimulation()) {
+        return false;
+    } 
+    return true;
+  }
+
   public void setPercentOutput(double percentOutput) {
     m_turret.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
   public void goToFacing(double target) {
-    goToPosition(turretFacingToEncoderPosition(target));
+    if (m_circumnavigating) {
+      // if we are circumnavigating, ignore the input and keep doing that until we get there
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      m_circumnavigating = Math.abs(m_circumnavigationTarget - getFacing()) > 5.0;
+    } else if (isFacingSafe(target)) {
+      // otherwise go to the input target if it is safe.
+      goToPosition(turretFacingToEncoderPosition(target));
+    } else if (isFacingSafe(m_circumnavigationTarget = calcCircumnavigationTarget(target))) {
+      // but if the target isn't safe, and our circumnavigation target is, start circumnavigating
+      m_circumnavigating = true;
+      // TODO? - adjust config here if different PID needed for targeting vs. circumnavigating
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+    } else {
+      System.out.println("Turret unsafe target: " + target);
+      // target is unsafe and circumnavigation target is unsafe, ignore it
+    }
+  }
+
+  public void goToDefaultFacing() {
+    goToFacing(m_defaultFacing);
+  }
+
+  public void setDefaultFacing(double facing) {
+    m_defaultFacing = facing;
+  }
+
+  public double getDefaultFacing() {
+    return m_defaultFacing;
+  }
+
+  private double calcCircumnavigationTarget(double origin) {
+    double target;
+
+    if(origin > 0.0) { 
+      target = origin - 360.0;
+    } else {
+      target = origin + 360.0;
+    }
+
+    return target;
   }
 
   public boolean isFacingSafe(double degrees) {
@@ -124,8 +191,12 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSynchronized() {
-    return Math.abs(getFacing() - 
-      turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
+    return Math.abs(getFacing() -
+    turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition()))) < p_syncThreshold.getValue();
+  }
+
+  public void setNeutralMode(NeutralMode mode) {
+    m_turret.setNeutralMode(mode);
   }
 
   public void startTracking() {
@@ -140,17 +211,21 @@ public class Turret extends SubsystemBase {
     return m_tracking;
   }
 
+  public boolean isSafeForClimber() {
+    return Math.abs(getPosition()) % 180 < 10;
+  }
+
   private double getPosition() {
     return m_turret.getSelectedSensorPosition();
   }
-  
+
   private void goToPosition(double position) {
     m_turret.set(TalonFXControlMode.MotionMagic, position);
   }
 
   private boolean isPositionSafe(double position) {
     return (position < turretFacingToEncoderPosition(p_forwardLimit.getValue() - p_limitBuffer.getValue())) &&
-      (position > turretFacingToEncoderPosition(p_reverseLimit.getValue() + p_limitBuffer.getValue()));
+        (position > turretFacingToEncoderPosition(p_reverseLimit.getValue() + p_limitBuffer.getValue()));
   }
 
   private double cancoderPostionToFalconPosition(double position) {
@@ -159,8 +234,8 @@ public class Turret extends SubsystemBase {
     if (normalPosition > 180) { normalPosition -= 360; }
     if (normalPosition < -180) { normalPosition += 360; }
 
-    return turretFacingToEncoderPosition(normalPosition * 
-      (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
+    return turretFacingToEncoderPosition(normalPosition *
+    (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
   }
 
   private double turretEncoderPositionToFacing(double turretPosition) {
@@ -174,13 +249,13 @@ public class Turret extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
-    SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
+    // SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
+    // SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
-    SmartDashboard.putNumber("Turret:Position", getPosition());
+    // SmartDashboard.putNumber("Turret:Position", getPosition());
     SmartDashboard.putNumber("Turret:Facing", getFacing());
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
-    SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+    // SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
   }
 }

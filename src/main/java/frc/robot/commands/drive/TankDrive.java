@@ -35,8 +35,8 @@ public class TankDrive extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    drive.shiftToHigh();
-    drive.updateCurrentGear();
+    // drive.shiftToHigh();
+    // drive.updateCurrentGear();
     drive.basicDrive(leftVelocity.getAsDouble(), rightVelocity.getAsDouble());
   }
 

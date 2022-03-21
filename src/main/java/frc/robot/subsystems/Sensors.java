@@ -15,15 +15,19 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 import frc.robot.util.sensors.NavX;
 
@@ -36,9 +40,14 @@ import frc.robot.util.sensors.NavX;
 public class Sensors extends SubsystemBase {
   public final NavX navx = new NavX();
   public final Limelight limelight = new Limelight();
-  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Constants.I2C_ONBOARD);
+  private final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
+
+  // private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
+
+  private DoublePreferenceConstant p_colorRedThreshold = new DoublePreferenceConstant("Color Red Threshold", 0.0);
+  private DoublePreferenceConstant p_colorBlueThreshold = new DoublePreferenceConstant("Color Blue Threshold", 0.0);
 
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
@@ -55,6 +64,12 @@ public class Sensors extends SubsystemBase {
     CameraServer.startAutomaticCapture();
     setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
     limelight.ledOff();
+
+    SmartDashboard.putBoolean("Virtual Coast Button", false);
+  }
+
+  public boolean isCoastButtonPressed() {
+    return !coastButton.get() || SmartDashboard.getBoolean("Virtual Coast Button", false);
   }
 
   public double getStoragePressure() {
@@ -122,13 +137,36 @@ public class Sensors extends SubsystemBase {
     return -(angleDegrees + Constants.CAMERA_TILT_LEVEL_ANGLE) + Constants.CAMERA_TILT_DOWN_COMMAND;
   }
 
+  public boolean isCargoOurs() {
+    // Color detectedColor = m_colorSensor.getColor();
+    boolean foundOurs = true;
+
+    // if (DriverStation.getAlliance() == Alliance.Red) {
+    //   if (detectedColor.red > p_colorRedThreshold.getValue() &&
+    //       detectedColor.blue < p_colorBlueThreshold.getValue()) {
+    //         foundOurs = true;
+    //   }
+    // } else {
+    //   if (detectedColor.red < p_colorRedThreshold.getValue() &&
+    //       detectedColor.blue > p_colorBlueThreshold.getValue()) {
+    //         foundOurs = true;
+    //   }
+    // }
+
+    return foundOurs;
+  }
+
   @Override
   public void periodic() {
-    checkedStoragePressure = false;
-    checkedWorkingPressure = false;
-    getStoragePressure();
-    getWorkingPressure();
+    // checkedStoragePressure = false;
+    // checkedWorkingPressure = false;
+    // getStoragePressure();
+    // getWorkingPressure();
 
+    if (DriverStation.isEnabled()) {
+      SmartDashboard.putBoolean("Virtual Coast Button", false);
+    }
+    SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
@@ -139,78 +177,78 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
     SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
     SmartDashboard.putNumber("Limelight Turret Offset", limelight.calcTurretOffset());
-    SmartDashboard.putBoolean("Limelight Hood Up?", limelight.isHoodUp());
     SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
     SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
 
     // Color Sensor data
-    Color detectedColor = m_colorSensor.getColor();
-    double IR = m_colorSensor.getIR();
+    // Color detectedColor = m_colorSensor.getColor();
+    // double IR = m_colorSensor.getIR();
 
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("IR", IR);
+    // SmartDashboard.putNumber("Red", detectedColor.red);
+    // SmartDashboard.putNumber("Green", detectedColor.green);
+    // SmartDashboard.putNumber("Blue", detectedColor.blue);
+    // SmartDashboard.putNumber("IR", IR);
+    // SmartDashboard.putBoolean("Our Cargo", isCargoOurs());
 
     // Pressure tracking
-    double storagePressure = this.getStoragePressure();
-    double workingPressure = this.getWorkingPressure();
-    double pressureDifference;
-    double leakRatePSI;
-    double leakRatePercentage;
-    if (DriverStation.isEnabled()) {
-      // Only track leaks while disabled, clear history once enabled
-      pressureDifference = 0;
-      leakRatePSI = 0;
-      leakRatePercentage = 0;
-      m_storagePressureMeasurements.clear();
-    } else {
-      double measurementTime = RobotController.getFPGATime() / 60E6; // Time in minutes
-      if (m_storagePressureMeasurements.size() > 0) {
-        pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
-        while (pressureDifference > Constants.PRESSURE_DIFFERENCE_TARGET && m_storagePressureMeasurements.size() > 1) {
-          // Measure the time it took for the last 5 PSI to leak (or since last enabled if
-          // 5 PSI hasn't been leaked yet)
-          m_storagePressureMeasurements.poll();
-          pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
-        }
+    // double storagePressure = this.getStoragePressure();
+    // double workingPressure = this.getWorkingPressure();
+    // double pressureDifference;
+    // double leakRatePSI;
+    // double leakRatePercentage;
+    // if (DriverStation.isEnabled()) {
+    //   // Only track leaks while disabled, clear history once enabled
+    //   pressureDifference = 0;
+    //   leakRatePSI = 0;
+    //   leakRatePercentage = 0;
+    //   m_storagePressureMeasurements.clear();
+    // } else {
+    //   double measurementTime = RobotController.getFPGATime() / 60E6; // Time in minutes
+    //   if (m_storagePressureMeasurements.size() > 0) {
+    //     pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
+    //     while (pressureDifference > Constants.PRESSURE_DIFFERENCE_TARGET && m_storagePressureMeasurements.size() > 1) {
+    //       // Measure the time it took for the last 5 PSI to leak (or since last enabled if
+    //       // 5 PSI hasn't been leaked yet)
+    //       m_storagePressureMeasurements.poll();
+    //       pressureDifference = m_storagePressureMeasurements.peek().getSecond() - storagePressure;
+    //     }
 
-        double timeDifference = measurementTime - m_storagePressureMeasurements.peek().getFirst();
-        if (timeDifference > 0.) {
-          // The leak rate in PSI/minute
-          leakRatePSI = pressureDifference / timeDifference;
-          double averagePressure = (m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.;
-          if (averagePressure > 0) {
-            // The leak rate as a percentage of total pressure lost each minute
-            leakRatePercentage = leakRatePSI
-                / ((m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.);
-          } else {
-            // Don't divide by 0
-            leakRatePercentage = 0;
-          }
-        } else {
-          // Don't divide by 0
-          leakRatePSI = 0;
-          leakRatePercentage = 0;
-        }
-      } else {
-        // Can't measure for leaks with no measurement history
-        pressureDifference = 0;
-        leakRatePSI = 0;
-        leakRatePercentage = 0;
-      }
-      m_storagePressureMeasurements.add(new Pair<Double, Double>(measurementTime, storagePressure));
-    }
-    SmartDashboard.putNumber("Storage Pressure", storagePressure);
-    SmartDashboard.putNumber("Working Pressure", workingPressure);
-    SmartDashboard.putNumber("Leak Pressure Difference PSI", pressureDifference);
-    SmartDashboard.putNumber("Leak Rate PSI per minute", leakRatePSI);
-    SmartDashboard.putNumber("Leak Rate Percentage per minute", leakRatePercentage);
-    SmartDashboard.putBoolean("Working Pressure Warning", workingPressure < Constants.WORKING_PRESSURE_WARNING);
-    SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
-    SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());
-    SmartDashboard.putBoolean("Working Pressure Sensor Disconnected", !this.isWorkingPressureSensorConnected());
+    //     double timeDifference = measurementTime - m_storagePressureMeasurements.peek().getFirst();
+    //     if (timeDifference > 0.) {
+    //       // The leak rate in PSI/minute
+    //       leakRatePSI = pressureDifference / timeDifference;
+    //       double averagePressure = (m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.;
+    //       if (averagePressure > 0) {
+    //         // The leak rate as a percentage of total pressure lost each minute
+    //         leakRatePercentage = leakRatePSI
+    //             / ((m_storagePressureMeasurements.peek().getSecond() + storagePressure) / 2.);
+    //       } else {
+    //         // Don't divide by 0
+    //         leakRatePercentage = 0;
+    //       }
+    //     } else {
+    //       // Don't divide by 0
+    //       leakRatePSI = 0;
+    //       leakRatePercentage = 0;
+    //     }
+    //   } else {
+    //     // Can't measure for leaks with no measurement history
+    //     pressureDifference = 0;
+    //     leakRatePSI = 0;
+    //     leakRatePercentage = 0;
+    //   }
+    //   m_storagePressureMeasurements.add(new Pair<Double, Double>(measurementTime, storagePressure));
+    // }
+    // SmartDashboard.putNumber("Storage Pressure", storagePressure);
+    // SmartDashboard.putNumber("Working Pressure", workingPressure);
+    // SmartDashboard.putNumber("Leak Pressure Difference PSI", pressureDifference);
+    // SmartDashboard.putNumber("Leak Rate PSI per minute", leakRatePSI);
+    // SmartDashboard.putNumber("Leak Rate Percentage per minute", leakRatePercentage);
+    // SmartDashboard.putBoolean("Working Pressure Warning", workingPressure < Constants.WORKING_PRESSURE_WARNING);
+    // SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
+    // SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());
+    // SmartDashboard.putBoolean("Working Pressure Sensor Disconnected", !this.isWorkingPressureSensorConnected());
 
-    SmartDashboard.putNumber("NavX Roll", navx.getRoll());
+    // SmartDashboard.putNumber("NavX Roll", navx.getRoll());
   }
 }

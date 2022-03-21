@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.util.drive.Shifter;
 
@@ -40,8 +39,8 @@ public final class Constants {
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
 	public static final double WHEEL_DIAMETER = 5.84375;
-	public static final double LOW_GEAR_RATIO = (1. / 18.38);
-	public static final double HIGH_GEAR_RATIO = (1. / 8.50);
+	public static final double LOW_GEAR_RATIO = (1. / 18.38 * (10. / 11.));
+	public static final double HIGH_GEAR_RATIO = (1. / 8.50 * (10. / 11.));
 	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
 	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
 	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 60./24.;
@@ -59,12 +58,12 @@ public final class Constants {
 	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
 	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
 
-	public static final double MAX_TRAJ_VELOCITY = 16.0;
-	public static final double MAX_TRAJ_ACCELERATION = 8.0;
-	public static final double MAX_TRAJ_CENTRIP_ACC = 2.5;
+	public static final double MAX_TRAJ_VELOCITY = 6.0;
+	public static final double MAX_TRAJ_ACCELERATION = 4.0;
+	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
 
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 4, 5, 18, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 2, 3, 1, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 5, 4, 18, 120, 240, 150, 210);
+	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 3, 2, 1, 120, 240, 150, 210);
 
 	public static final int DRIVE_SPEED_EXP_XBOX = 2;
 	public static final int DRIVE_TURN_EXP_XBOX = 2;
@@ -77,9 +76,9 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
-	// Shooter
+	// Shooter & Hood
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
-    public static final int SHOOTER_HOOD_ID = 9;
+    public static final int HOOD_ID = 9;
 
 	// Turret
 	public static final int TURRET_MOTOR_ID = 13;
@@ -92,11 +91,9 @@ public final class Constants {
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
     public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
-	public static final double FEEDER_CENTRALIZER_SPEED_DFT = 0.5;
 
 	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
 	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
-    public static final double FEEDER_CHAMBER_SPEED_DFT = 0.5;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 11;
@@ -104,27 +101,14 @@ public final class Constants {
 	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
-	public static final int OUTER_LEFT_CLIMBER_PIVOT_ID = 14;
-	public static final int OUTER_LEFT_CLIMBER_TELESCOPE_ID = 15;
-	public static final int OUTER_RIGHT_CLIMBER_PIVOT_ID = 5;
-	public static final int OUTER_RIGHT_CLIMBER_TELESCOPE_ID = 4;
-	public static final int INNER_LEFT_CLIMBER_PIVOT_ID = 16;
-	public static final int INNER_LEFT_CLIMBER_TELESCOPE_ID = 17;
-	public static final int INNER_RIGHT_CLIMBER_PIVOT_ID = 3;
-	public static final int INNER_RIGHT_CLIMBER_TELESCOPE_ID = 2;
-	public static final int CLIMBER_COAST_BUTTON_ID = 0;
+	public static final int OUTER_CLIMBER_PIVOT_ID = 3;
+	public static final int OUTER_CLIMBER_TELESCOPE_ID = 17;
+	public static final int INNER_CLIMBER_PIVOT_ID = 16;
+	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
 
 	// Sensors
-	public static final I2C.Port I2C_ONBOARD = I2C.Port.kOnboard;
+	public static final int SENSORS_COAST_BUTTON_ID = 0;
 
-	public static final double LIMELIGHT_ANGLE_HOOD_DOWN_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_DOWN_DFT = 43.5;  // inches
-	public static final double LIMELIGHT_ANGLE_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_HEIGHT_HOOD_UP_DFT = 20.0;
-	public static final double LIMELIGHT_TEST_DISTANCE_DFT = 120.0;
-	public static final double LIMELIGHT_TARGET_THRESHOLD_DFT = 1.0;
-	public static final double LIMELIGHT_TURRET_RADIUS = 7.0;
-	
 	public static final int STORAGE_PRESSURE_SENSOR_CHANNEL = 1;
 	public static final int WORKING_PRESSURE_SENSOR_CHANNEL = 0;
 	public final static double PRESSURE_DIFFERENCE_TARGET = 5;
@@ -148,9 +132,21 @@ public final class Constants {
 	public static final int DRIVER_CONTROLLER_ID = 0;
 	public static final int BUTTON_BOX_ID = 1;
 	public static final int TEST_CONTROLLER_ID = 2;
+	public static final int TEST_CONTROLLER_2_ID = 3;
     
 	// Field constants
 	public static final double SHOOTING_ZONE_INNER_RADIUS_METERS = 0.2;
 	public static final double SHOOTING_ZONE_OUTER_RADIUS_METERS = 0.3;
 	public static final double FIELD_VISION_TARGET_HEIGHT = 102;
+	public static final double FIELD_UPPER_HUB_RADIUS = 20.0;
+
+	// ROS Interface
+	public static final String COPROCESSOR_ADDRESS = "10.0.88.44";
+	public static final int COPROCESSOR_PORT = 5800;
+	public static final double COPROCESSOR_TABLE_UPDATE_DELAY = 1.0 / 30.0;
+	public static final double COPROCESSOR_PERIODIC_UPDATE_DELAY = 1.0 / 30.0;
+	public static final double COPROCESSOR_PERIODIC_UPDATE_OFFSET = 1.0 / 60.0;
+	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY = 0.5;
+	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET = 0.025;
+
 }

@@ -3,6 +3,10 @@ package frc.robot.util.drive;
 import java.lang.Math;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+
 public class DriveUtils{
 
     public static double signedPow(double base, int exp){
@@ -41,6 +45,22 @@ public class DriveUtils{
 
     public static double mod(double base, int modulus) {
         return (base < 0) ? (modulus - (Math.abs(base) % modulus)) % modulus : base % modulus;
+    }
+
+    public static Pose2d relativeToReverse(Pose2d thisPose, Pose2d otherPose) {
+        // Performs the reverse of Pose2d's relativeTo method
+        // Pose2d.relativeTo applies a negative translation then negative rotation. 
+        // Effectively this walks backwards in the transform tree.
+        // This method walks forward in the transform tree.
+        // It applies a positive rotation into the new frame and then a translation in that frame
+        Translation2d translation = (
+            thisPose.getTranslation()
+            .rotateBy(otherPose.getRotation())
+            .plus(otherPose.getTranslation()));
+
+        Rotation2d rotation = thisPose.getRotation().plus(otherPose.getRotation());
+        
+        return new Pose2d(translation, rotation);
     }
 
 }

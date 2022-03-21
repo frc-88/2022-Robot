@@ -32,6 +32,7 @@ import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.drive.DriveConfiguration;
+import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.drive.Shifter.Gear;
@@ -40,8 +41,8 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
 import frc.robot.util.transmission.Falcon500;
 import frc.robot.util.transmission.ShiftingTransmission;
-import frc.robot.util.tunnel.ChassisInterface;
-import frc.robot.util.tunnel.VelocityCommand;
+import frc.robot.util.coprocessortable.ChassisInterface;
+import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class Drive extends SubsystemBase implements ChassisInterface {
   
@@ -65,6 +66,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
   private Pose2d m_pose;
+  private Pose2d m_traj_reset_pose;
+  private Pose2d m_traj_offset;
 
   private PIDPreferenceConstants velPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
@@ -78,6 +81,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DoublePreferenceConstant leftHighEfficiency;
   private DoublePreferenceConstant rightHighEfficiency;
   private DoublePreferenceConstant maxCurrent;
+  private DoublePreferenceConstant universalCurrentLimit;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -87,15 +91,16 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private double m_prevTurn = 0; // The last turn value
   private double m_negInertialAccumulator = 0; // Accumulates our current inertia value
 
-  // Acceleration limiting
-  private DoublePreferenceConstant accelLimit;
-  private boolean deccelerating;
-  private double lastLimitSpeed;
-
   // Simulation
   private DifferentialDrivetrainSim m_driveSim;
   private SimDouble m_gyroSim;
   private Field2d m_field;
+
+  // Acceleration limiting
+  private DoublePreferenceConstant accelLimit;
+
+  // Locking
+  private boolean m_locked = false;
 
   public Drive(Sensors sensors) {
     m_sensors = sensors;
@@ -114,6 +119,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
+    universalCurrentLimit = new DoublePreferenceConstant("Universal Current Limit", 600);
     accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
@@ -130,8 +136,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_leftTransmission.setVelocityPID(m_leftVelPID);
     m_rightTransmission.setVelocityPID(m_rightVelPID);
 
-    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID);
-    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID);
+    m_leftEncoder = new WPI_CANCoder(Constants.LEFT_DRIVE_ENCODER_ID, "1");
+    m_rightEncoder = new WPI_CANCoder(Constants.RIGHT_DRIVE_ENCODER_ID, "1");
 
     m_leftEncoder.configFactoryDefault();
     m_rightEncoder.configFactoryDefault();
@@ -174,6 +180,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
     m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
+  
+    resetTrajectoryPose(new Pose2d());
   }
 
   public void basicDrive(double leftSpeed, double rightSpeed) {
@@ -186,21 +194,32 @@ public class Drive extends SubsystemBase implements ChassisInterface {
    * limiting current draw.
    */
   public void basicDriveLimited(double leftVelocity, double rightVelocity) {
+    if (m_locked) {
+      leftVelocity = getLeftSpeed();
+      rightVelocity = getRightSpeed();
+    }
+
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
     double rightExpectedCurrent = m_rightDrive.getExpectedCurrentDraw(rightVelocity);
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
+    double leftUniversalCurrentLimit;
+    double rightUniversalCurrentLimit;
     if (totalExpectedCurrent == 0) {
       leftCurrentLimit =  maxCurrent.getValue() / 2.;
       rightCurrentLimit = maxCurrent.getValue() / 2.;
+      leftUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
+      rightUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
     } else {
       leftCurrentLimit = maxCurrent.getValue() * leftExpectedCurrent / totalExpectedCurrent;
       rightCurrentLimit = maxCurrent.getValue() * rightExpectedCurrent / totalExpectedCurrent;
+      leftUniversalCurrentLimit = universalCurrentLimit.getValue() * leftExpectedCurrent / totalExpectedCurrent;
+      rightUniversalCurrentLimit = universalCurrentLimit.getValue() * rightExpectedCurrent / totalExpectedCurrent;
     }
 
-    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
-    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
+    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit, leftUniversalCurrentLimit);
+    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit, rightUniversalCurrentLimit);
     
     m_leftCommandedSpeed = leftVelocity;
     m_rightCommandedSpeed = rightVelocity;
@@ -223,7 +242,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
 
-    // Limit Acceleration
     speed = limitAcceleration(speed);
     
     // Calculate left and right speed
@@ -246,6 +264,25 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       m_rightTransmission.shiftToLow();
     } else if (rightGear == Gear.HIGH) {
       m_rightTransmission.shiftToHigh();
+    }
+  }
+
+  public double limitAcceleration(double speed) {
+    double currentSpeed = getStraightSpeed();
+    if (speed - currentSpeed > 0) {
+        double vel = currentSpeed + accelLimit.getValue();
+      if (speed < vel) {
+        return speed;
+      } else {
+        return vel;
+      }
+    } else {
+      double vel = getStraightSpeed() - accelLimit.getValue();;
+      if (speed > vel) {
+        return speed;
+      } else {
+        return vel;
+      }
     }
   }
 
@@ -284,42 +321,6 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     return m_rightShifter.getGear();
   }
 
-  public double limitAcceleration(double speed) {
-    double currentSpeed = getStraightSpeed();
-    if (speed - currentSpeed > 0) {
-
-        deccelerating = false;
-
-        double vel = currentSpeed + accelLimit.getValue();
-        if (speed < vel) {
-            return speed;
-        } else {
-            return vel;
-        }
-    } else {
-
-        double vel = getStraightSpeed() - accelLimit.getValue();;
-
-        if (!deccelerating) {
-            lastLimitSpeed = currentSpeed;
-            deccelerating = true;
-        }
-
-        if (speed > vel) {
-            lastLimitSpeed = speed;
-            return speed;
-        } else {
-            if (vel > lastLimitSpeed) {
-                return lastLimitSpeed;
-            } else {
-                lastLimitSpeed = vel;
-                return vel;
-            }
-        }
-
-    }
-  }
-
   public void resetEncoderPositions() {
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
@@ -353,6 +354,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   public void setCoastMode() {
     m_leftDrive.coastAll();
     m_rightDrive.coastAll();
+  }
+
+  public void lockDrive() {
+    m_locked = true;
+  }
+
+  public void unlockDrive() {
+    m_locked = false;
   }
 
   public void setMaxSpeed(double maxSpeed) {
@@ -420,6 +429,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_sensors.navx.zeroYaw();
     m_leftEncoder.setPosition(0);
     m_rightEncoder.setPosition(0);
+    m_leftDrive.setSelectedSensorPosition(0);
+    m_rightDrive.setSelectedSensorPosition(0);
   }
 
   public void resetOdometry() {
@@ -430,8 +441,23 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_odometry.resetPosition(startPose, startGyro);
   }
 
+  public void resetTrajectoryPose(Pose2d startPose) {
+    m_traj_reset_pose = m_odometry.getPoseMeters();
+    m_traj_offset = startPose;
+  }
+
   public void updateOdometry() {
-    m_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    Pose2d odom_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    if (m_traj_reset_pose == null || m_traj_offset == null) {
+      m_pose = odom_pose;
+    } else {
+      Pose2d reset_relative_pose = odom_pose.relativeTo(m_traj_reset_pose);
+      m_pose = DriveUtils.relativeToReverse(reset_relative_pose, m_traj_offset);
+    }
+  }
+
+  public Field2d getField() {
+    return m_field;
   }
 
   @Override
@@ -445,20 +471,20 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     updateOdometry();
     m_field.setRobotPose(getCurrentPose());
 
-    SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
-    SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
+    // SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
+    // SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
     SmartDashboard.putNumber("L Drive Speed", m_leftDrive.getScaledSensorVelocity());
     SmartDashboard.putNumber("R Drive Speed", m_rightDrive.getScaledSensorVelocity());
-    SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
-    SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
-    SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
-    SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
-    SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
-    SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
+    // SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
+    // SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
+    // SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
+    // SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
+    // SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
+    // SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
     SmartDashboard.putString("L Drive Gear", getLeftGear().toString());
     SmartDashboard.putString("R Drive Gear", getRightGear().toString());
-    SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
-    SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
+    // SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
+    // SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
 
     SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
     SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));
@@ -507,7 +533,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public void resetPosition(Pose2d pose) {
-    zeroDrive();  // TODO: is it ok to set the encoders to zero for a non zero pose?
+    zeroDrive();
     resetOdometry(pose, pose.getRotation());
   }
 

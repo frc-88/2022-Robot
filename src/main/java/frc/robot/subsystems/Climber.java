@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,28 +12,28 @@ import frc.robot.util.climber.ClimberArm;
 
 public class Climber extends SubsystemBase {
     
-    private final DigitalInput coastButton;
+    private final BooleanSupplier coastButton;
 
-    public final ClimberArm outerLeftArm;
-    public final ClimberArm outerRightArm;
-    public final ClimberArm innerLeftArm;
-    public final ClimberArm innerRightArm;
+    public final ClimberArm outerArm;
+    public final ClimberArm innerArm;
 
     private List<ClimberArm> allArms;
 
-    public Climber() {
-        outerLeftArm = new ClimberArm("Outer Left", Constants.OUTER_LEFT_CLIMBER_PIVOT_ID, Constants.OUTER_LEFT_CLIMBER_TELESCOPE_ID, false);
-        outerRightArm = new ClimberArm("Outer Right", Constants.OUTER_RIGHT_CLIMBER_PIVOT_ID, Constants.OUTER_RIGHT_CLIMBER_TELESCOPE_ID, true);
-        innerLeftArm = new ClimberArm("Inner Left", Constants.INNER_LEFT_CLIMBER_PIVOT_ID, Constants.INNER_LEFT_CLIMBER_TELESCOPE_ID, false);
-        innerRightArm = new ClimberArm("Inner Right", Constants.INNER_RIGHT_CLIMBER_PIVOT_ID, Constants.INNER_RIGHT_CLIMBER_TELESCOPE_ID, true);
+    public Climber(BooleanSupplier coastButton) {
+        this.coastButton = coastButton;
 
-        coastButton = new DigitalInput(Constants.CLIMBER_COAST_BUTTON_ID);
+        outerArm = new ClimberArm("Outer Left", Constants.OUTER_CLIMBER_PIVOT_ID, Constants.OUTER_CLIMBER_TELESCOPE_ID, false, false);
+        innerArm = new ClimberArm("Inner Right", Constants.INNER_CLIMBER_PIVOT_ID, Constants.INNER_CLIMBER_TELESCOPE_ID, true, false);
 
-        allArms = Arrays.asList(new ClimberArm[]{outerLeftArm, outerRightArm, innerLeftArm, innerRightArm});
+        allArms = Arrays.asList(new ClimberArm[]{outerArm, innerArm});
     }
 
     public void calibrate() {
-        allArms.forEach(ClimberArm::calibrate);
+        if (!innerArm.isCalibrated()) {
+            innerArm.calibrate();
+        } else if (!outerArm.isCalibrated()) {
+            outerArm.calibrate();
+        }
     }
 
     public void resetCalibration() {
@@ -45,50 +46,44 @@ public class Climber extends SubsystemBase {
 
 
     public void setInnerPercentOutput(double innerPivotOutput, double innerTelescopeOutput) {
-        this.innerLeftArm.setPercentOutput(innerPivotOutput, innerTelescopeOutput);
-        this.innerRightArm.setPercentOutput(innerPivotOutput, innerTelescopeOutput);
+        this.innerArm.setPercentOutput(innerPivotOutput, innerTelescopeOutput);
     }
 
     public void setOuterPercentOutput(double outerPivotOutput, double outerTelescopeOutput) {
-        this.outerLeftArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
-        this.outerRightArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
+        this.outerArm.setPercentOutput(outerPivotOutput, outerTelescopeOutput);
     }
 
     public void setInnerMotionMagic(double pivotAngle, double telescopeHeight, double pivotSpeed, double telescopeSpeed) {
-        this.innerLeftArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
-        this.innerRightArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+        this.innerArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
     }
 
     public void setOuterMotionMagic(double pivotAngle, double telescopeHeight, double pivotSpeed, double telescopeSpeed) {
-        this.outerLeftArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
-        this.outerRightArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
+        this.outerArm.setMotionMagic(pivotAngle, telescopeHeight, pivotSpeed, telescopeSpeed);
     }
 
     public void setInnerMotionMagic(double pivotAngle, double telescopeHeight) {
-        this.innerLeftArm.setMotionMagic(pivotAngle, telescopeHeight);
-        this.innerRightArm.setMotionMagic(pivotAngle, telescopeHeight);
+        this.innerArm.setMotionMagic(pivotAngle, telescopeHeight);
     }
 
     public void setOuterMotionMagic(double pivotAngle, double telescopeHeight) {
-        this.outerLeftArm.setMotionMagic(pivotAngle, telescopeHeight);
-        this.outerRightArm.setMotionMagic(pivotAngle, telescopeHeight);
+        this.outerArm.setMotionMagic(pivotAngle, telescopeHeight);
     }
 
 
     public double getAverageInnerPivotAngle() {
-        return (innerLeftArm.getPivotAngle() + innerRightArm.getPivotAngle()) / 2.;
+        return (innerArm.getPivotAngle() + innerArm.getPivotAngle()) / 2.;
     }
 
     public double getAverageInnerTelescopeHeight() {
-        return (innerLeftArm.getTelescopeHeight() + innerRightArm.getTelescopeHeight()) / 2.;
+        return (innerArm.getTelescopeHeight() + innerArm.getTelescopeHeight()) / 2.;
     }
 
     public double getAverageOuterPivotAngle() {
-        return (outerLeftArm.getPivotAngle() + outerRightArm.getPivotAngle()) / 2.;
+        return (outerArm.getPivotAngle() + outerArm.getPivotAngle()) / 2.;
     }
 
     public double getAverageOuterTelescopeHeight() {
-        return (outerLeftArm.getTelescopeHeight() + outerRightArm.getTelescopeHeight()) / 2.;
+        return (outerArm.getTelescopeHeight() + outerArm.getTelescopeHeight()) / 2.;
     }
 
 
@@ -98,13 +93,12 @@ public class Climber extends SubsystemBase {
 
         SmartDashboard.putBoolean("All Climbers Calibrated", isCalibrated());
 
-        if (!coastButton.get()) {
+        if (coastButton.getAsBoolean()) {
             allArms.forEach(ClimberArm::coast);
         }
         else {
             allArms.forEach(ClimberArm::brake);
         }
-        SmartDashboard.putBoolean("Coast Button", !coastButton.get());
     }
 
     @Override

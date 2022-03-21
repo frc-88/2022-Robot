@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
@@ -42,18 +43,19 @@ public class Intake extends SubsystemBase implements CargoSource {
   private PIDPreferenceConstants armCurrentPID;
   private DoublePreferenceConstant armCurrentControlMaxPercent;
   private DoublePreferenceConstant intakseSensorThreshold;
+  private DoublePreferenceConstant p_intakeArbitraryF = new DoublePreferenceConstant("Intake Arbitrary F", 0.0);
 
   private static final int MOTION_MAGIC_PID_SLOT = 0;
   private static final int CURRENT_CONTROL_PID_SLOT = 1;
 
-  private static final double CALIBRATION_COLLECT_SIZE = 25;
-  private static final double CALIBRATION_TOLERANCE = 0.5;
+  private static final double CALIBRATION_COLLECT_SIZE = 50;
+  private static final double CALIBRATION_TOLERANCE = 1;
   private double m_calibrationStartValue = 0;
   private double m_calibrationCollectsDone = 0;
 
   private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  public static final double ARM_STOWED = 93;
+  public static final double ARM_STOWED = 120;
   public static final double ARM_DEPLOYED = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
@@ -170,7 +172,7 @@ public class Intake extends SubsystemBase implements CargoSource {
   @Override
   public boolean hasCargo() {
     // return m_IR.getDistance() < intakseSensorThreshold.getValue();
-    return m_state == State.DEPLOYED || m_state == State.DEPLOYING;
+    return m_state == State.DEPLOYED || m_state == State.DEPLOYING || m_state == State.DEPLOYED_CALIBRATING;
   }
 
   public boolean isDeployLimitTriggered() {
@@ -238,7 +240,7 @@ public class Intake extends SubsystemBase implements CargoSource {
       case DEPLOYED:
       case DEPLOYED_CALIBRATING:
         enableLimits();
-        setArmMotionMagic(ARM_STOWED);
+        setArmMotionMagic(ARM_STOWED - 10);
 
         if (getArmPosition() > ARM_STOWED - ARM_SETPOINT_TOLERANCE) {
           if (m_isCalibrated) {
@@ -276,7 +278,7 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private void setArmMotionMagic(double position) {
     m_arm.selectProfileSlot(MOTION_MAGIC_PID_SLOT, 0);
-    m_arm.set(TalonFXControlMode.MotionMagic, convertArmPositionToMotor(position));
+    m_arm.set(TalonFXControlMode.MotionMagic, convertArmPositionToMotor(position), DemandType.ArbitraryFeedForward, p_intakeArbitraryF.getValue() * Math.cos(Math.toRadians(position + 16)));
   }
 
   private void setArmCurrentControl(int direction) {
@@ -313,15 +315,15 @@ public class Intake extends SubsystemBase implements CargoSource {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Intake Arm Position", getArmPosition());
-    SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
-    SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
-    SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
+    // SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
+    // SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
     SmartDashboard.putBoolean("Intake Arm Deploy Limit", isDeployLimitTriggered());
 
-    SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
+    // SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
-    SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
-    SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
+    // SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
+    // SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
 
     SmartDashboard.putString("Intake State", m_state.toString());
   }

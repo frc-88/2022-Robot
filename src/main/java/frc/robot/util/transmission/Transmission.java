@@ -224,9 +224,10 @@ public class Transmission {
      * @param currentSensorVelocity The current velocity reading from the sensor
      * @param currentLimit The maximum current, in amps, that we want the sum
      *                     of all the motors to draw
+     * @param universalCurrentLimit A theoretical current limit that will apply even whjen decellerating
      */
     public double getCurrentLimitedVoltage(double targetVelocity, double currentSensorVelocity,
-            double currentLimit) {
+            double currentLimit, double universalCurrentLimit) {
 
         // Determine the target voltage to get the requested velocity
         double targetMotorVelocity = convertOutputVelocityToInput(targetVelocity);
@@ -245,11 +246,26 @@ public class Transmission {
         double currentMotorVelocity = convertSensorVelocityToInput(currentSensorVelocity);
         double currentBackEMF = getBackEMF(currentMotorVelocity);
 
-        // If we are deccelerating, we don't need to worry about current draw
+        // Determine the voltage across the motor windings to get the specified 
+        // current limit
+        double maxWindingsVoltage = (currentLimit / getMotorQuantity())
+                 * getMotor().getWindingsResistance();
+        
+        // Do the same, but for the universal current limit
+        double universalMaxWindingsVoltage = (universalCurrentLimit / getMotorQuantity())
+                 * getMotor().getWindingsResistance();
+
+        // If we are deccelerating, use the universal current draw
         if (targetVoltage == 0 
                 || (Math.signum(targetVoltage) == Math.signum(currentBackEMF) 
                     && Math.abs(targetVoltage) < Math.abs(currentBackEMF))) {
 
+            // Determine the voltage to command
+            // if (targetVoltage > 0) {
+            //     return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
+            // }
             return targetVoltage;
 
         }
@@ -260,16 +276,16 @@ public class Transmission {
         // current draw. See if that will be too much
         if (Math.signum(targetVoltage) != Math.signum(currentBackEMF)
                 && getCurrentDraw(Math.signum(targetVoltage) * 0.01, 
-                    currentSensorVelocity) > currentLimit) {
+                    currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
 
+            // Determine the voltage to command
+            // if (currentBackEMF > 0) {
+            //     return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
+            // }  else {
+            //     return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
+            // }
             return 0;
-
         }
-
-        // Determine the voltage across the motor windings to get the specified 
-        // current limit
-        double maxWindingsVoltage = (currentLimit / getMotorQuantity())
-                 * getMotor().getWindingsResistance();
         
         // Determine the voltage to command
         if (targetVoltage > 0) {

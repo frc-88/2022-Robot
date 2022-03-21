@@ -11,70 +11,62 @@ public class ButtonBox extends Joystick {
         MID,
         HIGH,
         TRAVERSAL
-      }
-      public enum ClimbDirection {
+    }
+    public enum ClimbDirection {
         FORWARDS,
         BACKWARDS
-      }
-      public enum ClimbAction {
+    }
+    public enum ClimbAction {
         PREP,
         RAISE,
         CLIMB
-      }
+    }
 	
-    private static int INTAKE = 10;
-    private static int OUTGEST = 12;
-    private static int SHOOT = 2;
-    private static int SHOOTER = 14;
-    private static int HOOD_SWITCH = 7;
-    private static int CLIMB_DIRECTION = 99;
-    private static int LOW_BAR = 5;
-    private static int MID_BAR = 6;
-    private static int HIGH_BAR = 16;
-    private static int TRAVERSAL_BAR = 8;
-    private static int STOW_CLIMBER = 9;
-    private static int PREP_CLIMBER = 10;
-    private static int RAISE_CLIMBER = 11;
-    private static int CLIMB = 12;
-    private static int PURSUE_CARGO = 3;
+    private static int INTAKE = 2;
+    private static int OUTGEST = 3;
+    private static int AUX_1 = 5;
+    private static int AUX_2 = 4;
+    private static int CENTRALIZER_UP = 6;
+    private static int CENTRALIZER_DOWN = 7;
+    private static int CHAMBER_UP = 8;
+    private static int CHAMBER_DOWN = 9;
+    private static int CLIMBER_STOW = 10;
+    private static int CLIMBER_PREP = 11;
+    private static int CLIMBER_RAISE = 12;
+    private static int CLIMBER_CLIMB = 13;
+    private static int SHOOT = 14;
+    private static int TURRET_TRACK = 15;
+    private static int CLIMBER_DIRECTION = 16;
+    private static int AUX_3 = 17;
+    private static int AUX_4 = 18;
+    private static int MID_BAR = 20;
+    private static int HIGH_BAR = 21;
+    private static int TRAVERSAL_BAR = 19;
 
-
-    private ClimbBar m_currentClimbBar;
-	
 	public ButtonBox(int port) {
 		super(port);
 	}
 
 	public Button intakeButton = new JoystickButton(this, INTAKE);
     public Button outgestButton = new JoystickButton(this, OUTGEST);
-    public Button shooterButton = new JoystickButton(this, SHOOTER);
+    public Button centralizerUp = new JoystickButton(this, CENTRALIZER_UP);
+    public Button centralizerDown = new JoystickButton(this, CENTRALIZER_DOWN);
+    public Button chamberUp = new JoystickButton(this, CHAMBER_UP);
+    public Button chamberDown = new JoystickButton(this, CHAMBER_DOWN);
+    public Button stowClimberButton = new JoystickButton(this, CLIMBER_STOW);
+    public Button prepClimberButton = new JoystickButton(this, CLIMBER_PREP);
+    public Button raiseClimberButton = new JoystickButton(this, CLIMBER_RAISE);
+    public Button climbButton = new JoystickButton(this, CLIMBER_CLIMB);
     public Button shootButton = new JoystickButton(this, SHOOT);
-    public Button stowClimberButton = new JoystickButton(this, STOW_CLIMBER);
-    public Button prepClimberButton = new JoystickButton(this, PREP_CLIMBER);
-    public Button raiseClimberButton = new JoystickButton(this, RAISE_CLIMBER);
-    public Button climbButton = new JoystickButton(this, CLIMB);
-    public Button hoodSwitch = new JoystickButton(this, HOOD_SWITCH);
-    public Button pursueCargoButton = new JoystickButton(this, PURSUE_CARGO);
-    public Button climbDirectionChange = new Button() {
-        private ClimbDirection lastState = ClimbDirection.FORWARDS;
-        @Override
-        public boolean get() {
-            ClimbDirection currentState = getClimbDirection();
-            boolean ret = currentState == lastState;
-            lastState = currentState;
-            return ret;
-        }
-    };
-    public Button climbBarChange = new Button() {
-        private ClimbBar lastState = ClimbBar.TRAVERSAL;
-        @Override
-        public boolean get() {
-            ClimbBar currentState = getClimbBar();
-            boolean ret = currentState == lastState;
-            lastState = currentState;
-            return ret;
-        }
-    };
+    public Button turretTrackSwitch = new JoystickButton(this, TURRET_TRACK);
+    public Button climbDirectionSwitch = new JoystickButton(this, CLIMBER_DIRECTION);
+    public Button traversalBarSwitch = new JoystickButton(this, TRAVERSAL_BAR);
+    public Button highBarSwitch = new JoystickButton(this, HIGH_BAR);
+    public Button midBarSwitch = new JoystickButton(this, MID_BAR);
+    public Button lowBarSwitch = new Button(() -> !(traversalBarSwitch.get() || highBarSwitch.get() || midBarSwitch.get()));
+    public Button rosDisableSwitch = new JoystickButton(this, AUX_4);
+    public Button defaultTurretSwitch = new JoystickButton(this, AUX_3);
+    public Button cancelClimb = new JoystickButton(this, AUX_2);
 
 	public boolean isIntakeButtonPressed() {
 		return intakeButton.get();
@@ -84,26 +76,20 @@ public class ButtonBox extends Joystick {
 		return outgestButton.get();
 	}
 
-    public boolean isShootButtonPressed() {
-		return shootButton.get();
-	}
+    public boolean isCentralizerUpButtonPressed() {
+        return centralizerUp.get();
+    }
 
-    public ClimbDirection getClimbDirection() {
-		return getRawButton(CLIMB_DIRECTION) ? ClimbDirection.FORWARDS : ClimbDirection.BACKWARDS;
-	}
+    public boolean isCentralizerDownButtonPressed() {
+        return centralizerDown.get();
+    }
 
-    public ClimbBar getClimbBar() {
-        if (getRawButton(TRAVERSAL_BAR)) {
-            m_currentClimbBar = ClimbBar.TRAVERSAL;
-        } else if (getRawButton(HIGH_BAR)) {
-            m_currentClimbBar = ClimbBar.HIGH;
-        } else if (getRawButton(MID_BAR)) {
-            m_currentClimbBar = ClimbBar.MID;
-        } else if (getRawButton(LOW_BAR)) {
-            m_currentClimbBar = ClimbBar.LOW;
-        }
+    public boolean isChamberUpButtonPressed() {
+        return chamberUp.get();
+    }
 
-        return m_currentClimbBar;
+    public boolean isChamberDownButtonPressed() {
+        return chamberDown.get();
     }
 
     public boolean isStowClimberButtonPressed() {
@@ -121,4 +107,41 @@ public class ButtonBox extends Joystick {
     public boolean isClimbButtonPressed() {
 		return climbButton.get();
 	}
+
+    public boolean isShootButtonPressed() {
+		return shootButton.get();
+	}
+
+    public boolean isTrackTurretSwitchOn() {
+        return turretTrackSwitch.get();
+    }
+
+    public ClimbDirection getClimbDirection() {
+		// return climbDirectionSwitch.get() ? ClimbDirection.FORWARDS : ClimbDirection.BACKWARDS;
+        return ClimbDirection.BACKWARDS;
+	}
+
+    public ClimbBar getClimbBar() {
+        if (traversalBarSwitch.get()) {
+            return ClimbBar.TRAVERSAL;
+        } else if  (highBarSwitch.get()) {
+            return ClimbBar.HIGH;
+        } else if (midBarSwitch.get()) {
+            return ClimbBar.MID;
+        } else {
+            return ClimbBar.LOW;
+        }
+    }
+
+    public boolean isROSDisableSwitchOn() {
+        return rosDisableSwitch.get();
+    }
+
+    public boolean isDefaultTurretSwitchOn() {
+        return defaultTurretSwitch.get();
+    }
+
+    public boolean isCancelClimbPressed() {
+        return cancelClimb.get();
+    }
 }

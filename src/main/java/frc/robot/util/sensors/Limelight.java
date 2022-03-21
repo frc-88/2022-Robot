@@ -18,7 +18,6 @@ public class Limelight {
     private String m_name;
 
     private NetworkTable m_table;
-    private boolean m_hoodUp;
     private NetworkTableEntry m_ta;
     private NetworkTableEntry m_tv;
     private NetworkTableEntry m_tx;
@@ -30,12 +29,13 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
-    private final DoublePreferenceConstant p_heightHoodUp = new DoublePreferenceConstant("Limelight Height Up", Constants.LIMELIGHT_HEIGHT_HOOD_UP_DFT);
-    private final DoublePreferenceConstant p_angleHoodUp = new DoublePreferenceConstant("Limelight Angle Up", Constants.LIMELIGHT_ANGLE_HOOD_UP_DFT);
-    private final DoublePreferenceConstant p_heightHoodDown = new DoublePreferenceConstant("Limelight Height Down", Constants.LIMELIGHT_HEIGHT_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant p_angleHoodDown = new DoublePreferenceConstant("Limelight Angle Down", Constants.LIMELIGHT_ANGLE_HOOD_DOWN_DFT);
-    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", Constants.LIMELIGHT_TARGET_THRESHOLD_DFT);
-    private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", Constants.LIMELIGHT_TEST_DISTANCE_DFT);
+    private double m_motionOffset;
+
+    private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
+    private final DoublePreferenceConstant p_angle = new DoublePreferenceConstant("Limelight Angle", 0);
+    private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
+    private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
+    private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -46,7 +46,6 @@ public class Limelight {
 
     public Limelight(String network_table_name) {
         m_name = network_table_name;
-        m_hoodUp = false;
         m_table = NetworkTableInstance.getDefault().getTable(network_table_name);
         m_pipeline = m_table.getEntry("pipeline");
         m_getpipe = m_table.getEntry("getpipe");
@@ -82,23 +81,15 @@ public class Limelight {
     }
 
     public boolean onTarget() {
-        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle()) < p_targetThreshold.getValue());
+        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle() + m_motionOffset) < p_targetThreshold.getValue());
     }
 
-    public void setHood(boolean hoodUp) {
-        m_hoodUp = hoodUp;
+    public void setMotionOffset(double motionOffset) {
+        m_motionOffset = motionOffset;
     }
 
-    public boolean isHoodUp() {
-        return m_hoodUp;
-    }
-
-    private double getLimelightHeight() {
-        return (m_hoodUp ? p_heightHoodUp : p_heightHoodDown).getValue();
-    }
-
-    private double getLimelightAngle() {
-        return (m_hoodUp ? p_angleHoodUp : p_angleHoodDown).getValue();
+    public double getMotionOffset() {
+        return m_motionOffset;
     }
 
     /**
@@ -114,8 +105,8 @@ public class Limelight {
         double distance = 0;
 
         if (isConnected() && hasTarget()) {
-            distance = (Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight()) /
-                    (Math.tan(Math.toRadians(getLimelightAngle() + getTargetVerticalOffsetAngle()))
+            distance = (Constants.FIELD_VISION_TARGET_HEIGHT - p_height.getValue()) /
+                    (Math.tan(Math.toRadians(p_angle.getValue() + getTargetVerticalOffsetAngle()))
                             * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())));
         }
 
@@ -124,23 +115,31 @@ public class Limelight {
 
     /**
      * Calculate the mount angle of the limelight assuming the target
-     * is the distance specified by the "Limelight Test Distance" value.
-     * Useful during field calibration.
+     * is the distance specified by the "Limelight Test Distance" preference
+     * value. Useful during field calibration.
      * 
      * @return The mount angle of the limelight in degrees
      */
     public double calcLimelightAngle() {
-        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - getLimelightHeight())
+        return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - p_height.getValue())
                 / (p_testDistance.getValue() * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())))))
                 - getTargetVerticalOffsetAngle();
     }
 
+    /**
+     * Calculate the degrees to rotate the turret in order to focus on the
+     * target. Distance calculations need to be accurate!
+     * 
+     * If we don't have accurate distance measurements, a proportional
+     * constant could probably be used and work just as well. 
+     * 
+     * @return The mount angle of the limelight in degrees
+     */
     public double calcTurretOffset() {
         double distance = calcDistanceToTarget();
         double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
 
-        return hasTarget() ? Math.toDegrees(Math.atan((distance * Math.sin(angle)) /
-            (distance * Math.cos(angle) - Constants.LIMELIGHT_TURRET_RADIUS))) : 0.0;
+        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/distance)))) + m_motionOffset : 0.0;
     }
 
     /**

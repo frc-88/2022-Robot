@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
@@ -38,13 +37,15 @@ public class ClimberArm {
     private SingleJointedArmSim m_pivotSim;
     private ElevatorSim m_telescopeSim;
 
-    private static final double PIVOT_RATIO = 360. / (196. * 2048.); // Motor ticks to actual degrees
-    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (25. * 2048.); // Motor ticks to actual inches
+    private static final double PIVOT_RATIO = 360. / (5. * 3. * 46./20. * 72./16. * 2048.); // Motor ticks to actual degrees
+    private static final double TELESCOPE_RATIO = (2.6 * Math.PI) / (7. * 5. * 2048.); // Motor ticks to actual inches
+    // Pivot Max Speed ~230 degrees/s
+    // Telescope Max Speed ~24 in/s
 
     public static final double PIVOT_MIN_ANGLE = -48;
-    public static final double PIVOT_MAX_ANGLE = 30;
+    public static final double PIVOT_MAX_ANGLE = 31;
     public static final double TELESCOPE_MIN_HEIGHT = 27;
-    public static final double TELESCOPE_MAX_HEIGHT = 60;
+    public static final double TELESCOPE_MAX_HEIGHT = 57;
 
     private static final Vector2D PIVOT_LOCATION = Vector2D.createCartesianCoordinates(0, 13.123);
     private static final Vector2D HOOK_TOP_CENTER = Vector2D.createCartesianCoordinates(1.773, 0.754);
@@ -123,7 +124,7 @@ public class ClimberArm {
         staticInitialized = true;
     }
 
-    public ClimberArm(String positionLabel, int pivotID, int telescopeID, boolean pivotInverted) {
+    public ClimberArm(String positionLabel, int pivotID, int telescopeID, boolean pivotInverted, boolean telescopeInverted) {
         if (!staticInitialized) {
             staticInit();
         }
@@ -137,10 +138,14 @@ public class ClimberArm {
 
         if (pivotInverted || Robot.isSimulation()) {
             m_pivot.setInverted(InvertType.InvertMotorOutput);
-            m_telescope.setInverted(InvertType.None);
         } else {
             m_pivot.setInverted(InvertType.None);
+        }
+
+        if (telescopeInverted || Robot.isSimulation()) {
             m_telescope.setInverted(InvertType.InvertMotorOutput);
+        } else {
+            m_telescope.setInverted(InvertType.None);
         }
 
         m_pivot.setNeutralMode(NeutralMode.Brake);
@@ -153,6 +158,8 @@ public class ClimberArm {
         m_pivot.configForwardSoftLimitThreshold(convertPivotActualPositionToMotor(PIVOT_MAX_ANGLE));
         m_telescope.configReverseSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MIN_HEIGHT));
         m_telescope.configForwardSoftLimitThreshold(convertTelescopeActualPositionToMotor(TELESCOPE_MAX_HEIGHT));
+
+        m_pivot.configMotionSCurveStrength(4);
 
         pivotPreferences.registerMotor(m_pivot);
         telescopePreferences.registerMotor(m_telescope);
@@ -301,9 +308,9 @@ public class ClimberArm {
     public void publishData() {
         SmartDashboard.putNumber(m_positionLabel + " Climber Pivot Angle", getPivotAngle());
         SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Height", getTelescopeHeight());
-        SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
-        SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
-        SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
+        // SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
         SmartDashboard.putBoolean(m_positionLabel + " Climber Is Calibrated", isCalibrated());
     }
 

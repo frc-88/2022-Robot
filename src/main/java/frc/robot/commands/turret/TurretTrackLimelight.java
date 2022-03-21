@@ -6,19 +6,19 @@ package frc.robot.commands.turret;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
-public class TurretTrack extends CommandBase {
+public class TurretTrackLimelight extends CommandBase {
   private Turret m_turret;
   private Limelight m_limelight;
   private double m_target;
-  private double m_offset;
-  private boolean m_circumnavigating;
+  private int m_lostCount = 0;
+  private DoublePreferenceConstant p_resetTime = new DoublePreferenceConstant("Turret Tracking Reset Time", 2.0);
 
   /** Creates a new TurretTrack. */
-  public TurretTrack(Turret turret, Limelight limelight) {
+  public TurretTrackLimelight(Turret turret, Limelight limelight) {
     m_turret = turret;
     m_limelight = limelight;
 
@@ -28,8 +28,7 @@ public class TurretTrack extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_target = 0.0;
-    m_circumnavigating = false;
+    m_target = m_turret.getDefaultFacing();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -39,14 +38,22 @@ public class TurretTrack extends CommandBase {
       m_limelight.ledOn();
 
       if (m_limelight.onTarget()) {
-        // stay on target
+        m_lostCount = 0;
+        m_target = m_turret.getFacing();
+        // keep on same m_target
       } else if (m_limelight.hasTarget()) {
-        m_offset = m_limelight.calcTurretOffset();
-        m_target = m_turret.getFacing() - m_offset;
+        // if we have a target, track it
+        m_lostCount = 0;
+        // TODO handle laggy data from the limelight
+        m_target = m_turret.getFacing() - m_limelight.calcTurretOffset();
+      } else if (++m_lostCount > (p_resetTime.getValue() * 50)) {
+        // if we don't have a target for too long, go to zero
+        m_target = m_turret.getDefaultFacing();
       }
     } else { // not tracking
-      // turn off limelight, hold position
+      // turn off limelight, go to zero
       m_limelight.ledOff();
+      m_target = m_turret.getDefaultFacing();
     }
 
     SmartDashboard.putNumber("Turret:Track Target", m_target);    

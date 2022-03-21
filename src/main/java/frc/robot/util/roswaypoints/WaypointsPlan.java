@@ -2,14 +2,14 @@ package frc.robot.util.roswaypoints;
 
 import java.util.ArrayList;
 
-import frc.robot.util.tunnel.ROSInterface;
+import frc.robot.util.coprocessortable.CoprocessorTable;
 
 public class WaypointsPlan {
     private ArrayList<Waypoint> waypoints = new ArrayList<>();
-    private final ROSInterface tunnel_interface;
+    private final CoprocessorTable coprocessor;
 
-    public WaypointsPlan(ROSInterface tunnel_interface) {
-        this.tunnel_interface = tunnel_interface;
+    public WaypointsPlan(CoprocessorTable coprocessor) {
+        this.coprocessor = coprocessor;
     }
     
     public void addWaypoint(Waypoint waypoint) {
@@ -21,17 +21,17 @@ public class WaypointsPlan {
         
         System.out.println("Sending waypoints plan of length " + this.waypoints.size());
         for (int index = 0; index < this.waypoints.size(); index++) {
-            tunnel_interface.sendGoal(this.waypoints.get(index));
+            coprocessor.sendGoal(this.waypoints.get(index));
         }
-        tunnel_interface.executeGoal();
+        coprocessor.executeGoal();
         System.out.println("Executing plan");
     }
 
     public void cancelPlan() {
-        tunnel_interface.cancelGoal();
+        coprocessor.cancelGoal();
     }
 
     public void resetPlan() {
-        tunnel_interface.resetPlan();
+        coprocessor.resetPlan();
     }
 }

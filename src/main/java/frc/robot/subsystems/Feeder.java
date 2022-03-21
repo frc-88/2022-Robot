@@ -25,28 +25,36 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private String m_feederName;
   private TalonFX m_feederMotor;
   private DigitalInput m_feederBeambreak;
-  private DoublePreferenceConstant p_feederMotorSpeed;
+  private DoublePreferenceConstant p_feederInSpeed;
+  private DoublePreferenceConstant p_feederOutSpeed;
+  private DoublePreferenceConstant p_feederIdleSpeed;
 
-  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederMotorSpeedPref) {
+  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederInSpeedPref, DoublePreferenceConstant feederOutSpeedPref, DoublePreferenceConstant feederIdleSpeedPref) {
     m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
     m_feederBeambreak = new DigitalInput(feederSensorId);
-    p_feederMotorSpeed = feederMotorSpeedPref;
+    p_feederInSpeed = feederInSpeedPref;
+    p_feederOutSpeed = feederOutSpeedPref;
+    p_feederIdleSpeed = feederIdleSpeedPref;
 
     TalonFXConfiguration config = new TalonFXConfiguration();
     m_feederMotor.configAllSettings(config);
   }
 
   public void run() {
-    m_feederMotor.set(ControlMode.PercentOutput, p_feederMotorSpeed.getValue());
+    m_feederMotor.set(ControlMode.PercentOutput, hasCargo()?p_feederOutSpeed.getValue():p_feederInSpeed.getValue());
   }
 
   public void reverse() {
-    m_feederMotor.set(ControlMode.PercentOutput, -p_feederMotorSpeed.getValue());
+    m_feederMotor.set(ControlMode.PercentOutput, -(hasCargo()?p_feederOutSpeed.getValue():p_feederInSpeed.getValue()));
   }
 
   public void stop() {
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
+  }
+
+  public void idle() {
+    m_feederMotor.set(ControlMode.PercentOutput, hasCargo()?0.0:p_feederIdleSpeed.getValue());
   }
 
   @Override
