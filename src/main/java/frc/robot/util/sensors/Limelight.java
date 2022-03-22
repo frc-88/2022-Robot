@@ -7,9 +7,11 @@
 
 package frc.robot.util.sensors;
 
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.networktables.*;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.IntPreferenceConstant;
 
 /**
  * Limelight wrapper class
@@ -29,6 +31,13 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
+    private MedianFilter m_txFilter;
+    private MedianFilter m_tyFilter;
+    private double m_txLast = 0.0;
+    private double m_txLastResult = 0.0;
+    private double m_tyLast = 0.0;
+    private double m_tyLastResult = 0.0;
+
     private double m_motionOffset;
 
     private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
@@ -36,6 +45,7 @@ public class Limelight {
     private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
     private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
+    private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -60,6 +70,9 @@ public class Limelight {
 
         m_stream.setNumber(0);
         setPipeline(0);
+
+        m_txFilter = new MedianFilter(p_filterSize.getValue());
+        m_tyFilter = new MedianFilter(p_filterSize.getValue());
     }
 
     public String getName() {
@@ -149,7 +162,14 @@ public class Limelight {
      * @return A measurement in degrees in the range [-27, 27]
      */
     public double getTargetHorizontalOffsetAngle() {
-        return hasTarget() ? m_tx.getDouble(0.0) : 0.0;
+        double next = hasTarget() ? m_tx.getDouble(0.0) : 0.0;
+
+        if (next != m_txLast) {
+            m_txLast = next;
+            m_txLastResult = m_txFilter.calculate(next);
+        } 
+
+        return m_txLastResult;
     }
 
     /**
@@ -159,7 +179,14 @@ public class Limelight {
      * @return A measurement in degrees in the range [-20.5, 20.5]
      */
     public double getTargetVerticalOffsetAngle() {
-        return hasTarget() ? m_ty.getDouble(0.0) : 0.0;
+        double next = hasTarget() ? m_ty.getDouble(0.0) : 0.0;
+
+        if (next != m_tyLast) {
+            m_tyLast = next;
+            m_tyLastResult = m_tyFilter.calculate(next);
+        } 
+
+        return m_tyLastResult;        
     }
 
     /**
