@@ -167,7 +167,7 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
-  private CommandBase m_autoTwoBallSimple = 
+  private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
@@ -187,6 +187,24 @@ public class RobotContainer {
     )
   );
 
+  private CommandBase m_autoTwoBallSpicy = 
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    new SequentialCommandGroup(
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+      new WaitCommand(0.5),
+      new ShootAll(m_shooter),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+      new WaitCommand(0.5),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Naughty.wpilib.json"), false)
+    )
+  );
+
   private CommandBase m_autoThreeBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
@@ -196,7 +214,7 @@ public class RobotContainer {
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
       new ShootAll(m_shooter)
     )
   );
@@ -210,7 +228,7 @@ public class RobotContainer {
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
       new ShootAll(m_shooter),
       new InstantCommand(() -> m_turret.setDefaultFacing(180)),
       new AutoGoToPose(m_drive, 
@@ -251,13 +269,13 @@ public class RobotContainer {
     }
 
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = m_autoTwoBallSimple;
+      m_autoCommand = m_autoTwoBall;
       m_autoCommandName = "2 Cargo";
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
-      m_autoCommand = m_autoTwoBallSimple;
-      m_autoCommandName = "2 Cargo Simple";
+      m_autoCommand = m_autoTwoBallSpicy;
+      m_autoCommandName = "2 Cargo Spicy";
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
@@ -408,14 +426,14 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("Auto Two Ball", m_autoTwoBallSimple);
+    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
     SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true));
+    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);

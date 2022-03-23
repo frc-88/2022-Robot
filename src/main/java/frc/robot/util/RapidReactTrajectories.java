@@ -51,8 +51,8 @@ public class RapidReactTrajectories
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
-  public static Trajectory generateFiveBallTrajectory() {
-    String trajectoryJSON = "output/ThreeForThreeInThree.wpilib.json";
+  public static Trajectory generatePathWeaverTrajectory(String trajectoryJSON) {
+    trajectoryJSON = "output/" + trajectoryJSON;
     Trajectory trajectory = new Trajectory();
     try {
       Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
@@ -63,4 +63,5 @@ public class RapidReactTrajectories
 
     return trajectory;
   }
+
 }
