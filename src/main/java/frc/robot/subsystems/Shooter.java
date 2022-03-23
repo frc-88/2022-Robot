@@ -9,14 +9,11 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
-import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.commands.turret.TurretTargetResolver;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.ValueInterpolator;
@@ -35,8 +32,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Hood m_hood;
   private Turret m_turret;
   private Drive m_drive;
-  private Sensors m_sensors;
-  private Navigation m_nav;
   private Boolean m_active = false;
   private Timer m_cargoWaitTimer;
   private boolean m_cargoWaiting = false;
@@ -81,13 +76,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources, Sensors sensors, Navigation nav) {
+  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources) {
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
     m_sources = sources;
-    m_sensors = sensors;
-    m_nav = nav;
 
     configureFlywheel();
 
@@ -119,13 +112,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
-  public void setFlywheelSpeedAuto() {
+  public void setFlywheelSpeedAuto(double target_dist) {
     if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
     } else if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
     }
   }
 
@@ -137,10 +130,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
   }
 
-  private double calcSpeedFromDistance() {
-    Pair<Double, Double> target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME,
-        m_sensors.limelight, m_turret);
-    double target_dist = Units.metersToInches(target.getFirst());
+  private double calcSpeedFromDistance(double target_dist) {
     if (target_dist > 0.0) {
       if (m_hood.isDown()) {
         return hoodDownInterpolator.getInterpolatedValue(target_dist);
@@ -222,7 +212,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putNumber("Shooter Flywheel Velocity",
         convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
     SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
 

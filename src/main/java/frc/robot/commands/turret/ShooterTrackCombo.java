@@ -6,18 +6,18 @@ package frc.robot.commands.turret;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Targeting;
-import frc.robot.subsystems.Turret;
+import frc.robot.subsystems.Shooter;
 
-public class TurretTrackCombo extends CommandBase {
+public class ShooterTrackCombo extends CommandBase {
   private Targeting m_targeting;
-  private Turret m_turret;
+  private Shooter m_shooter;
   
   /** Creates a new TurretTrackWithGlobalPose. */
-  public TurretTrackCombo(Turret turret, Targeting targeting) {
+  public ShooterTrackCombo(Shooter shooter, Targeting targeting) {
     m_targeting = targeting;
-    m_turret = turret;
+    m_shooter = shooter;
 
-    addRequirements(m_turret);
+    addRequirements(m_shooter);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -28,13 +28,7 @@ public class TurretTrackCombo extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (!m_targeting.isTracking()) {
-      m_targeting.disableTurret();
-      return;
-    }
-    
-    m_targeting.enableTurret();
-    m_turret.goToFacing(m_targeting.getTurretAngle());
+    m_shooter.setFlywheelSpeedAuto(m_targeting.getShooterDistance());
   }
 
   // Called once the command ends or is interrupted.

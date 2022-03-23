@@ -13,20 +13,15 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
-import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.commands.turret.TurretTargetResolver;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Hood extends SubsystemBase {
   private TalonFX m_hood = new TalonFX(Constants.HOOD_ID, "1");
   private Sensors m_sensors;
-  private Turret m_turret;
-  private Navigation m_nav;
 
   private static final double HOOD_RATIO = 20;
   private static final double HOOD_LOWERED = 0.0;
@@ -63,10 +58,8 @@ public class Hood extends SubsystemBase {
   private DoublePreferenceConstant p_hoodMidDistance = new DoublePreferenceConstant("Hood Mid Distance", 80.);
   private DoublePreferenceConstant p_hoodUpDistance = new DoublePreferenceConstant("Hood Up Distance", 110.);
 
-  public Hood(Sensors sensors, Turret turret, Navigation nav) {
+  public Hood(Sensors sensors) {
     m_sensors = sensors;
-    m_turret = turret;
-    m_nav = nav;
 
     configureHood();
 
@@ -96,10 +89,7 @@ public class Hood extends SubsystemBase {
     m_hood.setInverted(InvertType.InvertMotorOutput);
   }
 
-  public void hoodAuto() {
-    Pair<Double, Double> target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME,
-        m_sensors.limelight, m_turret);
-    double target_dist = Units.metersToInches(target.getFirst());
+  public void hoodAuto(double target_dist) {
     if (target_dist > 0.0) {
       if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < p_hoodMidDistance.getValue() - 6) {
         lowerHood();

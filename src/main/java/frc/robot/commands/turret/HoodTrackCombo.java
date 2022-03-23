@@ -6,18 +6,18 @@ package frc.robot.commands.turret;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Targeting;
-import frc.robot.subsystems.Turret;
+import frc.robot.subsystems.Hood;
 
-public class TurretTrackCombo extends CommandBase {
+public class HoodTrackCombo extends CommandBase {
   private Targeting m_targeting;
-  private Turret m_turret;
+  private Hood m_hood;
   
   /** Creates a new TurretTrackWithGlobalPose. */
-  public TurretTrackCombo(Turret turret, Targeting targeting) {
+  public HoodTrackCombo(Hood hood, Targeting targeting) {
     m_targeting = targeting;
-    m_turret = turret;
+    m_hood = hood;
 
-    addRequirements(m_turret);
+    addRequirements(m_hood);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -29,12 +29,10 @@ public class TurretTrackCombo extends CommandBase {
   @Override
   public void execute() {
     if (!m_targeting.isTracking()) {
-      m_targeting.disableTurret();
+      m_hood.lowerHood();
       return;
     }
-    
-    m_targeting.enableTurret();
-    m_turret.goToFacing(m_targeting.getTurretAngle());
+    m_hood.hoodAuto(m_targeting.getShooterDistance());
   }
 
   // Called once the command ends or is interrupted.

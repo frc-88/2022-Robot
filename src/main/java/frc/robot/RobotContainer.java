@@ -15,11 +15,12 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.turret.HoodTrackCombo;
+import frc.robot.commands.turret.ShooterTrackCombo;
 import frc.robot.commands.turret.TurretCalibrate;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrackLimelight;
-import frc.robot.commands.turret.TurretTrackWithGlobalPose;
 import frc.robot.commands.turret.TurretTrackCombo;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -31,6 +32,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Targeting;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
 import frc.robot.util.RapidReactTrajectories;
@@ -45,7 +47,6 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.Autonomous;
-import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -63,14 +64,16 @@ public class RobotContainer {
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret();
+  private final Hood m_hood = new Hood(m_sensors);
   private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3), new DoublePreferenceConstant("Centralizer:Idle", 0.0));
   private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6), new DoublePreferenceConstant("Chamber:Idle", -0.1));
+  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer});
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
   );
-  private final Navigation m_nav = new Navigation(m_drive, m_ros_interface);
-  private final Hood m_hood = new Hood(m_sensors, m_turret, m_nav);
-  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
+  private final Navigation m_nav = new Navigation(m_ros_interface);
+
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_nav, m_turret);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
@@ -130,14 +133,14 @@ public class RobotContainer {
   //            SHOOTING             //
   /////////////////////////////////////
 
-  private CommandBase m_startFlywheel = new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter);
+  private CommandBase m_startFlywheel = new ShooterTrackCombo(m_shooter, m_targeting);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
   private CommandBase m_flywheelFenderShot = new RunCommand(m_shooter::setFlywheelFenderShot, m_shooter);
 
   private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_hood);
   private CommandBase m_hoodMid = new RunCommand(m_hood::midHood, m_hood);
   private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_hood);
-  private CommandBase m_hoodAuto = new RunCommand(m_hood::hoodAuto, m_hood);
+  private CommandBase m_hoodAuto = new HoodTrackCombo(m_hood, m_targeting);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -444,10 +447,12 @@ public class RobotContainer {
     m_centralizer.setDefaultCommand(m_centralizerCargolizer);
     m_chamber.setDefaultCommand(m_chamberCargolizer);
 
-    m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
-    m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
+    // m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
+    m_hood.setDefaultCommand(new HoodTrackCombo(m_hood, m_targeting));
+    // m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
+    m_shooter.setDefaultCommand(new ShooterTrackCombo(m_shooter, m_targeting));
     // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_targeting));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

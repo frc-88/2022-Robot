@@ -94,6 +94,16 @@ public class CoprocessorTable {
     private NetworkTableEntry poseEstEntryUpdate;
 
     private NetworkTable jointsTable;
+    private NetworkTable waypointsTable;
+
+    private NetworkTable shooterTargetTable;
+    private NetworkTableEntry shooterTargetEntryDist;
+    private NetworkTableEntry shooterTargetEntryAngle;
+    private NetworkTableEntry shooterTargetEntryUpdate;
+    private double shooterDistance = 0.0;
+    private double shooterAngle = 0.0;
+    private MessageTimer shooterTimer = new MessageTimer(1_000_000);
+
 
     public CoprocessorTable(ChassisInterface chassis, String address, int port, double updateInterval) {
         this.chassis = chassis;
@@ -169,6 +179,13 @@ public class CoprocessorTable {
         poseEstEntryUpdate = poseEstTable.getEntry("update");
 
         jointsTable = rootTable.getSubTable("joints");
+        waypointsTable = rootTable.getSubTable("waypoints");
+
+        shooterTargetTable = rootTable.getSubTable("turret");
+        shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
+        shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
+        shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
+        shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     private void cmdVelCallback(EntryNotification notification) {
@@ -198,6 +215,22 @@ public class CoprocessorTable {
         this.chassis.resetPosition(new Pose2d(x, y, new Rotation2d(theta)));
     }
 
+    private void shooterTargetCallback(EntryNotification notification) {
+        shooterDistance = shooterTargetEntryDist.getDouble(0.0);
+        shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
+        shooterTimer.reset();
+    }
+
+    public double getShooterDistance() {
+        return shooterDistance;
+    }
+    public double getShooterAngle() {
+        return shooterAngle;
+    }
+    public boolean isShooterTargetValid() {
+        return shooterTimer.isActive();
+    }
+
     public NetworkTableInstance getNetworkTableInstance() {
         return instance;
     }
@@ -220,6 +253,10 @@ public class CoprocessorTable {
         );
     }
 
+    public NetworkTable getWaypointsTable() {
+        return waypointsTable;
+    }
+
     public void stopComms() {
         if (instance.isConnected()) {
             instance.stopClient();
@@ -232,7 +269,7 @@ public class CoprocessorTable {
         }
     }
 
-    public boolean isConected() {
+    public boolean isConnected() {
         return instance.isConnected();
     }
 

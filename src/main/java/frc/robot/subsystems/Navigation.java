@@ -10,19 +10,16 @@ import java.util.Set;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.WaypointMap;
 import frc.robot.util.roswaypoints.WaypointsPlan;
-import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.util.coprocessortable.CoprocessorTable;
 import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class Navigation extends SubsystemBase {
   private final WaypointMap m_waypointMap;
   private final CoprocessorTable m_coprocessor;
-  private final Drive m_drive;
   public static final String CENTER_WAYPOINT_NAME = "center";
 
   public static enum RosAutoState {
@@ -38,16 +35,9 @@ public class Navigation extends SubsystemBase {
   private long m_is_finished_timeout = 0;
 
   /** Creates a new NavigationSubsystem. */
-  public Navigation(Drive drive, CoprocessorTable coprocessor) {
-    m_drive = drive;
+  public Navigation(CoprocessorTable coprocessor) {
     m_coprocessor = coprocessor;
-    m_waypointMap = new WaypointMap((waypointMap, waypointName) -> {
-      SmartDashboard.putData("Set ROS pose to " + waypointName, new SetGlobalPoseToWaypoint(this, waypointName));
-      Pose2d pose = waypointMap.getWaypoint(waypointName);
-      if (waypointMap.isPoseValid(pose)) {
-        m_drive.getField().getObject(waypointName).setPose(pose);
-      }
-    });
+    m_waypointMap = new WaypointMap(m_coprocessor);
   }
 
   @Override
@@ -62,7 +52,7 @@ public class Navigation extends SubsystemBase {
   }
 
   public boolean isConnected() {
-    return m_coprocessor.isConected();
+    return m_coprocessor.isConnected();
   }
 
   public WaypointsPlan makeEmptyWaypointPlan() {
@@ -87,6 +77,19 @@ public class Navigation extends SubsystemBase {
 
   public boolean isPoseValid(Pose2d pose) {
     return m_waypointMap.isPoseValid(pose);
+  }
+
+
+  public double getShooterDistance() {
+    // Distance is in meters
+    return m_coprocessor.getShooterDistance();
+  }
+  public double getShooterAngle() {
+    // Angle is in radians
+    return m_coprocessor.getShooterAngle();
+  }
+  public boolean isShooterTargetValid() {
+    return m_coprocessor.isShooterTargetValid();
   }
 
   private Pose2d calculateNearestRingPose(double ringRadius) {
