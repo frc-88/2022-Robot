@@ -99,9 +99,11 @@ public class CoprocessorTable {
     private NetworkTable shooterTargetTable;
     private NetworkTableEntry shooterTargetEntryDist;
     private NetworkTableEntry shooterTargetEntryAngle;
+    private NetworkTableEntry shooterTargetEntryProbability;
     private NetworkTableEntry shooterTargetEntryUpdate;
     private double shooterDistance = 0.0;
     private double shooterAngle = 0.0;
+    private double shooterProbability = 0.0;
     private MessageTimer shooterTimer = new MessageTimer(1_000_000);
 
 
@@ -184,6 +186,7 @@ public class CoprocessorTable {
         shooterTargetTable = rootTable.getSubTable("turret");
         shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
         shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
+        shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
         shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
         shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
@@ -218,6 +221,7 @@ public class CoprocessorTable {
     private void shooterTargetCallback(EntryNotification notification) {
         shooterDistance = shooterTargetEntryDist.getDouble(0.0);
         shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
+        shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
         shooterTimer.reset();
     }
 
@@ -226,6 +230,9 @@ public class CoprocessorTable {
     }
     public double getShooterAngle() {
         return shooterAngle;
+    }
+    public double getShooterProbability() {
+        return shooterProbability;
     }
     public boolean isShooterTargetValid() {
         return shooterTimer.isActive();

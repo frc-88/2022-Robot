@@ -7,8 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
-import frc.robot.util.Vector2D;
-import frc.robot.util.WrappedAngle;
 import frc.robot.util.climber.ClimberArm;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.CoprocessorTable;
@@ -54,7 +52,7 @@ public class ThisRobotTable extends CoprocessorTable {
     // }
 
     public void updateSlow() {
-        if (!isConected()) {
+        if (!isConnected()) {
             return;
         }
         

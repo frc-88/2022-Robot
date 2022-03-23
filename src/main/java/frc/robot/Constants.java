@@ -142,11 +142,12 @@ public final class Constants {
 
 	// ROS Interface
 	public static final String COPROCESSOR_ADDRESS = "10.0.88.44";
+	// public static final String COPROCESSOR_ADDRESS = "127.0.0.1";
 	public static final int COPROCESSOR_PORT = 5800;
 	public static final double COPROCESSOR_TABLE_UPDATE_DELAY = 1.0 / 30.0;
 	public static final double COPROCESSOR_PERIODIC_UPDATE_DELAY = 1.0 / 30.0;
 	public static final double COPROCESSOR_PERIODIC_UPDATE_OFFSET = 1.0 / 60.0;
-	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY = 0.5;
+	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY = 1.0 / 5.0;
 	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET = 0.025;
 
 }

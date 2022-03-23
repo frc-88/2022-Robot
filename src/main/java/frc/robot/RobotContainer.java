@@ -217,9 +217,9 @@ public class RobotContainer {
           new WaitCommand(0.5),
           new ShootAll(m_shooter)
         ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)    
+        new HoodTrackCombo(m_hood, m_targeting),
+        new ShooterTrackCombo(m_shooter, m_targeting),
+        new TurretTrackCombo(m_turret, m_targeting)
       )
     )
   );
@@ -263,9 +263,9 @@ public class RobotContainer {
         // new WaitCommand(0.5),
         // new ShootAll(m_shooter)
         ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)
+        new HoodTrackCombo(m_hood, m_targeting),
+        new ShooterTrackCombo(m_shooter, m_targeting),
+        new TurretTrackCombo(m_turret, m_targeting)
       )
     )
   );

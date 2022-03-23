@@ -159,9 +159,9 @@ public class Targeting extends SubsystemBase {
         }
     }
 
-    SmartDashboard.putNumber("Turret:Waypoint target dist (meters)", waypoint_target_dist);
-    SmartDashboard.putNumber("Turret:Limelight target dist (meters)", limelight_target_dist);
-    SmartDashboard.putNumber("Turret:Track target dist (meters)", target_dist);
+    SmartDashboard.putNumber("Turret:Waypoint target dist (inches)", waypoint_target_dist);
+    SmartDashboard.putNumber("Turret:Limelight target dist (inches)", limelight_target_dist);
+    SmartDashboard.putNumber("Turret:Track target dist (inches)", target_dist);
 
     m_target_dist = target_dist;
     m_target_angle = target_angle;
