@@ -235,6 +235,8 @@ public class RobotContainer {
         new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
           Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
           Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+      // or ?
+      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ToTheTerminal.wpilib.json"), false),
       new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
       new ShootAll(m_shooter)
       //
@@ -242,6 +244,8 @@ public class RobotContainer {
       // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
       //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
       //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
+      // or ?
+      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Watch.wpilib.json"), false),
       // new WaitCommand(0.5),
       // new ShootAll(m_shooter)
     )
