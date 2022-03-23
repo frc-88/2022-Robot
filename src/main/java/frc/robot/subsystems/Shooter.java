@@ -33,7 +33,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Turret m_turret;
   private Drive m_drive;
   private Boolean m_active = false;
-  private Timer m_cargoWaitTimer;
+  private Timer m_cargoWaitTimer = new Timer();
   private boolean m_cargoWaiting = false;
   private boolean m_sourcesHadCargoLastCheck = false;
   private long m_lastCargoEnteredShooter = 0;
@@ -68,7 +68,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       0.0, 0.0);
   private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1300.0);
   private DoublePreferenceConstant p_flywheelFenderShotLow = new DoublePreferenceConstant("Shooter Fender Shot Low", 1500.0);
-  private DoublePreferenceConstant p_flywheelFenderShotHigh = new DoublePreferenceConstant("Shooter Fender Shot Low", 2400.0);
+  private DoublePreferenceConstant p_flywheelFenderShotHigh = new DoublePreferenceConstant("Shooter Fender Shot High", 2400.0);
   private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
   private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed",
       5000.0);
@@ -168,7 +168,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return flywheelVelocity * FLYWHEEL_RATIO * 2048 / 600;
   }
 
-  private boolean sourcesHaveCargo() {
+  public boolean sourcesHaveCargo() {
     boolean hasCargo = false;
 
     for (CargoSource source : m_sources) {
@@ -204,26 +204,36 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // onTarget()
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    return m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving();
+    // boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
+    boolean wantsCargo = (m_active && isFlywheelReady() && onTarget());
+
+    if (m_active && !wantsCargo) {
+      System.out.println("***Shot blocked***");
+      System.out.println("isFlywheelReasdy:" + isFlywheelReady());
+      System.out.println("onTarget:" + onTarget());
+      System.out.println("hoodMoving:" + !m_hood.isMoving());
+    }
+
+    if (m_active && wantsCargo) {
+      System.out.println("!!!SHOOT!!!");
+    }
+
+    return wantsCargo;
   }
 
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Shooter Flywheel Velocity",
         convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
-    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
+    // SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
+    // SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
 
     if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
-    if (m_active
-        && (RobotController.getFPGATime() - m_lastCargoEnteredShooter) <= p_cargoInShooter.getValue() * 1_000_000) {
-      m_drive.lockDrive();
-    } else {
-      m_drive.unlockDrive();
-    }
+    m_drive.unlockDrive();
   }
 }
