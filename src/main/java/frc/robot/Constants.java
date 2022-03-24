@@ -96,7 +96,7 @@ public final class Constants {
 	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
 
 	// Intake
-	public static final int INTAKE_ROLLER_ID = 11;
+	public static final int INTAKE_ROLLER_ID = 1;
 	public static final int INTAKE_ARM_ID = 12;
 	public static final int INTAKE_IR_ID = 3;
 
