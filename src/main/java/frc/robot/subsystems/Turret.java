@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
@@ -35,6 +36,8 @@ public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
   private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
 
+  private Sensors m_sensors;
+
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", 0.0);
   private DoublePreferenceConstant p_limitBuffer = new DoublePreferenceConstant("Turret Limit Buffer", 0.0);
@@ -55,7 +58,9 @@ public class Turret extends SubsystemBase {
   private double m_defaultFacing = 0.;
 
   /** Creates a new Turret. */
-  public Turret() {
+  public Turret(Sensors sensors) {
+    m_sensors = sensors;
+
     configureFalcon();
     configureCANCoder();
 
@@ -225,7 +230,11 @@ public class Turret extends SubsystemBase {
   }
 
   private void goToPosition(double position) {
-    m_turret.set(TalonFXControlMode.MotionMagic, position);
+    goToPosition(position, false);
+  }
+
+  private void goToPosition(double position, boolean spinCompensation) {
+    m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, -10.*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate()));
   }
 
   private boolean isPositionSafe(double position) {
