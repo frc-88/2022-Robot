@@ -226,7 +226,9 @@ public class RobotContainer {
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new WaitCommand(1.0),
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
+      new ParallelDeadlineGroup(
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
+        new RunCommand(m_centralizer::run, m_centralizer)),
       new ShootAll(m_shooter)
     )
   );
