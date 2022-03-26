@@ -25,7 +25,7 @@ public class AutoGoToPose extends CommandBase {
   private boolean m_reverse;
   private Trajectory m_trajectory;
   private RamseteController m_controller = new RamseteController();
-  private Timer m_timer = new Timer();
+  private Timer m_trajectoryTimer = new Timer();
   private double m_duration;
   private int m_state;
 
@@ -46,11 +46,17 @@ public class AutoGoToPose extends CommandBase {
     ArrayList<Pose2d> waypoints = new ArrayList<>();
     waypoints.add(m_drive.getCurrentPose());
     waypoints.add(m_targetPose);
+    
+    Timer generationTimer = new Timer();
+    generationTimer.reset();
+    generationTimer.start();
     m_trajectory = TrajectoryGenerator.generateTrajectory(waypoints, config);
-    m_duration = m_trajectory.getTotalTimeSeconds();
+    generationTimer.stop();
+    System.out.println("AutoGoToPose generation time:" + generationTimer.get() + "(s)");
 
+    m_duration = m_trajectory.getTotalTimeSeconds();
     m_state = 0;
-    m_timer.reset();
+    m_trajectoryTimer.reset();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -63,13 +69,13 @@ public class AutoGoToPose extends CommandBase {
       case 0: // Prep, reset the timer and go!
         m_drive.setBrakeMode();
         m_drive.shiftToHigh();
-        m_timer.start();
+        m_trajectoryTimer.start();
         m_state++;
         // go to state 1 right away
 
       case 1: // follow the trajectory for its duration
-        if (m_timer.get() < m_duration) {
-          double now = m_timer.get();
+        if (m_trajectoryTimer.get() < m_duration) {
+          double now = m_trajectoryTimer.get();
           Trajectory.State goal = m_trajectory.sample(now);
           ChassisSpeeds targetSpeeds = m_controller.calculate(m_drive.getCurrentPose(), goal);
 

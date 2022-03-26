@@ -4,6 +4,8 @@
 
 package frc.robot.util;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,10 +14,13 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveKinematicsConstraint;
 import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.Constants;
 
 public class RapidReactTrajectories
@@ -46,63 +51,17 @@ public class RapidReactTrajectories
     return TrajectoryGenerator.generateTrajectory(waypoints, config);
   }
 
-  public static Trajectory generateTwoBallTrajectory() {
-    TrajectoryConfig config = basicConfig();
+  public static Trajectory generatePathWeaverTrajectory(String trajectoryJSON) {
+    trajectoryJSON = "output/" + trajectoryJSON;
+    Trajectory trajectory = new Trajectory();
+    try {
+      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+    } catch (IOException ex) {
+      DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
+    }
 
-    ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-111.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(24.0D), Units.feetToMeters(1.5D), Rotation2d.fromDegrees(-180.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(20.0D), Units.feetToMeters(2.5D), Rotation2d.fromDegrees(150.0D)));
-
-    return TrajectoryGenerator.generateTrajectory(waypoints, config);
+    return trajectory;
   }
 
-  public static Trajectory generateThreeBallTrajectory() {
-    TrajectoryConfig config = basicConfig();
-
-    ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-111.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(24.0D), Units.feetToMeters(1.5D), Rotation2d.fromDegrees(-180.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(150.0D)));
-
-    return TrajectoryGenerator.generateTrajectory(waypoints, config);
-  }
-
-  public static Trajectory generateFourBallTrajectory() {
-    TrajectoryConfig config = basicConfig();
-
-    ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(20.0D), Units.feetToMeters(2.5D), Rotation2d.fromDegrees(150.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-133.75D)));
-
-    return TrajectoryGenerator.generateTrajectory(waypoints, config);
-  }
-
-  public static Trajectory generateFiveBallTrajectory() {
-    TrajectoryConfig config = basicConfig();
-
-    ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(25.8D), Units.feetToMeters(5.9D), Rotation2d.fromDegrees(-111.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(24.0D), Units.feetToMeters(1.6D), Rotation2d.fromDegrees(-180.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(17.0D), Units.feetToMeters(6.25D), Rotation2d.fromDegrees(115.0D)));
-
-    return TrajectoryGenerator.generateTrajectory(waypoints, config);
-  }
-
-  public static Trajectory generateFourBallNoStopTrajectory() {
-    TrajectoryConfig config = basicConfig();
-
-    ArrayList<Pose2d> waypoints = new ArrayList<>();
-    waypoints.add(new Pose2d(Units.feetToMeters(26.7D), Units.feetToMeters(8.9D), Rotation2d.fromDegrees(-114.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(27.0D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-90.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(24.5D), Units.feetToMeters(1.3D), Rotation2d.fromDegrees(-180.0D)));
-    // waypoints.add(new Pose2d(Units.feetToMeters(21.0D), Units.feetToMeters(3.0D), Rotation2d.fromDegrees(135.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(16.5D), Units.feetToMeters(6.5D), Rotation2d.fromDegrees(170.0D)));
-    waypoints.add(new Pose2d(Units.feetToMeters(3.5D), Units.feetToMeters(3.5D), Rotation2d.fromDegrees(-133.75D)));
-
-    return TrajectoryGenerator.generateTrajectory(waypoints, config);
-  }
 }

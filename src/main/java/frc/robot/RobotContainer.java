@@ -51,7 +51,6 @@ import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.AutoGoToPose;
-import frc.robot.commands.autos.Autonomous;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -168,7 +167,7 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
-  private CommandBase m_autoTwoBallSimple = 
+  private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
@@ -188,36 +187,35 @@ public class RobotContainer {
     )
   );
 
+  private CommandBase m_autoTwoBallSpicy = 
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    new SequentialCommandGroup(
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+      new WaitCommand(0.5),
+      new ShootAll(m_shooter),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+      new WaitCommand(0.5),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Naughty.wpilib.json"), false)
+    )
+  );
+
   private CommandBase m_autoThreeBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.0, 0.5),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretLock(m_turret),
-        new RunCommand(m_hood::lowerHood, m_hood),
-        new RunCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterAutoSpeed.getValue());}, m_shooter)    
-      ),
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)    
-      )
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
+      new ShootAll(m_shooter)
     )
   );
 
@@ -226,44 +224,30 @@ public class RobotContainer {
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.0, 0.5),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretLock(m_turret),
-        new RunCommand(m_hood::lowerHood, m_hood),
-        new RunCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterAutoSpeed.getValue());}, m_shooter)    
-      ),
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter),
-          new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-          new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-              Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-              Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-          new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-          new ShootAll(m_shooter)
-        //
-        // Go to shooting spot, with view of hub, drive in reverse
-        // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
-        //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
-        //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
-        // new WaitCommand(0.5),
-        // new ShootAll(m_shooter)
-        ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)
-      )
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
+      new ShootAll(m_shooter),
+      new InstantCommand(() -> m_turret.setDefaultFacing(180)),
+      new AutoGoToPose(m_drive, 
+        new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+          Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+          Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+      // or ?
+      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ToTheTerminal.wpilib.json"), false),
+      new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
+      new ShootAll(m_shooter)
+      //
+      // Go to shooting spot, with view of hub, drive in reverse
+      // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
+      //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
+      //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
+      // or ?
+      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Watch.wpilib.json"), false),
+      // new WaitCommand(0.5),
+      // new ShootAll(m_shooter)
     )
   );
 
@@ -289,13 +273,13 @@ public class RobotContainer {
     }
 
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
+      m_autoCommand = m_autoTwoBall;
       m_autoCommandName = "2 Cargo";
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
-      m_autoCommand = m_autoTwoBallSimple;
-      m_autoCommandName = "2 Cargo Simple";
+      m_autoCommand = m_autoTwoBallSpicy;
+      m_autoCommandName = "2 Cargo Spicy";
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
@@ -446,18 +430,14 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("Auto Two Ball Simple", Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Two Ball", Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    // SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
+    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
-    // SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
     SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateTwoBallTrajectory(), true));
-    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true));
+    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
