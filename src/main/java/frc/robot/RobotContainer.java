@@ -192,7 +192,7 @@ public class RobotContainer {
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
@@ -200,8 +200,13 @@ public class RobotContainer {
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
-      new WaitCommand(0.5),
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Naughty.wpilib.json"), false)
+      new WaitCommand(1.0),
+      new InstantCommand(m_turret::stopTracking),
+      new InstantCommand(m_sensors.limelight::ledOff),
+      new ShootAll(m_shooter),
+      new WaitCommand(1.0),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(m_sensors.limelight::ledOn)
     )
   );
 
@@ -214,6 +219,7 @@ public class RobotContainer {
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
+      new WaitCommand(1.0),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
       new ShootAll(m_shooter)
     )
