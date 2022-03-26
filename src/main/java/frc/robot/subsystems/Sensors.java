@@ -164,6 +164,7 @@ public class Sensors extends SubsystemBase {
       SmartDashboard.putBoolean("Virtual Coast Button", false);
     }
     SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
+    limelight.periodic();
 
     if (!RobotContainer.isPublishingEnabled()) {
       return;
@@ -181,7 +182,6 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
     // Limelight calculations
-    limelight.periodic();
     SmartDashboard.putNumber("Limelight Distance", limelight.getTargetDistance());
     SmartDashboard.putNumber("Limelight Angle", limelight.getCalibrationAngle());
     SmartDashboard.putNumber("Limelight Turret Offset", limelight.getTurretOffset());
