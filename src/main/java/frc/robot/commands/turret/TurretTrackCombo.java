@@ -34,7 +34,7 @@ public class TurretTrackCombo extends CommandBase {
     }
     
     m_targeting.enableTurret();
-    m_turret.goToFacing(m_targeting.getTurretAngle());
+    m_turret.goToFacing(m_targeting.getTurretAngle(), true);
   }
 
   // Called once the command ends or is interrupted.
