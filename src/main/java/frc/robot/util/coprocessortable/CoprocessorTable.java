@@ -242,6 +242,10 @@ public class CoprocessorTable {
         return instance;
     }
 
+    public NetworkTable getRootTable() {
+        return rootTable;
+    }
+
     public void update() {
         if (!instance.isConnected()) {
             return;

@@ -2,8 +2,11 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
@@ -30,13 +33,18 @@ public class ThisRobotTable extends CoprocessorTable {
     private Intake intake;
     private Turret turret;
     private Sensors sensors;
+    private Hood hood;
+
+    private NetworkTable hoodTable;
+    private NetworkTableEntry hoodStateEntry;
 
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
             Intake intake,
             Turret turret,
-            Sensors sensors) {
+            Sensors sensors,
+            Hood hood) {
         super(chassis, address, port, updateInterval);
 
         this.outerArm = outerArm;
@@ -44,6 +52,10 @@ public class ThisRobotTable extends CoprocessorTable {
         this.intake = intake;
         this.turret = turret;
         this.sensors = sensors;
+        this.hood = hood;
+
+        hoodTable = getRootTable().getSubTable("hood");
+        hoodStateEntry = hoodTable.getEntry("state");
     }
 
     // @Override
@@ -122,6 +134,13 @@ public class ThisRobotTable extends CoprocessorTable {
             camera_joint,
             convertCameraTiltAngle(sensors.getCameraTilterAngle())
         );
+
+        // hood
+        setHoodState(this.hood.isUp());
+    }
+
+    private void setHoodState(boolean state) {
+        hoodStateEntry.setBoolean(state);
     }
 
 
