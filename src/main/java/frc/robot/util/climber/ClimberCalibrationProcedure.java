@@ -45,22 +45,25 @@ public class ClimberCalibrationProcedure {
 
         switch (m_state) {
             case UNCALIBRATED:
-            case PUSHING_PIVOT:
                 m_arm.setPercentOutput(PIVOT_CALIBRATION_OUTPUT, 0);
+                m_state = State.PUSHING_PIVOT;
+
+            // Intentional Fall Through
+
+            case PUSHING_PIVOT:
 
                 double currentPivotPosition = m_arm.getPivotAngle();
                 if (m_pivotPositions.size() >= POSITIONS_TO_COLLECT
                         && Math.abs(currentPivotPosition - m_pivotPositions.poll()) < PIVOT_POSITION_EPSILON) {
+                    m_arm.setPercentOutput(0, TELESCOPE_CALIBRATION_OUTPUT);
                     m_state = State.PUSHING_TELESCOPE;
                 } else {
                     m_pivotPositions.add(currentPivotPosition);
-                    m_state = State.PUSHING_PIVOT;
                 }
 
                 break;
 
             case PUSHING_TELESCOPE:
-                m_arm.setPercentOutput(0, TELESCOPE_CALIBRATION_OUTPUT);
 
                 double currentTelescopePosition = m_arm.getTelescopeHeight();
                 if (m_telescopePositions.size() >= POSITIONS_TO_COLLECT
@@ -70,15 +73,11 @@ public class ClimberCalibrationProcedure {
                     m_state = State.CALIBRATED;
                 } else {
                     m_telescopePositions.add(currentTelescopePosition);
-                    m_state = State.PUSHING_TELESCOPE;
                 }
 
                 break;
 
             case CALIBRATED:
-                m_arm.setPercentOutput(0, 0);
-
-                m_state = State.CALIBRATED;
                 
                 break;
         }

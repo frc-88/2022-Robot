@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 import frc.robot.util.sensors.NavX;
@@ -158,15 +159,22 @@ public class Sensors extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // checkedStoragePressure = false;
-    // checkedWorkingPressure = false;
-    // getStoragePressure();
-    // getWorkingPressure();
 
     if (DriverStation.isEnabled()) {
       SmartDashboard.putBoolean("Virtual Coast Button", false);
     }
     SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
+    limelight.periodic();
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
+    checkedStoragePressure = false;
+    checkedWorkingPressure = false;
+    getStoragePressure();
+    getWorkingPressure();
+
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
@@ -174,9 +182,9 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
     // Limelight calculations
-    SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
-    SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
-    SmartDashboard.putNumber("Limelight Turret Offset", limelight.calcTurretOffset());
+    SmartDashboard.putNumber("Limelight Distance", limelight.getTargetDistance());
+    SmartDashboard.putNumber("Limelight Angle", limelight.getCalibrationAngle());
+    SmartDashboard.putNumber("Limelight Turret Offset", limelight.getTurretOffset());
     SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
     SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
 
@@ -248,7 +256,5 @@ public class Sensors extends SubsystemBase {
     // SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
     // SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());
     // SmartDashboard.putBoolean("Working Pressure Sensor Disconnected", !this.isWorkingPressureSensorConnected());
-
-    // SmartDashboard.putNumber("NavX Roll", navx.getRoll());
   }
 }

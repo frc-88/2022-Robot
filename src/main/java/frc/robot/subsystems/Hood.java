@@ -16,6 +16,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
+import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
@@ -32,6 +34,8 @@ public class Hood extends SubsystemBase {
   private static final double HOOD_CALIBRATION_TOLERANCE = 0.5;
   private double m_hoodCalibrationStartValue = 0;
   private int m_hoodCalibrationCollectsDone = 0;
+
+  private boolean isCoasting = false;
 
   private HoodState m_hoodState = HoodState.CALIBRATING;
 
@@ -90,18 +94,14 @@ public class Hood extends SubsystemBase {
   }
 
   public void hoodAuto(double target_dist) {
+    double upDistance = p_hoodUpDistance.getValue();
     if (target_dist > 0.0) {
-      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < p_hoodMidDistance.getValue() - 6) {
+      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < upDistance - 6) {
         lowerHood();
-      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > p_hoodUpDistance.getValue() + 6) {
+      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > upDistance + 6) {
         raiseHood();
-      } else if (((m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist > p_hoodMidDistance.getValue() + 6)
-            || ((m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist < p_hoodUpDistance.getValue() - 6)) {
-        midHood();
       } else if (m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) {
         raiseHood();
-      } else if (m_hoodState == HoodState.MIDING || m_hoodState == HoodState.MIDED) {
-        midHood();
       } else {
         lowerHood();
       }
@@ -238,7 +238,11 @@ public class Hood extends SubsystemBase {
   }
 
   public double getHoodPosition() {
-    return convertMotorPositionToHood(m_hood.getSelectedSensorPosition());
+    if (NumberCache.hasValue("Hood Position")) {
+      return NumberCache.getValue("Hood Position");
+    }
+
+    return NumberCache.pushValue("Hood Position", convertMotorPositionToHood(m_hood.getSelectedSensorPosition()));
   }
 
   private double convertMotorPositionToHood(double motorPosition) {
@@ -260,9 +264,19 @@ public class Hood extends SubsystemBase {
   @Override
   public void periodic() {
     if (m_sensors.isCoastButtonPressed()) {
-      m_hood.setNeutralMode(NeutralMode.Coast);
+      if (!isCoasting) {
+        m_hood.setNeutralMode(NeutralMode.Coast);
+        isCoasting = true;
+      }
     } else {
-      m_hood.setNeutralMode(NeutralMode.Brake);
+      if (isCoasting) {
+        m_hood.setNeutralMode(NeutralMode.Brake);
+        isCoasting = false;
+      }
+    }
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
     }
 
     SmartDashboard.putNumber("Hood Position", getHoodPosition());

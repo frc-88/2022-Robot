@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
@@ -216,7 +218,10 @@ public class Turret extends SubsystemBase {
   }
 
   private double getPosition() {
-    return m_turret.getSelectedSensorPosition();
+    if (NumberCache.hasValue("Turret Position")) {
+      return NumberCache.getValue("Turret Position");
+    }
+    return NumberCache.pushValue("Turret Position", m_turret.getSelectedSensorPosition());
   }
 
   private void goToPosition(double position) {
@@ -248,14 +253,17 @@ public class Turret extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    // SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
-    // SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
+    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
+    SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
-    // SmartDashboard.putNumber("Turret:Position", getPosition());
+    SmartDashboard.putNumber("Turret:Position", getPosition());
     SmartDashboard.putNumber("Turret:Facing", getFacing());
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
-    // SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+    SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
   }
 }

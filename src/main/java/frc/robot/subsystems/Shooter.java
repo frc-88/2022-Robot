@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.ValueInterpolator;
@@ -205,13 +206,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
     // boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
-    boolean wantsCargo = (m_active && isFlywheelReady() && onTarget());
+    boolean isFlywheelReady = isFlywheelReady();
+    boolean onTarget = onTarget();
+    boolean wantsCargo = (m_active && isFlywheelReady && onTarget);
 
     if (m_active && !wantsCargo) {
       System.out.println("***Shot blocked***");
-      System.out.println("isFlywheelReasdy:" + isFlywheelReady());
-      System.out.println("onTarget:" + onTarget());
-      System.out.println("hoodMoving:" + !m_hood.isMoving());
+      System.out.println("isFlywheelReasdy:" + isFlywheelReady);
+      System.out.println("onTarget:" + onTarget);
     }
 
     if (m_active && wantsCargo) {
@@ -223,17 +225,21 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Shooter Flywheel Velocity",
-        convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
-    // SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
-    // SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
-    SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
-
     if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
     m_drive.unlockDrive();
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+    
+    SmartDashboard.putNumber("Shooter Flywheel Velocity",
+        convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
+    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
+    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
+    SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }
 }

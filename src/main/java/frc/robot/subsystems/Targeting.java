@@ -18,6 +18,12 @@ public class Targeting extends SubsystemBase {
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
 
+  private enum TARGETING_MODE {
+    LIMELIGHT_ONLY,
+    WAYPOINT_ONLY,
+    COMBO;
+  }
+
   /** Creates a new Targeting. */
   public Targeting(Limelight limelight, Navigation nav, Turret turret) {
     m_limelight = limelight;
@@ -25,10 +31,11 @@ public class Targeting extends SubsystemBase {
     m_turret = turret;
   }
 
-  // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
-  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = Double.NaN;  // always use limelight for angle targeting if waypoint is valid
-  // private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 3.0;
-  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = Double.NaN;  // always use limelight for distance targeting if waypoint is valid
+  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
+  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 3.0;
+  private final TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
+  // private final TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
+  // private final TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
   private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
       double angle = Double.NaN;
@@ -37,9 +44,9 @@ public class Targeting extends SubsystemBase {
           angle = turret.getFacing();
       } else if (limelight.hasTarget()) {
           // if we have a target, track it
-          angle = turret.getFacing() - limelight.calcTurretOffset();
+          angle = turret.getFacing() - limelight.getTurretOffset();
       }
-      double distance = limelight.calcDistanceToTarget();
+      double distance = limelight.getTargetDistance();
       if (distance <= 0.0) {
           distance = Double.NaN;
       }
@@ -80,7 +87,9 @@ public class Targeting extends SubsystemBase {
   }
 
   public void enableTurret() {
-    m_limelight.ledOn();
+    if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
+      m_limelight.ledOn();
+    }
   }
 
   @Override
@@ -88,15 +97,38 @@ public class Targeting extends SubsystemBase {
     double target_angle = m_turret.getDefaultFacing();
     double target_dist = Double.NaN;
 
+    double limelight_target_dist = Double.NaN;
+    double limelight_target_angle = Double.NaN;
+    double waypoint_target_dist = Double.NaN;
+    double waypoint_target_angle = Double.NaN;
+    Pair<Double, Double> limelight_target;
+    Pair<Double, Double> waypoint_target;
+
     // both limelight_target and waypoint_target are in the format: distance (inches), angle (degrees)
-    Pair<Double, Double> limelight_target = getLimelightTarget(m_limelight, m_turret);
-    Pair<Double, Double> waypoint_target = getWaypointTarget(m_nav);
     
-    double limelight_target_dist = limelight_target.getFirst();
-    double limelight_target_angle = limelight_target.getSecond();
-    
-    double waypoint_target_dist = waypoint_target.getFirst();
-    double waypoint_target_angle = waypoint_target.getSecond();
+    switch (targeting_mode) {
+      case LIMELIGHT_ONLY:
+        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target_dist = limelight_target.getFirst();
+        limelight_target_angle = limelight_target.getSecond();
+        break;
+      case WAYPOINT_ONLY:
+        waypoint_target = getWaypointTarget(m_nav);
+        waypoint_target_dist = waypoint_target.getFirst();
+        waypoint_target_angle = waypoint_target.getSecond();
+        break;
+      case COMBO:
+        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target_dist = limelight_target.getFirst();
+        limelight_target_angle = limelight_target.getSecond();
+        
+        waypoint_target = getWaypointTarget(m_nav);
+        waypoint_target_dist = waypoint_target.getFirst();
+        waypoint_target_angle = waypoint_target.getSecond();
+        break;
+      default:
+        break;
+    }
 
     if (Double.isNaN(limelight_target_angle) && Double.isNaN(waypoint_target_angle)) {
         // If neither the limelight or waypoint have valid targets, tell the turret to return to default
@@ -117,7 +149,7 @@ public class Targeting extends SubsystemBase {
         // If both the limelight and waypoint have a target,
         double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
         SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
-        if (Double.isNaN(LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) || limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
+        if (limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
             // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
             target_angle = limelight_target_angle;
         } else {
@@ -147,8 +179,7 @@ public class Targeting extends SubsystemBase {
         }
         else {
             // If both the limelight and waypoint have a target,
-            if (Double.isNaN(LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES) || 
-                Math.abs(limelight_target_dist - waypoint_target_dist) <= LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES) {
+            if (Math.abs(limelight_target_dist - waypoint_target_dist) <= LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES) {
                 // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target distance
                 target_dist = limelight_target_dist;
             }

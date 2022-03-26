@@ -19,7 +19,7 @@ public class ClimberStateMachine {
     public ClimberStateMachine(ClimberState firstState) {
         m_states = new ArrayList<>();
         m_states.add(firstState);
-        m_currentState = 0;
+        m_currentState = -1;
     }
 
     private ClimberStateMachine(List<ClimberState> states) {
@@ -40,7 +40,7 @@ public class ClimberStateMachine {
 
     public void run(Climber climber) {
         ClimberState previousState;
-        if (m_currentState == 0 || (m_currentState >= 1 && m_states.size() == 1)) {
+        if (m_currentState < 0) {
             if (Objects.isNull(m_initialState)) {
                 m_initialState = new ClimberState(climber.getAverageOuterPivotAngle(), 
                         climber.getAverageOuterTelescopeHeight(), 
@@ -48,21 +48,15 @@ public class ClimberStateMachine {
                         climber.getAverageInnerTelescopeHeight());
             }
             previousState = m_initialState;
-        } else if (m_currentState >= m_states.size()) {
-            previousState = m_states.get(m_states.size() - 2);
-        } else {
+        } else if (m_currentState < m_states.size()) {
             previousState = m_states.get(m_currentState - 1);
+        } else {
+            previousState = m_states.get(0);
         }
 
-        if (m_currentState >= m_states.size()) {
-            executeState(m_states.get(m_states.size() - 1), previousState, climber);
-        } else {
+        if (m_currentState < 0 || m_currentState < m_states.size() && onTarget(m_states.get(m_currentState), climber)) {
             executeState(m_states.get(m_currentState), previousState, climber);
-
-            if (onTarget(m_states.get(m_currentState), climber)) {
-                m_startPauseTime = -1;
-                m_currentState++;
-            }
+            m_currentState++;
         }
     }
 
@@ -71,24 +65,25 @@ public class ClimberStateMachine {
     }
 
     public void reset() {
-        m_currentState = 0;
+        m_currentState = -1;
         m_initialState = null;
     }
 
     private void executeState(ClimberState state, ClimberState previousState, Climber climber) {
         if (state.isPause()) {
-            if (m_startPauseTime < 0) {
-                m_startPauseTime = RobotController.getFPGATime() / 1_000_000;
-            }
+            m_startPauseTime = RobotController.getFPGATime() / 1_000_000;
             return;
         }
 
         if (state.isSynchronized()) {
+            double pivotMaxVelocity = ClimberArm.getPivotMaxVelocity();
+            double telescopeMaxVelocity = ClimberArm.getTelescopeMaxVelocity();
+
             double[] durations = new double[] {
-                Math.abs(state.getOuterPivot() - previousState.getOuterPivot()) / ClimberArm.getPivotMaxVelocity(),
-                Math.abs(state.getOuterTelescope() - previousState.getOuterTelescope()) / ClimberArm.getTelescopeMaxVelocity(),
-                Math.abs(state.getInnerPivot() - previousState.getInnerPivot()) / ClimberArm.getPivotMaxVelocity(),
-                Math.abs(state.getInnerTelescope() - previousState.getInnerTelescope()) / ClimberArm.getTelescopeMaxVelocity(),
+                Math.abs(state.getOuterPivot() - previousState.getOuterPivot()) / pivotMaxVelocity,
+                Math.abs(state.getOuterTelescope() - previousState.getOuterTelescope()) / telescopeMaxVelocity,
+                Math.abs(state.getInnerPivot() - previousState.getInnerPivot()) / pivotMaxVelocity,
+                Math.abs(state.getInnerTelescope() - previousState.getInnerTelescope()) / telescopeMaxVelocity,
             };
 
             int maxDurationIndex = 0;
@@ -101,13 +96,13 @@ public class ClimberStateMachine {
             climber.setOuterMotionMagic(
                 state.getOuterPivot(),
                 state.getOuterTelescope(),
-                ClimberArm.getPivotMaxVelocity() * durations[0] / durations[maxDurationIndex], 
-                ClimberArm.getTelescopeMaxVelocity() * durations[1] / durations[maxDurationIndex]);
+                pivotMaxVelocity * durations[0] / durations[maxDurationIndex], 
+                telescopeMaxVelocity * durations[1] / durations[maxDurationIndex]);
             climber.setInnerMotionMagic(
                 state.getInnerPivot(),
                 state.getInnerTelescope(),
-                ClimberArm.getPivotMaxVelocity() * durations[2] / durations[maxDurationIndex], 
-                ClimberArm.getTelescopeMaxVelocity() * durations[3] / durations[maxDurationIndex]);
+                pivotMaxVelocity * durations[2] / durations[maxDurationIndex], 
+                telescopeMaxVelocity * durations[3] / durations[maxDurationIndex]);
         } else {
             climber.setOuterMotionMagic(state.getOuterPivot(), state.getOuterTelescope());
             climber.setInnerMotionMagic(state.getInnerPivot(), state.getInnerTelescope());

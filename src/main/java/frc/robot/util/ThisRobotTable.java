@@ -57,9 +57,9 @@ public class ThisRobotTable extends CoprocessorTable {
         }
         
         Vector2D outerLeftArmVector = outerArm.getPositionVector();
-        Vector2D outerRightArmVector = outerArm.getPositionVector();
+        Vector2D outerRightArmVector = outerLeftArmVector;
         Vector2D innerLeftArmVector = innerArm.getPositionVector();
-        Vector2D innerRightArmVector = innerArm.getPositionVector();
+        Vector2D innerRightArmVector = innerLeftArmVector;
 
         // outerLeftArmVector
         setJointPosition(
@@ -137,9 +137,9 @@ public class ThisRobotTable extends CoprocessorTable {
     private static final double ROS_INTAKE_ARM_STOWED = -93.0;
     private double convertIntakeAngle(double intakeAngle) {
         return Math.toRadians(
-            (Intake.ARM_DEPLOYED - Intake.ARM_STOWED) / 
+            (intake.m_armDeployed - intake.m_armStowed) / 
             (ROS_INTAKE_ARM_DEPLOYED - ROS_INTAKE_ARM_STOWED) * 
-            (intakeAngle - Intake.ARM_STOWED)
+            (intakeAngle - intake.m_armStowed)
              + ROS_INTAKE_ARM_STOWED
         );
     }

@@ -8,11 +8,13 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.util.climber.ClimberArm;
 
 public class Climber extends SubsystemBase {
     
     private final BooleanSupplier coastButton;
+    private boolean m_isCoasting = false;
 
     public final ClimberArm outerArm;
     public final ClimberArm innerArm;
@@ -89,15 +91,23 @@ public class Climber extends SubsystemBase {
 
     @Override
     public void periodic() {
-        allArms.forEach(ClimberArm::publishData);
-
         SmartDashboard.putBoolean("All Climbers Calibrated", isCalibrated());
 
         if (coastButton.getAsBoolean()) {
-            allArms.forEach(ClimberArm::coast);
+            if (!m_isCoasting) {
+                allArms.forEach(ClimberArm::coast);
+                m_isCoasting = true;
+            }
         }
         else {
-            allArms.forEach(ClimberArm::brake);
+            if (m_isCoasting) {
+                allArms.forEach(ClimberArm::brake);
+                m_isCoasting = false;
+            }
+        }
+
+        if (RobotContainer.isPublishingEnabled()) {
+            allArms.forEach(ClimberArm::publishData);
         }
     }
 
