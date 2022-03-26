@@ -200,11 +200,12 @@ public class RobotContainer {
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
-      new WaitCommand(1.0),
       new InstantCommand(m_turret::stopTracking),
       new InstantCommand(m_sensors.limelight::ledOff),
-      new ShootAll(m_shooter),
-      new WaitCommand(1.0),
+      new ParallelDeadlineGroup(
+        new ShootAll(m_shooter),
+        new RunCommand(m_hood::raiseHood, m_hood)
+      ),
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn)
     )
