@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
+import frc.robot.util.NumberCache;
 import frc.robot.util.Vector2D;
 import frc.robot.util.WrappedAngle;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -229,11 +230,19 @@ public class ClimberArm {
 
 
     public double getPivotAngle() {
-        return convertPivotMotorPositionToActual(m_pivot.getSelectedSensorPosition());
+        if (NumberCache.hasValue(m_positionLabel + " Pivot Angle")) {
+            return NumberCache.getValue(m_positionLabel + " Pivot Angle");
+        }
+
+        return NumberCache.pushValue(m_positionLabel + " Pivot Angle", convertPivotMotorPositionToActual(m_pivot.getSelectedSensorPosition()));
     }
 
     public double getTelescopeHeight() {
-        return convertTelescopeMotorPositionToActual(m_telescope.getSelectedSensorPosition());
+        if (NumberCache.hasValue(m_positionLabel + " Telescope Height")) {
+            return NumberCache.getValue(m_positionLabel + " Telescope Height");
+        }
+
+        return NumberCache.pushValue(m_positionLabel + " Telescope Height", convertTelescopeMotorPositionToActual(m_telescope.getSelectedSensorPosition()));
     }
 
     public double getPivotVelocity() {
@@ -308,9 +317,9 @@ public class ClimberArm {
     public void publishData() {
         SmartDashboard.putNumber(m_positionLabel + " Climber Pivot Angle", getPivotAngle());
         SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Height", getTelescopeHeight());
-        // SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
-        // SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
-        // SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
+        SmartDashboard.putNumber(m_positionLabel + " Climber X", getPositionVector().getX());
+        SmartDashboard.putNumber(m_positionLabel + " Climber Y", getPositionVector().getY());
+        SmartDashboard.putNumber(m_positionLabel + " Climber Telescope Current", m_telescope.getSupplyCurrent());
         SmartDashboard.putBoolean(m_positionLabel + " Climber Is Calibrated", isCalibrated());
     }
 

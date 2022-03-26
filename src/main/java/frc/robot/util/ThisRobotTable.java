@@ -59,9 +59,9 @@ public class ThisRobotTable extends CoprocessorTable {
         }
         
         Vector2D outerLeftArmVector = outerArm.getPositionVector();
-        Vector2D outerRightArmVector = outerArm.getPositionVector();
+        Vector2D outerRightArmVector = outerLeftArmVector;
         Vector2D innerLeftArmVector = innerArm.getPositionVector();
-        Vector2D innerRightArmVector = innerArm.getPositionVector();
+        Vector2D innerRightArmVector = innerLeftArmVector;
 
         // outerLeftArmVector
         setJointPosition(

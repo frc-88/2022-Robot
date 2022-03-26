@@ -38,6 +38,7 @@ import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
+import frc.robot.util.NumberCache;
 import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
@@ -61,6 +62,8 @@ import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PreferenceConstant;
+import frc.robot.util.preferenceconstants.PreferenceConstants;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -89,6 +92,8 @@ public class RobotContainer {
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
   private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
+
+  private boolean m_hasConfiguredDashboardButtons = false;
 
   /////////////////////////////////////////////////////////////////////////////
   //                               COMMANDS                                  //
@@ -272,15 +277,33 @@ public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
+    SmartDashboard.putBoolean("Publishing Enabled", false);
+
     configurePeriodics(robot);
     configureButtonBox();
     configureDefaultCommands();
-    configureDashboardCommands();
   }
 
   private void configurePeriodics(Robot robot) {
     robot.addPeriodic(m_ros_interface::update, Constants.COPROCESSOR_PERIODIC_UPDATE_DELAY, Constants.COPROCESSOR_PERIODIC_UPDATE_OFFSET);
     robot.addPeriodic(m_ros_interface::updateSlow, Constants.COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY, Constants.COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET);
+
+    robot.addPeriodic(PreferenceConstants::update, 1);
+    robot.addPeriodic(
+      () -> {
+        if (isPublishingEnabled() && !m_hasConfiguredDashboardButtons) {
+          configureDashboardCommands();
+          m_hasConfiguredDashboardButtons = true;
+        }
+      }, 5);
+  }
+
+  public static boolean isPublishingEnabled() {
+    if (NumberCache.hasValue("Publishing Enabled")) {
+      return NumberCache.getValue("Publishing Enabled") > 0;
+    }
+
+    return NumberCache.pushValue("Publishing Enabled", SmartDashboard.getBoolean("Publishing Enabled", false) ? 1 : -1) > 0;
   }
   
   public void disabledPeriodic() {
