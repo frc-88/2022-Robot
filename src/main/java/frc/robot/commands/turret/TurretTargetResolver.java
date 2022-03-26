@@ -23,9 +23,9 @@ public class TurretTargetResolver {
             angle = turret.getFacing();
         } else if (limelight.hasTarget()) {
             // if we have a target, track it
-            angle = turret.getFacing() - limelight.calcTurretOffset();
+            angle = turret.getFacing() - limelight.getTurretOffset();
         }
-        double distance = limelight.calcDistanceToTarget();
+        double distance = limelight.getTargetDistance();
         if (distance <= 0.0) {
             distance = Double.NaN;
         }

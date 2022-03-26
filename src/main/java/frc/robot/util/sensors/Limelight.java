@@ -7,9 +7,11 @@
 
 package frc.robot.util.sensors;
 
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.networktables.*;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.IntPreferenceConstant;
 
 /**
  * Limelight wrapper class
@@ -29,6 +31,15 @@ public class Limelight {
     private NetworkTableEntry m_pipeline;
     private NetworkTableEntry m_getpipe;
 
+    private MedianFilter m_txFilter;
+    private MedianFilter m_tyFilter;
+
+    private double m_targetHorizontalOffsetAngle;
+    private double m_targetVerticalOffsetAngle;
+    private double m_targetDistance;
+    private double m_turretOffset;
+    private double m_calibrationAngle;
+
     private double m_motionOffset;
 
     private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
@@ -36,6 +47,7 @@ public class Limelight {
     private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
     private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
+    private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -60,6 +72,17 @@ public class Limelight {
 
         m_stream.setNumber(0);
         setPipeline(0);
+
+        m_txFilter = new MedianFilter(p_filterSize.getValue());
+        m_tyFilter = new MedianFilter(p_filterSize.getValue());
+    }
+
+    public void periodic() {
+        updateTargetHorizontalOffsetAngle();
+        updateTargetVerticalOffsetAngle();
+        m_targetDistance = calcDistanceToTarget();
+        m_calibrationAngle = calcCalibrationAngle();
+        m_turretOffset = calcTurretOffset();
     }
 
     public String getName() {
@@ -81,7 +104,27 @@ public class Limelight {
     }
 
     public boolean onTarget() {
-        return hasTarget() && (Math.abs(getTargetHorizontalOffsetAngle() + m_motionOffset) < p_targetThreshold.getValue());
+        return hasTarget() && (Math.abs(m_targetHorizontalOffsetAngle + m_motionOffset) < p_targetThreshold.getValue());
+    }
+
+    public double getTargetHorizontalOffsetAngle() {
+        return m_targetHorizontalOffsetAngle;
+    }
+
+    public double getTargetVerticalOffsetAngle() {
+        return m_targetVerticalOffsetAngle;
+    }
+
+    public double getTargetDistance() {
+        return m_targetDistance;
+    }
+
+    public double getTurretOffset() {
+        return m_turretOffset;
+    }
+
+    public double getCalibrationAngle() {
+        return m_calibrationAngle;
     }
 
     public void setMotionOffset(double motionOffset) {
@@ -101,13 +144,13 @@ public class Limelight {
      * 
      * @return The distance to the target
      */
-    public double calcDistanceToTarget() {
-        double distance = 0;
+    private double calcDistanceToTarget() {
+        double distance = 0.0;
 
         if (isConnected() && hasTarget()) {
             distance = (Constants.FIELD_VISION_TARGET_HEIGHT - p_height.getValue()) /
-                    (Math.tan(Math.toRadians(p_angle.getValue() + getTargetVerticalOffsetAngle()))
-                            * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())));
+                    (Math.tan(Math.toRadians(p_angle.getValue() + m_targetVerticalOffsetAngle))
+                            * Math.cos(Math.toRadians(m_targetHorizontalOffsetAngle)));
         }
 
         return distance;
@@ -120,10 +163,10 @@ public class Limelight {
      * 
      * @return The mount angle of the limelight in degrees
      */
-    public double calcLimelightAngle() {
+    private double calcCalibrationAngle() {
         return Math.toDegrees(Math.atan((Constants.FIELD_VISION_TARGET_HEIGHT - p_height.getValue())
-                / (p_testDistance.getValue() * Math.cos(Math.toRadians(getTargetHorizontalOffsetAngle())))))
-                - getTargetVerticalOffsetAngle();
+                / (p_testDistance.getValue() * Math.cos(Math.toRadians(m_targetHorizontalOffsetAngle)))))
+                - m_targetVerticalOffsetAngle;
     }
 
     /**
@@ -135,11 +178,10 @@ public class Limelight {
      * 
      * @return The mount angle of the limelight in degrees
      */
-    public double calcTurretOffset() {
-        double distance = calcDistanceToTarget();
-        double angle = Math.toRadians(getTargetHorizontalOffsetAngle());
+    private double calcTurretOffset() {
+        double angle = Math.toRadians(m_targetHorizontalOffsetAngle);
 
-        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/distance)))) + m_motionOffset : 0.0;
+        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/m_targetDistance)))) + m_motionOffset : 0.0;
     }
 
     /**
@@ -148,8 +190,9 @@ public class Limelight {
      * 
      * @return A measurement in degrees in the range [-27, 27]
      */
-    public double getTargetHorizontalOffsetAngle() {
-        return hasTarget() ? m_tx.getDouble(0.0) : 0.0;
+    private void updateTargetHorizontalOffsetAngle() {
+        double next = hasTarget() ? m_tx.getDouble(0.0) : 0.0;
+        m_targetHorizontalOffsetAngle = m_txFilter.calculate(next);
     }
 
     /**
@@ -158,27 +201,9 @@ public class Limelight {
      * 
      * @return A measurement in degrees in the range [-20.5, 20.5]
      */
-    public double getTargetVerticalOffsetAngle() {
-        return hasTarget() ? m_ty.getDouble(0.0) : 0.0;
-    }
-
-    /**
-     * Get the area of the target as a percentage of the total camera frame. If no
-     * target is seen, returns zero.
-     * 
-     * @return A percentage in the range of [0, 1]
-     */
-    public double getTargetArea() {
-        return hasTarget() ? m_ta.getDouble(0.0) : 0.0;
-    }
-
-    /**
-     * Get the skew or rotation
-     * 
-     * @return -90 degrees to 0 degrees
-     */
-    public double getTargetSkew() {
-        return hasTarget() ? m_ts.getDouble(0.0) : 0.0;
+    private void updateTargetVerticalOffsetAngle() {
+        double next = hasTarget() ? m_ty.getDouble(0.0) : 0.0;
+        m_targetVerticalOffsetAngle = m_tyFilter.calculate(next);
     }
 
     // LED control
