@@ -37,6 +37,7 @@ public class ThisRobotTable extends CoprocessorTable {
 
     private NetworkTable hoodTable;
     private NetworkTableEntry hoodStateEntry;
+    private NetworkTableEntry hoodStateUpdate;
 
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
@@ -56,6 +57,7 @@ public class ThisRobotTable extends CoprocessorTable {
 
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
+        hoodStateUpdate = hoodTable.getEntry("update");
     }
 
     // @Override
@@ -141,6 +143,7 @@ public class ThisRobotTable extends CoprocessorTable {
 
     private void setHoodState(boolean state) {
         hoodStateEntry.setBoolean(state);
+        hoodStateUpdate.setDouble(getTime());
     }
 
 
