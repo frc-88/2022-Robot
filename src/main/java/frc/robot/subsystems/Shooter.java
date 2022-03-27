@@ -229,7 +229,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
-    m_drive.unlockDrive();
+    if (RobotController.getFPGATime() - m_lastCargoEnteredShooter < p_cargoInShooter.getValue()) {
+      m_drive.lockDrive();
+    } else {
+      m_drive.unlockDrive();
+    }
 
     if (!RobotContainer.isPublishingEnabled()) {
       return;
