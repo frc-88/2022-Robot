@@ -30,6 +30,7 @@ public class TurretTrackCombo extends CommandBase {
   public void execute() {
     if (!m_targeting.isTracking()) {
       m_targeting.disableTurret();
+      m_turret.setHasTarget(false);
       return;
     }
     

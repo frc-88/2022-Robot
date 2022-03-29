@@ -5,6 +5,11 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
+import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
@@ -14,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 /*
  * feed me some cargo
@@ -24,42 +30,79 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private String m_feederName;
   private TalonFX m_feederMotor;
-  private DigitalInput m_feederBeambreak;
-  private DoublePreferenceConstant p_feederInSpeed;
-  private DoublePreferenceConstant p_feederOutSpeed;
-  private DoublePreferenceConstant p_feederIdleSpeed;
-
-  public Feeder(String feederName, int feederMotorId, int feederSensorId, DoublePreferenceConstant feederInSpeedPref, DoublePreferenceConstant feederOutSpeedPref, DoublePreferenceConstant feederIdleSpeedPref) {
+  private DoublePreferenceConstant p_feederMaxVelocity;
+  private DoublePreferenceConstant p_feederMaxAcceleration;
+  private PIDPreferenceConstants p_feederPID;
+  private DoublePreferenceConstant p_feederTargetPosition;
+  
+  public Feeder(String feederName, int feederMotorId, boolean invert) {
     m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
-    m_feederBeambreak = new DigitalInput(feederSensorId);
-    p_feederInSpeed = feederInSpeedPref;
-    p_feederOutSpeed = feederOutSpeedPref;
-    p_feederIdleSpeed = feederIdleSpeedPref;
+    p_feederMaxVelocity = new DoublePreferenceConstant(feederName + " Max Velocity", 5000);
+    p_feederMaxAcceleration = new DoublePreferenceConstant(feederName + " Max Acceleration", 50000);
+    p_feederPID = new PIDPreferenceConstants(feederName, 0, 0, 0, 0, 0, 0, 0);
+    p_feederTargetPosition = new DoublePreferenceConstant(feederName + " Target Position", 100);
 
-    TalonFXConfiguration config = new TalonFXConfiguration();
-    m_feederMotor.configAllSettings(config);
+    m_feederMotor.configFactoryDefault();
+    m_feederMotor.setInverted(invert ? InvertType.InvertMotorOutput : InvertType.None);
+    m_feederMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+    m_feederMotor.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyClosed);
+    m_feederMotor.setSelectedSensorPosition(0);
+    m_feederMotor.configClearPositionOnLimitR(true, 0);
+    configPID();
+
+    p_feederMaxVelocity.addChangeHandler((Double unused) -> configPID());
+    p_feederMaxAcceleration.addChangeHandler((Double unused) -> configPID());
+    p_feederPID.addChangeHandler((Double unused) -> configPID());
+
   }
 
-  public void run() {
-    m_feederMotor.set(ControlMode.PercentOutput, hasCargo()?p_feederOutSpeed.getValue():p_feederInSpeed.getValue());
+  private void configPID() {
+    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocity.getValue());
+    m_feederMotor.configMotionAcceleration(p_feederMaxAcceleration.getValue());
+    m_feederMotor.config_kP(0, p_feederPID.getKP().getValue());
+    m_feederMotor.config_kI(0, p_feederPID.getKI().getValue());
+    m_feederMotor.config_kD(0, p_feederPID.getKD().getValue());
+    m_feederMotor.config_kF(0, p_feederPID.getKF().getValue());
+    m_feederMotor.config_IntegralZone(0, p_feederPID.getIZone().getValue());
+    m_feederMotor.configMaxIntegralAccumulator(0, p_feederPID.getIMax().getValue());
   }
 
-  public void reverse() {
-    m_feederMotor.set(ControlMode.PercentOutput, -(hasCargo()?p_feederOutSpeed.getValue():p_feederInSpeed.getValue()));
+  public void runUntilBallFound() {
+    if(!hasCargo()) {
+      m_feederMotor.configClearPositionOnLimitR(true, 0);
+    } else {
+      m_feederMotor.configClearPositionOnLimitR(false, 0);
+    }
+    if (!hasCargo() && m_feederMotor.getSelectedSensorPosition() > -5_000) {
+      m_feederMotor.setSelectedSensorPosition(-10_000_000);
+    }
+    m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
+  }
+
+  public void forceForwards() {
+    m_feederMotor.configClearPositionOnLimitR(false, 0);
+    if (m_feederMotor.getSelectedSensorPosition() > -5_000) {
+      m_feederMotor.setSelectedSensorPosition(-5_000_000);
+    }
+    m_feederMotor.set(TalonFXControlMode.MotionMagic, 5_000_000);
+  }
+
+  public void forceReverse() {
+    m_feederMotor.configClearPositionOnLimitR(false, 0);
+    if (!hasCargo() && m_feederMotor.getSelectedSensorPosition() < 5_000) {
+      m_feederMotor.setSelectedSensorPosition(5_000_000);
+    }
+    m_feederMotor.set(TalonFXControlMode.MotionMagic, -5_000_000);
   }
 
   public void stop() {
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
 
-  public void idle() {
-    m_feederMotor.set(ControlMode.PercentOutput, hasCargo()?0.0:p_feederIdleSpeed.getValue());
-  }
-
   @Override
   public boolean hasCargo() {
-    return !m_feederBeambreak.get();
+    return m_feederMotor.isRevLimitSwitchClosed() == 1;
   }
 
   @Override

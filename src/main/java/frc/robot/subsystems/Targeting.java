@@ -9,6 +9,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.sensors.Limelight;
 
 public class Targeting extends SubsystemBase {
@@ -17,6 +18,7 @@ public class Targeting extends SubsystemBase {
   private final Turret m_turret;
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
+  private boolean m_has_target = false;
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -58,9 +60,12 @@ public class Targeting extends SubsystemBase {
 
   private Pair<Double, Double> getWaypointTarget(Navigation nav) {
     if (nav.isShooterTargetValid()) {
+      double baseTargetAngle = Math.toDegrees(nav.getShooterAngle());
+      double adder = DriveUtils.mod(baseTargetAngle + 180., 360) - DriveUtils.mod(m_turret.getFacing() + 180., 360);
+      double finalAngle = m_turret.getFacing() + adder;
       return new Pair<Double, Double>(
         Units.metersToInches(nav.getShooterDistance()),
-        Math.toDegrees(nav.getShooterAngle()));
+        finalAngle);
     }
     else {
       return new Pair<Double, Double>(Double.NaN, Double.NaN);
@@ -96,6 +101,7 @@ public class Targeting extends SubsystemBase {
   public void periodic() {
     double target_angle = m_turret.getDefaultFacing();
     double target_dist = Double.NaN;
+    boolean has_target = true;
 
     double limelight_target_dist = Double.NaN;
     double limelight_target_angle = Double.NaN;
@@ -134,16 +140,19 @@ public class Targeting extends SubsystemBase {
         // If neither the limelight or waypoint have valid targets, tell the turret to return to default
         target_angle = m_turret.getDefaultFacing();
         target_dist = 0.0;
+        has_target = false;
     }
     else if (Double.isNaN(limelight_target_angle)) {
         // If the limelight doesn't have a target, use the waypoint angle and distance
         target_angle = waypoint_target_angle;
         target_dist = waypoint_target_dist;
+        has_target = true;
     }
     else if (Double.isNaN(waypoint_target_angle)) {
         // If the waypoint doesn't have a target, use the limelight angle and distance
         target_angle = limelight_target_angle;
         target_dist = limelight_target_dist;
+        has_target = true;
     }
     else {
         // If both the limelight and waypoint have a target,
@@ -157,6 +166,7 @@ public class Targeting extends SubsystemBase {
             target_angle = waypoint_target_angle;
             target_dist = waypoint_target_dist;
         }
+        has_target = true;
     }
 
     SmartDashboard.putNumber("Turret:Waypoint target angle (degrees)", waypoint_target_angle);
@@ -168,6 +178,7 @@ public class Targeting extends SubsystemBase {
         if (Double.isNaN(limelight_target_dist) && Double.isNaN(waypoint_target_dist)) {
             // If neither the limelight or waypoint have valid targets, tell the shooter to shoot blindly
             target_dist = 0.0;
+            has_target = false;
         }
         else if (Double.isNaN(limelight_target_dist)) {
             // If the limelight doesn't have a target, use the waypoint distance to shoot
@@ -196,5 +207,6 @@ public class Targeting extends SubsystemBase {
 
     m_target_dist = target_dist;
     m_target_angle = target_angle;
+    m_has_target = has_target;
   }
 }

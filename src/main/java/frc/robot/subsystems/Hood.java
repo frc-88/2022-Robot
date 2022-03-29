@@ -96,9 +96,9 @@ public class Hood extends SubsystemBase {
   public void hoodAuto(double target_dist) {
     double upDistance = p_hoodUpDistance.getValue();
     if (target_dist > 0.0) {
-      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < upDistance - 6) {
+      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < upDistance - 2) {
         lowerHood();
-      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > upDistance + 6) {
+      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > upDistance + 2) {
         raiseHood();
       } else if (m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) {
         raiseHood();
