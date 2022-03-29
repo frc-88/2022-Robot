@@ -56,6 +56,8 @@ public class Turret extends SubsystemBase {
   private double m_circumnavigationTarget;
 
   private double m_defaultFacing = 0.;
+  private boolean m_hasTarget = true;
+  private double m_target = 0;
 
   /** Creates a new Turret. */
   public Turret(Sensors sensors) {
@@ -151,18 +153,19 @@ public class Turret extends SubsystemBase {
   }
 
   public void goToFacing(double target, boolean spinCompensation) {
-    if (m_circumnavigating) {
+    m_target = target;
+    if (m_circumnavigating && !isFacingSafe(target)) {
       // if we are circumnavigating, ignore the input and keep doing that until we get there
-      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget), false);
       m_circumnavigating = Math.abs(m_circumnavigationTarget - getFacing()) > 5.0;
     } else if (isFacingSafe(target)) {
       // otherwise go to the input target if it is safe.
-      goToPosition(turretFacingToEncoderPosition(target), true);
+      goToPosition(turretFacingToEncoderPosition(target), spinCompensation);
     } else if (isFacingSafe(m_circumnavigationTarget = calcCircumnavigationTarget(target))) {
       // but if the target isn't safe, and our circumnavigation target is, start circumnavigating
       m_circumnavigating = true;
       // TODO? - adjust config here if different PID needed for targeting vs. circumnavigating
-      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget), false);
     } else {
       System.out.println("Turret unsafe target: " + target);
       // target is unsafe and circumnavigation target is unsafe, ignore it
@@ -179,6 +182,10 @@ public class Turret extends SubsystemBase {
 
   public double getDefaultFacing() {
     return m_defaultFacing;
+  }
+
+  public boolean onTarget() {
+    return m_tracking || !m_hasTarget || Math.abs(getDefaultFacing() - m_target) < 10.;
   }
 
   private double calcCircumnavigationTarget(double origin) {
@@ -233,16 +240,11 @@ public class Turret extends SubsystemBase {
     return NumberCache.pushValue("Turret Position", m_turret.getSelectedSensorPosition());
   }
 
-  private void goToPosition(double position) {
-    goToPosition(position, false);
-  }
-
   private void goToPosition(double position, boolean spinCompensation) {
     if (spinCompensation) {
-      SmartDashboard.putNumber("Turret Compensation", -0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
-      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 1.5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
     } else {
-      m_turret.set(TalonFXControlMode.MotionMagic, position);
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 0);
     }
   }
 
@@ -283,5 +285,9 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
     SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+  }
+
+  public void setHasTarget(boolean hasTarget) {
+    m_hasTarget = true;
   }
 }

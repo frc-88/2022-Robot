@@ -42,10 +42,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(68.5, 1950),
-      new ValueInterpolator.ValuePair(85, 2000),
-      new ValueInterpolator.ValuePair(106.5, 2050),
-      new ValueInterpolator.ValuePair(120, 2200));
+      new ValueInterpolator.ValuePair(62.2, 2000),
+      new ValueInterpolator.ValuePair(70.9, 2050),
+      new ValueInterpolator.ValuePair(82.3, 2085),
+      new ValueInterpolator.ValuePair(94.9, 2150),
+      new ValueInterpolator.ValuePair(109.1, 2200),
+      new ValueInterpolator.ValuePair(119.7, 2500));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
@@ -56,13 +58,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(166, 3100));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(116, 2300),
-      new ValueInterpolator.ValuePair(131, 2400),
-      new ValueInterpolator.ValuePair(150.5, 2550),
-      new ValueInterpolator.ValuePair(171, 2850),
-      new ValueInterpolator.ValuePair(203.5, 3250),
-      new ValueInterpolator.ValuePair(241, 3600),
-      new ValueInterpolator.ValuePair(278.5, 4350));
+      new ValueInterpolator.ValuePair(108.3, 2365),
+      new ValueInterpolator.ValuePair(120.1, 2450),
+      new ValueInterpolator.ValuePair(129.5, 2450),
+      new ValueInterpolator.ValuePair(141.7, 2475),
+      new ValueInterpolator.ValuePair(168.9, 2600),
+      new ValueInterpolator.ValuePair(179.1, 2700),
+      new ValueInterpolator.ValuePair(191.7, 2875),
+      new ValueInterpolator.ValuePair(226.0, 3325),
+      new ValueInterpolator.ValuePair(282.3, 4275));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
@@ -208,12 +212,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
     boolean isFlywheelReady = isFlywheelReady();
     boolean onTarget = onTarget();
-    boolean wantsCargo = (m_active && isFlywheelReady && onTarget);
+    boolean turretOnTarget = m_turret.onTarget();
+    boolean wantsCargo = (m_active && isFlywheelReady && onTarget && turretOnTarget);
 
     if (m_active && !wantsCargo) {
       System.out.println("***Shot blocked***");
       System.out.println("isFlywheelReasdy:" + isFlywheelReady);
       System.out.println("onTarget:" + onTarget);
+      System.out.println("Turret onTarget" + turretOnTarget);
     }
 
     if (m_active && wantsCargo) {
@@ -229,7 +235,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 
-    m_drive.unlockDrive();
+    if (RobotController.getFPGATime() - m_lastCargoEnteredShooter < p_cargoInShooter.getValue() * 1_000_000) {
+      m_drive.lockDrive();
+    } else {
+      m_drive.unlockDrive();
+    }
 
     if (!RobotContainer.isPublishingEnabled()) {
       return;

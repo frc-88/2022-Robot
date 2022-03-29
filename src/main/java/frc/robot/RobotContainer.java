@@ -74,8 +74,8 @@ public class RobotContainer {
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret(m_sensors);
   private final Hood m_hood = new Hood(m_sensors);
-  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3), new DoublePreferenceConstant("Centralizer:Idle", 0.0));
-  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6), new DoublePreferenceConstant("Chamber:Idle", -0.1));
+  private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true);
+  private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer});
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive,
     Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
@@ -131,8 +131,8 @@ public class RobotContainer {
         m_intake.deploy();
         m_intake.rollerOutgest();
       }, m_intake),
-      new RunCommand(m_chamber::reverse, m_chamber),
-      new RunCommand(m_centralizer::reverse, m_centralizer));
+      new RunCommand(m_chamber::forceReverse, m_chamber),
+      new RunCommand(m_centralizer::forceReverse, m_centralizer));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
@@ -232,7 +232,7 @@ public class RobotContainer {
       new WaitCommand(1.0),
       new ParallelDeadlineGroup(
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
-        new RunCommand(m_centralizer::run, m_centralizer)),
+        new RunCommand(m_centralizer::forceForwards, m_centralizer)),
       new ShootAll(m_shooter)
     )
   );
@@ -361,10 +361,10 @@ public class RobotContainer {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
 
-    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
-    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
-    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_chamber));
-    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_chamber));
+    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::forceForwards, m_centralizer));
+    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::forceReverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::forceForwards, m_chamber));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::forceReverse, m_chamber));
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
     m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
@@ -482,14 +482,14 @@ public class RobotContainer {
 
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
-    SmartDashboard.putData("Centralizer:Run", new RunCommand(m_centralizer::run, m_centralizer));
-    SmartDashboard.putData("Centralizer:Reverse", new RunCommand(m_centralizer::reverse, m_centralizer));
+    SmartDashboard.putData("Centralizer:Run", new RunCommand(m_centralizer::forceForwards, m_centralizer));
+    SmartDashboard.putData("Centralizer:Reverse", new RunCommand(m_centralizer::forceReverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new RunCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
     
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
-    SmartDashboard.putData("Chamber:Run", new RunCommand(m_chamber::run, m_chamber));
-    SmartDashboard.putData("Chamber:Reverse", new RunCommand(m_chamber::reverse, m_chamber));
+    SmartDashboard.putData("Chamber:Run", new RunCommand(m_chamber::forceForwards, m_chamber));
+    SmartDashboard.putData("Chamber:Reverse", new RunCommand(m_chamber::forceReverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new RunCommand(m_chamber::stop, m_chamber));
     SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
 

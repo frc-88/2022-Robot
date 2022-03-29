@@ -90,10 +90,8 @@ public final class Constants {
 
 	// Feeders
 	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
-    public static final int FEEDER_CENTRALIZER_BEAMBREAK = 3;
 
 	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
-	public static final int FEEDER_CHAMBER_BEAMBREAK = 2;
 
 	// Intake
 	public static final int INTAKE_ROLLER_ID = 1;

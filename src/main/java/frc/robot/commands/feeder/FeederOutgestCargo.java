@@ -18,7 +18,7 @@ public class FeederOutgestCargo extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_feeder.reverse();
+    m_feeder.forceReverse();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
