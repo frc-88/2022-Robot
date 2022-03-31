@@ -221,29 +221,11 @@ public class RobotContainer {
     )
   );
 
-  private CommandBase m_autoThreeBall = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
-    new SequentialCommandGroup(
-      new WaitCommand(1.0),
-      new ParallelDeadlineGroup(
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
-        new RunCommand(m_centralizer::forceForwards, m_centralizer)),
-      new ShootAll(m_shooter)
-    )
-  );
-
   private CommandBase m_autoFiveBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-    new TurretTrackLimelight(m_turret, m_sensors.limelight),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
@@ -253,8 +235,6 @@ public class RobotContainer {
         new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
           Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
           Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-      // or ?
-      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ToTheTerminal.wpilib.json"), false),
       new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
       new ShootAll(m_shooter)
       //
@@ -477,7 +457,6 @@ public class RobotContainer {
 
     // Autonomous testing
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
-    SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
