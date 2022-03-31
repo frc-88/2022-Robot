@@ -318,29 +318,30 @@ public class RobotContainer {
       m_ros_interface.stopComms();
     }
 
-    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = m_autoTwoBall;
-      m_autoCommandName = "2 Cargo";
+    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
+      m_autoCommand = m_autoFiveBall;
+      m_autoCommandName = "5 Cargo";
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
       m_autoCommand = m_autoTwoBallSpicy;
       m_autoCommandName = "2 Cargo Spicy";
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+      m_autoCommand = m_autoTwoBall;
+      m_autoCommandName = "2 Cargo";
+    }
+
+    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
     }
 
-    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
-      m_autoCommand = m_autoThreeBall;
-      m_autoCommandName = "3 Cargo";
-    }
-
-    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
-      m_autoCommand = m_autoFiveBall;
-      m_autoCommandName = "5 Cargo";
+    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+      m_sensors.limelight.ledOn();
+    } else {
+      m_sensors.limelight.ledOff();
     }
 
     SmartDashboard.putString("Auto", m_autoCommandName);
