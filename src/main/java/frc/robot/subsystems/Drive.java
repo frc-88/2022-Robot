@@ -208,7 +208,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
-    if (totalExpectedCurrent == 0) {
+    if (totalExpectedCurrent < 10) {
       leftCurrentLimit =  currentLimit / 2.;
       rightCurrentLimit = currentLimit / 2.;
     } else {

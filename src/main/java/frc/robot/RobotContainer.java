@@ -225,17 +225,18 @@ public class RobotContainer {
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
-    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), true),
       new ShootAll(m_shooter),
-      new AutoGoToPose(m_drive, 
-        new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-          Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-          Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-      new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), true),
+      // new AutoGoToPose(m_drive, 
+      //   new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+      //     Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+      //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+      // new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
       new ShootAll(m_shooter)
       //
       // Go to shooting spot, with view of hub, drive in reverse
