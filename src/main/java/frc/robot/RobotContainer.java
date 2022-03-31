@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -54,6 +56,7 @@ import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.AutoGoToPose;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -242,7 +245,7 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(90)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
       new ShootAll(m_shooter),
@@ -267,6 +270,15 @@ public class RobotContainer {
     )
   );
 
+  public static  String getTeamColorName() {
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      return "red";
+    }
+    else {
+      return "blue";
+    }
+  }
+  
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
