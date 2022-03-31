@@ -242,14 +242,13 @@ public class RobotContainer {
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(90)),
+    new TurretTrackLimelight(m_turret, m_sensors.limelight),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
     new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
       new ShootAll(m_shooter),
-      new InstantCommand(() -> m_turret.setDefaultFacing(180)),
       new AutoGoToPose(m_drive, 
         new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
           Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
