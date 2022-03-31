@@ -77,9 +77,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true);
   private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer});
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive,
-    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
-    Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
