@@ -92,9 +92,10 @@ public class Targeting extends SubsystemBase {
   }
 
   public void enableTurret() {
-    if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
-      m_limelight.ledOn();
-    }
+    m_limelight.ledOn();
+    //   if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
+    //   m_limelight.ledOn();
+    // }
   }
 
   @Override
