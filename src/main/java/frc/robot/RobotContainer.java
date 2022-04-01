@@ -232,7 +232,7 @@ public class RobotContainer {
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
         new ShootAll(m_shooter),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
-        new RunCommand(m_shooter::activate)
+        new InstantCommand(m_shooter::activate)
       )
     );
 
