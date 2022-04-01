@@ -75,7 +75,8 @@ public class AutoFollowTrajectory extends CommandBase {
         break;
 
       case 3: // keep updateing the odometry until we have stopped
-        if ((Math.abs(m_drive.getLeftSpeed()) < 0.1) && (Math.abs(m_drive.getRightSpeed()) < 0.1)) {
+        // if ((Math.abs(m_drive.getLeftSpeed()) < 0.1) && (Math.abs(m_drive.getRightSpeed()) < 0.1)) {
+        if(m_timer.get() > m_trajectory.getTotalTimeSeconds()) {
           m_state++;
         }
       default:
