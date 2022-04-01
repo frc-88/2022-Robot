@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -55,7 +52,6 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
-import frc.robot.commands.autos.AutoGoToPose;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
