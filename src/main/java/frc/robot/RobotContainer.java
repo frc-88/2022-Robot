@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -54,6 +56,7 @@ import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
 import frc.robot.commands.autos.AutoGoToPose;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
@@ -77,9 +80,7 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true);
   private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
   private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer});
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive,
-    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
-    Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
@@ -220,43 +221,26 @@ public class RobotContainer {
     )
   );
 
-  private CommandBase m_autoThreeBall = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
-    new SequentialCommandGroup(
-      new WaitCommand(1.0),
-      new ParallelDeadlineGroup(
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
-        new RunCommand(m_centralizer::forceForwards, m_centralizer)),
-      new ShootAll(m_shooter)
-    )
-  );
-
   private CommandBase m_autoFiveBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(90)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true),
-      new ShootAll(m_shooter),
-      new InstantCommand(() -> m_turret.setDefaultFacing(180)),
-      new AutoGoToPose(m_drive, 
-        new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-          Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-          Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-      // or ?
-      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ToTheTerminal.wpilib.json"), false),
-      new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-      new ShootAll(m_shooter)
+          new WaitCommand(0.5),
+          new ShootAll(m_shooter),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
+          new ShootAll(m_shooter),
+      // new AutoGoToPose(m_drive, 
+      //   new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
+      //     Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
+      //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
+      // new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
+          new ShootAll(m_shooter)
       //
       // Go to shooting spot, with view of hub, drive in reverse
       // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
@@ -269,6 +253,15 @@ public class RobotContainer {
     )
   );
 
+  public static  String getTeamColorName() {
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      return "red";
+    }
+    else {
+      return "blue";
+    }
+  }
+  
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
@@ -308,29 +301,30 @@ public class RobotContainer {
       m_ros_interface.stopComms();
     }
 
-    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = m_autoTwoBall;
-      m_autoCommandName = "2 Cargo";
+    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
+      m_autoCommand = m_autoFiveBall;
+      m_autoCommandName = "5 Cargo";
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
       m_autoCommand = m_autoTwoBallSpicy;
       m_autoCommandName = "2 Cargo Spicy";
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+      m_autoCommand = m_autoTwoBall;
+      m_autoCommandName = "2 Cargo";
+    }
+
+    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
     }
 
-    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
-      m_autoCommand = m_autoThreeBall;
-      m_autoCommandName = "3 Cargo";
-    }
-
-    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
-      m_autoCommand = m_autoFiveBall;
-      m_autoCommandName = "5 Cargo";
+    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+      m_sensors.limelight.ledOn();
+    } else {
+      m_sensors.limelight.ledOff();
     }
 
     SmartDashboard.putString("Auto", m_autoCommandName);
@@ -467,7 +461,6 @@ public class RobotContainer {
 
     // Autonomous testing
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
-    SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 

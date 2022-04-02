@@ -64,7 +64,6 @@ public class Sensors extends SubsystemBase {
   public Sensors() {
     CameraServer.startAutomaticCapture();
     setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
-    limelight.ledOff();
 
     SmartDashboard.putBoolean("Virtual Coast Button", false);
   }

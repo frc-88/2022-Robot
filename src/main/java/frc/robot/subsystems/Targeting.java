@@ -35,8 +35,8 @@ public class Targeting extends SubsystemBase {
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 3.0;
-  private final TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  // private final TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
+  // private final TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
+  private final TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
   // private final TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
   private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
