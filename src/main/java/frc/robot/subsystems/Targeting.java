@@ -44,13 +44,9 @@ public class Targeting extends SubsystemBase {
 
   private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret, Drive drive) {
       double angle = Double.NaN;
-      double distance = limelight.getTargetDistance();
+      double distance = 0.0;
 
-      if (limelight.onTarget()) {
-          // keep on same target
-          angle = turret.getFacing();
-      } else if (limelight.hasTarget()) {
-          // if we have a target, track it
+      if (limelight.hasTarget()) {
           distance = limelight.calcMovingDistance(drive.getStraightSpeed(), turret.getFacing());
           angle = turret.getFacing() - limelight.getTurretOffset() 
             - limelight.calcMovingTurretOffset(drive.getStraightSpeed(), turret.getFacing(), distance);
