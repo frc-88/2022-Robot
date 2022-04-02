@@ -226,9 +226,8 @@ public class RobotContainer {
       new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
-        new WaitCommand(0.25),
+        new WaitCommand(0.5),
         new ShootAll(m_shooter),
-        new WaitCommand(0.1),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
