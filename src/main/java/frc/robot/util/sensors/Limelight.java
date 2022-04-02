@@ -218,9 +218,8 @@ public class Limelight {
      * @param robotSpeed in feet per second
      * @return
      */
-    public double calcMovingTurretOffset(double robotSpeed, double turretAngle) {
+    public double calcMovingTurretOffset(double robotSpeed, double turretAngle, double distance) {
         double offset = 0.0;
-        double distance = calcMovingDistance(robotSpeed, turretAngle);
         double tof = m_tofInterpolator.getInterpolatedValue(distance);
 
         Math.asin(Math.sin(180 + m_turretOffset - turretAngle) *

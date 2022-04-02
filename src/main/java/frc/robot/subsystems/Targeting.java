@@ -16,6 +16,8 @@ public class Targeting extends SubsystemBase {
   private final Limelight m_limelight;
   private final Navigation m_nav;
   private final Turret m_turret;
+  private final Drive m_drive;
+
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
   private boolean m_has_target = false;
@@ -27,10 +29,11 @@ public class Targeting extends SubsystemBase {
   }
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, Navigation nav, Turret turret) {
+  public Targeting(Limelight limelight, Navigation nav, Turret turret, Drive drive) {
     m_limelight = limelight;
     m_nav = nav;
     m_turret = turret;
+    m_drive = drive;
   }
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
@@ -39,20 +42,23 @@ public class Targeting extends SubsystemBase {
   private final TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
   // private final TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
-  private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
+  private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret, Drive drive) {
       double angle = Double.NaN;
+      double distance = limelight.getTargetDistance();
+
       if (limelight.onTarget()) {
           // keep on same target
           angle = turret.getFacing();
       } else if (limelight.hasTarget()) {
           // if we have a target, track it
-          angle = turret.getFacing() - limelight.getTurretOffset();
+          distance = limelight.calcMovingDistance(drive.getStraightSpeed(), turret.getFacing());
+          angle = turret.getFacing() - limelight.getTurretOffset() 
+            - limelight.calcMovingTurretOffset(drive.getStraightSpeed(), turret.getFacing(), distance);
       }
-      double distance = limelight.getTargetDistance();
+
       if (distance <= 0.0) {
           distance = Double.NaN;
-      }
-      else {
+      } else {
           distance += Constants.FIELD_UPPER_HUB_RADIUS;
       }
       return new Pair<Double, Double>(distance, angle);
@@ -115,7 +121,7 @@ public class Targeting extends SubsystemBase {
     
     switch (targeting_mode) {
       case LIMELIGHT_ONLY:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget(m_limelight, m_turret, m_drive);
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         break;
@@ -125,7 +131,7 @@ public class Targeting extends SubsystemBase {
         waypoint_target_angle = waypoint_target.getSecond();
         break;
       case COMBO:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget(m_limelight, m_turret, m_drive);
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         
