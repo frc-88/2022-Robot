@@ -51,9 +51,13 @@ public class Limelight {
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
     private final ValueInterpolator m_tofInterpolator = new ValueInterpolator(
-        new ValueInterpolator.ValuePair(6.0, 1),
-        new ValueInterpolator.ValuePair(12.0, 2),
-        new ValueInterpolator.ValuePair(24.0, 3));
+        new ValueInterpolator.ValuePair(9.0, 0.9),
+        new ValueInterpolator.ValuePair(10.0, 1.0),
+        new ValueInterpolator.ValuePair(12.8, 1.2),
+        new ValueInterpolator.ValuePair(14.0, 1.25),
+        new ValueInterpolator.ValuePair(15.9, 1.31),
+        new ValueInterpolator.ValuePair(18.8, 1.55),
+        new ValueInterpolator.ValuePair(23.5, 1.89));
         
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
