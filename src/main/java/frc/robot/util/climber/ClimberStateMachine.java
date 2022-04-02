@@ -40,7 +40,7 @@ public class ClimberStateMachine {
 
     public void run(Climber climber) {
         ClimberState previousState;
-        if (m_currentState < 0) {
+        if (m_currentState <= 0) {
             if (Objects.isNull(m_initialState)) {
                 m_initialState = new ClimberState(climber.getAverageOuterPivotAngle(), 
                         climber.getAverageOuterTelescopeHeight(), 
@@ -54,9 +54,9 @@ public class ClimberStateMachine {
             previousState = m_states.get(0);
         }
 
-        if (m_currentState < 0 || m_currentState < m_states.size() && onTarget(m_states.get(m_currentState), climber)) {
-            executeState(m_states.get(m_currentState), previousState, climber);
+        if (m_currentState < 0 || m_currentState < (m_states.size() - 1) && onTarget(m_states.get(m_currentState), climber)) {
             m_currentState++;
+            executeState(m_states.get(m_currentState), previousState, climber);
         }
     }
 
