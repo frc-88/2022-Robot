@@ -10,6 +10,7 @@ package frc.robot.util.sensors;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.networktables.*;
 import frc.robot.Constants;
+import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.IntPreferenceConstant;
 
@@ -49,6 +50,11 @@ public class Limelight {
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
+    private final ValueInterpolator m_tofInterpolator = new ValueInterpolator(
+        new ValueInterpolator.ValuePair(6.0, 1),
+        new ValueInterpolator.ValuePair(12.0, 2),
+        new ValueInterpolator.ValuePair(24.0, 3));
+        
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
      */
@@ -184,6 +190,45 @@ public class Limelight {
         return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/m_targetDistance)))) + m_motionOffset : 0.0;
     }
 
+    /**
+     * 
+     * @param robotSpeed in feet per second
+     * @return
+     */
+    public double calcMovingDistance(double robotSpeed, double turretAngle) {
+        double target = m_targetDistance / 12.0;
+        double tof;
+
+        for (int i = 0; i < 3; i++) {
+            tof = m_tofInterpolator.getInterpolatedValue(target);
+            target = Math.sqrt(
+                Math.pow(m_targetDistance/12.0, 2) 
+                + (robotSpeed * tof) 
+                - (2 * m_targetDistance/12.0 * robotSpeed * tof * 
+                    Math.cos(180 + m_turretOffset - turretAngle)
+                )
+            );
+        }
+
+        return target;
+    }
+
+    /**
+     * 
+     * @param robotSpeed in feet per second
+     * @return
+     */
+    public double calcMovingTurretOffset(double robotSpeed, double turretAngle) {
+        double offset = 0.0;
+        double distance = calcMovingDistance(robotSpeed, turretAngle);
+        double tof = m_tofInterpolator.getInterpolatedValue(distance);
+
+        Math.asin(Math.sin(180 + m_turretOffset - turretAngle) *
+            robotSpeed * tof / distance);
+
+        return offset;
+    }
+    
     /**
      * Get the horizontal offset angle of the target from the center of the camera
      * frame. If no target is seen, returns zero.
