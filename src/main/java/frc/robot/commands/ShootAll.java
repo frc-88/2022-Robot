@@ -11,7 +11,8 @@ import frc.robot.util.CargoSource;
 public class ShootAll extends CommandBase {
   /** Creates a new ShootAll. */
   private Shooter m_shooter;
-    private Integer m_count;
+  private Integer m_count;
+  private boolean m_ballSeen;
 
   public ShootAll(Shooter shooter) {
     m_shooter = shooter;
@@ -21,16 +22,20 @@ public class ShootAll extends CommandBase {
   @Override
   public void initialize() {
     m_count = 0;
+    m_ballSeen = false;
     m_shooter.activate();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (!m_shooter.sourcesHaveCargo()) {
+    if (!m_shooter.sourcesHaveCargo() && m_ballSeen) {
       m_count++;
     } else {
-      m_count = 0;
+      if (m_shooter.sourcesHaveCargo()) {
+        m_ballSeen = true;
+        m_count = 0;
+      }
     }
   }
 
