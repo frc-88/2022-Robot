@@ -58,9 +58,8 @@ public class Targeting extends SubsystemBase {
 
       if (distance <= 0.0) {
           distance = Double.NaN;
-      } else {
-          distance += Constants.FIELD_UPPER_HUB_RADIUS;
       }
+      
       return new Pair<Double, Double>(distance, angle);
   }
 

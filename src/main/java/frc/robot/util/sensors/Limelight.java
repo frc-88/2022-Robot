@@ -200,15 +200,16 @@ public class Limelight {
      * @return
      */
     public double calcMovingDistance(double robotSpeed, double turretAngle) {
-        double target = m_targetDistance / 12.0;
+        double hubDist = (m_targetDistance + Constants.FIELD_UPPER_HUB_RADIUS)  / 12.0;
+        double target = hubDist;
         double tof;
 
         for (int i = 0; i < 3; i++) {
             tof = m_tofInterpolator.getInterpolatedValue(target);
             target = Math.sqrt(
-                Math.pow(m_targetDistance/12.0, 2) 
+                Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
-                - (2 * m_targetDistance/12.0 * robotSpeed * tof * 
+                - (2 * hubDist * robotSpeed * tof * 
                     Math.cos(180 + m_turretOffset - turretAngle)
                 )
             );
@@ -226,8 +227,10 @@ public class Limelight {
         double offset = 0.0;
         double tof = m_tofInterpolator.getInterpolatedValue(distance);
 
-        Math.asin(Math.sin(180 + m_turretOffset - turretAngle) *
-            robotSpeed * tof / distance);
+        Math.asin(
+            Math.sin(180 + m_turretOffset - turretAngle) *
+            (robotSpeed * tof / distance) 
+        );
 
         return offset;
     }
