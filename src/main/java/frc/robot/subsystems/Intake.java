@@ -329,10 +329,11 @@ public class Intake extends SubsystemBase implements CargoSource {
   public void rollerOutgest() {
     m_roller.set(rolleroutgestSpeed.getValue());
   }
-  
 
   @Override
   public void periodic() {
+    SmartDashboard.putBoolean("Intake Roller Alive", m_roller.isAlive());
+
     if (!RobotContainer.isPublishingEnabled()) {
       return;
     }

@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -55,7 +52,6 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
-import frc.robot.commands.autos.AutoGoToPose;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -184,7 +180,7 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
@@ -204,7 +200,7 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
       new WaitCommand(0.5),
@@ -222,36 +218,24 @@ public class RobotContainer {
   );
 
   private CommandBase m_autoFiveBall = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
-    new SequentialCommandGroup(
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
-          new ShootAll(m_shooter),
-      // new AutoGoToPose(m_drive, 
-      //   new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-      //     Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-      //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-      // new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
-          new ShootAll(m_shooter)
-      //
-      // Go to shooting spot, with view of hub, drive in reverse
-      // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
-      //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
-      //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
-      // or ?
-      // new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Watch.wpilib.json"), false),
-      // new WaitCommand(0.5),
-      // new ShootAll(m_shooter)
-    )
-  );
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(m_sensors.limelight::ledOn),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SequentialCommandGroup(
+        new WaitCommand(0.5),
+        new ShootAll(m_shooter),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
+        new ShootAll(m_shooter),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
+        new InstantCommand(m_shooter::activate)
+      )
+    );
 
   public static  String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
