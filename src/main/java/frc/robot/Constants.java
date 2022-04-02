@@ -39,10 +39,10 @@ public final class Constants {
 	// Drive Configuration
 	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
 	public static final double WHEEL_DIAMETER = 5.84375;
-	public static final double LOW_GEAR_RATIO = (1. / 18.38 * (10. / 11.));
-	public static final double HIGH_GEAR_RATIO = (1. / 8.50 * (10. / 11.));
-	public static final double LOW_DRIVE_RATIO = LOW_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
-	public static final double HIGH_DRIVE_RATIO = HIGH_GEAR_RATIO * (WHEEL_DIAMETER / 12.) * Math.PI;
+	public static final double LOW_GEAR_RATIO = 7.73;
+	public static final double HIGH_GEAR_RATIO = 16.71;
+	public static final double LOW_DRIVE_RATIO = (1./LOW_GEAR_RATIO) * (WHEEL_DIAMETER / 12.) * Math.PI;
+	public static final double HIGH_DRIVE_RATIO = (1./HIGH_GEAR_RATIO) * (WHEEL_DIAMETER / 12.) * Math.PI;
 	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 60./24.;
 	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
 	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
