@@ -276,7 +276,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
         return vel;
       }
     } else {
-      double vel = getStraightSpeed() - maxAccel;
+      double vel = currentSpeed - maxAccel;
       if (speed > vel) {
         return speed;
       } else {

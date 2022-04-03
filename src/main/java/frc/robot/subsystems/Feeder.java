@@ -14,6 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.CargoSource;
@@ -31,27 +32,30 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private String m_feederName;
   private TalonFX m_feederMotor;
+  private Servo m_blockerServo;
+  private boolean m_hasBlocker;
   private DoublePreferenceConstant p_feederMaxVelocity;
   private DoublePreferenceConstant p_feederMaxAcceleration;
   private PIDPreferenceConstants p_feederPID;
   private DoublePreferenceConstant p_feederTargetPosition;
+  private DoublePreferenceConstant p_blockerDown;
+  private DoublePreferenceConstant p_blockerUp;
 
-  private int m_noCargoCounter = 0;
-  private IntPreferenceConstant p_cargoResetCount;
+  private boolean m_foundCargo = false;
   
-  public Feeder(String feederName, int feederMotorId, boolean invert) {
+  public Feeder(String feederName, int feederMotorId, boolean invert, int blockerId) {
     m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
     p_feederMaxVelocity = new DoublePreferenceConstant(feederName + " Max Velocity", 5000);
     p_feederMaxAcceleration = new DoublePreferenceConstant(feederName + " Max Acceleration", 50000);
     p_feederPID = new PIDPreferenceConstants(feederName, 0, 0, 0, 0, 0, 0, 0);
     p_feederTargetPosition = new DoublePreferenceConstant(feederName + " Target Position", 100);
-    p_cargoResetCount = new IntPreferenceConstant(feederName + " Cargo Reset Counter", 10);
 
     m_feederMotor.configFactoryDefault();
     m_feederMotor.setInverted(invert ? InvertType.InvertMotorOutput : InvertType.None);
     m_feederMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
     m_feederMotor.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyClosed);
+    m_feederMotor.overrideLimitSwitchesEnable(false);
     m_feederMotor.setSelectedSensorPosition(0);
     m_feederMotor.configClearPositionOnLimitR(true, 0);
     configPID();
@@ -60,6 +64,19 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     p_feederMaxAcceleration.addChangeHandler((Double unused) -> configPID());
     p_feederPID.addChangeHandler((Double unused) -> configPID());
 
+    if (blockerId >= 0) {
+      m_blockerServo = new Servo(blockerId);
+      m_hasBlocker = true;
+      p_blockerDown = new DoublePreferenceConstant("Blocker down", 0);
+      p_blockerUp = new DoublePreferenceConstant("Blocker up", 90);
+    } else {
+      m_hasBlocker = false;
+    }
+
+  }
+
+  public Feeder(String feederName, int feederMotorId, boolean invert) {
+    this(feederName, feederMotorId, invert, -1);
   }
 
   private void configPID() {
@@ -74,28 +91,27 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void runUntilBallFound() {
-    if(!hasCargo()) {
-      if (m_noCargoCounter++ <= p_cargoResetCount.getValue()) {
-        m_feederMotor.configClearPositionOnLimitR(false, 0);
-      } else {
-        m_feederMotor.configClearPositionOnLimitR(true, 0);
-      }
-    } else {
-      m_feederMotor.configClearPositionOnLimitR(false, 0);
-      m_noCargoCounter = 0;
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerUp.getValue());
     }
-    if (!hasCargo() && m_noCargoCounter > p_cargoResetCount.getValue() && m_feederMotor.getSelectedSensorPosition() > -5_000) {
+
+    if (m_foundCargo || hasCargo()) {
+      m_foundCargo = true;
+      m_feederMotor.configClearPositionOnLimitR(false, 0);
+    } else {
+      m_feederMotor.configClearPositionOnLimitR(true, 0);
+    }
+    if (!m_foundCargo && m_feederMotor.getSelectedSensorPosition() > -5_000) {
       m_feederMotor.setSelectedSensorPosition(-10_000_000);
     }
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
 
   public void forceForwards() {
-    if (hasCargo()) {
-      m_noCargoCounter = 0;
-    } else {
-      m_noCargoCounter++;
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerDown.getValue());
     }
+    m_foundCargo = false;
     m_feederMotor.configClearPositionOnLimitR(false, 0);
     if (m_feederMotor.getSelectedSensorPosition() > -5_000) {
       m_feederMotor.setSelectedSensorPosition(-5_000_000);
@@ -104,11 +120,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void forceReverse() {
-    if (hasCargo()) {
-      m_noCargoCounter = 0;
-    } else {
-      m_noCargoCounter++;
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerDown.getValue());
     }
+    m_foundCargo = false;
     m_feederMotor.configClearPositionOnLimitR(false, 0);
     if (m_feederMotor.getSelectedSensorPosition() < 5_000) {
       m_feederMotor.setSelectedSensorPosition(5_000_000);
@@ -117,10 +132,8 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void stop() {
-    if (hasCargo()) {
-      m_noCargoCounter = 0;
-    } else {
-      m_noCargoCounter++;
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerUp.getValue());
     }
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
@@ -138,5 +151,8 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
+    if (m_hasBlocker) {
+      SmartDashboard.putNumber(m_feederName + ":blockerPosition", m_blockerServo.getAngle());
+    }
   }
 }

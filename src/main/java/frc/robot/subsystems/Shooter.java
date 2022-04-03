@@ -30,6 +30,7 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private CargoSource[] m_sources;
+  private Sensors m_sensors;
   private Hood m_hood;
   private Turret m_turret;
   private Drive m_drive;
@@ -81,7 +82,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources) {
+  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources) {
+    m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
@@ -213,6 +215,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     boolean isFlywheelReady = isFlywheelReady();
     boolean onTarget = onTarget();
     boolean turretOnTarget = m_turret.onTarget();
+    boolean driveSpinning = Math.abs(m_sensors.navx.getYawRate()) < 90.;
     boolean wantsCargo = (m_active && isFlywheelReady && onTarget && turretOnTarget);
 
     if (m_active && !wantsCargo) {
