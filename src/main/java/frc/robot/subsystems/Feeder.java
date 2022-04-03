@@ -95,14 +95,14 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       m_blockerServo.setAngle(p_blockerUp.getValue());
     }
 
-    if (m_foundCargo || hasCargo()) {
+    if (sensorTriggered()) {
       m_foundCargo = true;
       m_feederMotor.configClearPositionOnLimitR(false, 0);
     } else {
       m_feederMotor.configClearPositionOnLimitR(true, 0);
-    }
-    if (!m_foundCargo && m_feederMotor.getSelectedSensorPosition() > -5_000) {
-      m_feederMotor.setSelectedSensorPosition(-10_000_000);
+      if (m_feederMotor.getSelectedSensorPosition() > -5_000) {
+        m_feederMotor.setSelectedSensorPosition(-10_000_000);
+      }
     }
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
@@ -140,6 +140,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   @Override
   public boolean hasCargo() {
+    return m_foundCargo || sensorTriggered();
+  }
+
+  private boolean sensorTriggered() {
     return m_feederMotor.isRevLimitSwitchClosed() == 1;
   }
 
@@ -151,8 +155,5 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
-    if (m_hasBlocker) {
-      SmartDashboard.putNumber(m_feederName + ":blockerPosition", m_blockerServo.getAngle());
-    }
   }
 }
