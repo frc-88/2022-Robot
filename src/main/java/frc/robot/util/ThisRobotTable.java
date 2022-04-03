@@ -148,15 +148,15 @@ public class ThisRobotTable extends CoprocessorTable {
 
 
     private double convertClimberPivotAngle(WrappedAngle pivotAngle) {
-        return Math.toRadians(pivotAngle.asDouble());
+        return Math.toRadians(-pivotAngle.asDouble() + 90.0);
     }
 
     private double convertClimberTelescopeHeight(double telescopeHeight) {
         return Units.inchesToMeters(telescopeHeight - ClimberArm.TELESCOPE_MIN_HEIGHT);
     }
 
-    private static final double ROS_INTAKE_ARM_DEPLOYED = 0.0;
-    private static final double ROS_INTAKE_ARM_STOWED = -93.0;
+    private static final double ROS_INTAKE_ARM_DEPLOYED = 35.0;
+    private static final double ROS_INTAKE_ARM_STOWED = -55.0;
     private double convertIntakeAngle(double intakeAngle) {
         return Math.toRadians(
             (intake.m_armDeployed - intake.m_armStowed) / 

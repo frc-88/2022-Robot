@@ -44,6 +44,11 @@ public class Navigation extends SubsystemBase {
   public void periodic() {
 
   }
+
+  public CoprocessorTable getCoprocessorTable() {
+    return m_coprocessor;
+  }
+
   public Set<String> getWaypointNames() {
     return m_waypointMap.getWaypointNames();
   }

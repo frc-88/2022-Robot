@@ -50,6 +50,9 @@ public class Sensors extends SubsystemBase {
   private DoublePreferenceConstant p_colorRedThreshold = new DoublePreferenceConstant("Color Red Threshold", 0.0);
   private DoublePreferenceConstant p_colorBlueThreshold = new DoublePreferenceConstant("Color Blue Threshold", 0.0);
 
+  private DoublePreferenceConstant p_cameraTiltLevelAngle = new DoublePreferenceConstant("Camera tilt level angle", Constants.CAMERA_TILT_LEVEL_ANGLE);
+  private DoublePreferenceConstant p_cameraTiltDownCommand = new DoublePreferenceConstant("Camera tilt down command", Constants.CAMERA_TILT_DOWN_COMMAND);
+
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
 
@@ -130,11 +133,11 @@ public class Sensors extends SubsystemBase {
   }
 
   public double convertServoCommandToAngle(double servoCommand) {
-    return -(servoCommand - Constants.CAMERA_TILT_DOWN_COMMAND) - Constants.CAMERA_TILT_LEVEL_ANGLE;
+    return -(servoCommand - p_cameraTiltDownCommand.getValue()) - p_cameraTiltLevelAngle.getValue();
   }
 
   public double convertAngleToServoCommand(double angleDegrees) {
-    return -(angleDegrees + Constants.CAMERA_TILT_LEVEL_ANGLE) + Constants.CAMERA_TILT_DOWN_COMMAND;
+    return -(angleDegrees + p_cameraTiltLevelAngle.getValue()) + p_cameraTiltDownCommand.getValue();
   }
 
   public boolean isCargoOurs() {

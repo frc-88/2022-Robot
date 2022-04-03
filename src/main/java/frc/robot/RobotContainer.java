@@ -52,6 +52,10 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
+import frc.robot.commands.autos.DriveToWaypoint;
+import frc.robot.commands.autos.DriveToWaypointWithHeading;
+import frc.robot.commands.autos.DriveWithWaypointsPlan;
+import frc.robot.commands.autos.PassthroughRosCommand;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -59,9 +63,12 @@ import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
+import frc.robot.commands.drive.DriveDegrees;
 import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PreferenceConstants;
+import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.util.roswaypoints.WaypointsPlan;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -173,6 +180,12 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
+  private WaypointsPlan getCargoStagingPlan() {
+    WaypointsPlan plan = new WaypointsPlan(m_ros_interface);
+    plan.addWaypoint(new Waypoint(getTeamColorName() + "_point_1").makeInterruptable("cargo_" + getTeamColorName()));
+    return plan;
+  }
+
   private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
@@ -180,17 +193,33 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2"),
+    new HoodTrackCombo(m_hood, m_targeting),
     new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.5, 0.5),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretLock(m_turret)
-      )
+      // new DriveDistanceMeters(m_drive, 1.5, 5.0),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+      new WaitCommand(0.5),
+      new ShootAll(m_shooter),
+      // new DriveWithWaypointsPlan(m_nav, m_drive, getCargoStagingPlan()),
+      new DriveDegrees(m_drive, 170.0, 120.0),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new ShootAll(m_shooter),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new ShootAll(m_shooter),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new ShootAll(m_shooter),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new ShootAll(m_shooter),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new ShootAll(m_shooter)
     )
+  );
+
+  private CommandBase m_autoPursuitOnly = 
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName())
   );
 
   private CommandBase m_autoTwoBallSpicy = 
@@ -200,20 +229,37 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2"),
     new SequentialCommandGroup(
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
-      new WaitCommand(0.5),
-      new ShootAll(m_shooter),
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
-      new InstantCommand(m_turret::stopTracking),
-      new InstantCommand(m_sensors.limelight::ledOff),
       new ParallelDeadlineGroup(
-        new ShootAll(m_shooter),
+        new SequentialCommandGroup(
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+          new WaitCommand(0.5),
+          new ShootAll(m_shooter).withTimeout(2.0),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+          new InstantCommand(m_turret::stopTracking),
+          new InstantCommand(m_sensors.limelight::ledOff),
+          new ShootAll(m_shooter).withTimeout(0.75),
+          new InstantCommand(m_turret::startTracking),
+          new InstantCommand(m_sensors.limelight::ledOn)
+        ),
         new RunCommand(m_hood::raiseHood, m_hood)
       ),
-      new InstantCommand(m_turret::startTracking),
-      new InstantCommand(m_sensors.limelight::ledOn)
+      new ParallelCommandGroup(
+        new HoodTrackCombo(m_hood, m_targeting),
+        new SequentialCommandGroup(
+          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new ShootAll(m_shooter).withTimeout(0.75),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new ShootAll(m_shooter).withTimeout(0.75),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new ShootAll(m_shooter).withTimeout(0.75),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new ShootAll(m_shooter).withTimeout(0.75),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new ShootAll(m_shooter).withTimeout(0.75)
+        )
+      )
     )
   );
 
@@ -223,7 +269,7 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_1"),
+      // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_5"),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
         new WaitCommand(0.5),
@@ -285,25 +331,37 @@ public class RobotContainer {
     if (m_buttonBox.isROSDisableSwitchOn()) {
       m_ros_interface.stopComms();
     }
+    else {
+      m_ros_interface.startComms();
+    }
 
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
       m_autoCommand = m_autoFiveBall;
       m_autoCommandName = "5 Cargo";
+      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_5").schedule();
+
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
       m_autoCommand = m_autoTwoBallSpicy;
       m_autoCommandName = "2 Cargo Spicy";
+      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2").schedule();
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = m_autoTwoBall;
       m_autoCommandName = "2 Cargo";
+      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2").schedule();
     }
 
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
+    }
+
+    if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {
+      m_autoCommand = m_autoPursuitOnly;
+      m_autoCommandName = "Pursuit Only";
     }
 
     if (m_buttonBox.isCentralizerDownButtonPressed()) {
@@ -353,18 +411,35 @@ public class RobotContainer {
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(m_flywheelFenderShot);
     m_buttonBox.turretTrackSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
+    
+    // m_buttonBox.rosDisableSwitch.whenPressed(m_arcadeDrive);
+    // m_buttonBox.rosDisableSwitch.whenReleased(new PassthroughRosCommand(m_drive, m_ros_interface));
+    
+    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_targeting::setModeToLimelight) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
       }
     });
-    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_ros_interface::startComms) {
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToWaypoint) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
       }
     });
+
+    // m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
+    //   @Override
+    //   public boolean runsWhenDisabled() {
+    //     return true;
+    //   }
+    // });
+    // m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_ros_interface::startComms) {
+    //   @Override
+    //   public boolean runsWhenDisabled() {
+    //     return true;
+    //   }
+    // });
     m_buttonBox.defaultTurretSwitch.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
     m_buttonBox.defaultTurretSwitch.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
 
