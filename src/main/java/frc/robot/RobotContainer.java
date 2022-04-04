@@ -180,12 +180,6 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
-  private WaypointsPlan getCargoStagingPlan() {
-    WaypointsPlan plan = new WaypointsPlan(m_ros_interface);
-    plan.addWaypoint(new Waypoint(getTeamColorName() + "_point_1").makeInterruptable("cargo_" + getTeamColorName()));
-    return plan;
-  }
-
   private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
@@ -193,24 +187,23 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2"),
+    // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
     new HoodTrackCombo(m_hood, m_targeting),
     new SequentialCommandGroup(
       // new DriveDistanceMeters(m_drive, 1.5, 5.0),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
-      // new DriveWithWaypointsPlan(m_nav, m_drive, getCargoStagingPlan()),
       new DriveDegrees(m_drive, 170.0, 120.0),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
       new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
       new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
       new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
       new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
       new ShootAll(m_shooter)
     )
   );
@@ -219,7 +212,7 @@ public class RobotContainer {
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName())
+    new DriveToWaypoint(m_nav, m_drive, "cargo_<team>")
   );
 
   private CommandBase m_autoTwoBallSpicy = 
@@ -229,7 +222,7 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2"),
+    // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
     new SequentialCommandGroup(
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
@@ -248,15 +241,15 @@ public class RobotContainer {
       new ParallelCommandGroup(
         new HoodTrackCombo(m_hood, m_targeting),
         new SequentialCommandGroup(
-          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
           new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
           new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
           new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
           new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_" + getTeamColorName()).withInterrupt(m_chamber::hasCargo),
+          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
           new ShootAll(m_shooter).withTimeout(0.75)
         )
       )
@@ -269,7 +262,7 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      // new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_5"),
+      // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5"),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
         new WaitCommand(0.5),
@@ -338,20 +331,20 @@ public class RobotContainer {
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
       m_autoCommand = m_autoFiveBall;
       m_autoCommandName = "5 Cargo";
-      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_5").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
 
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
       m_autoCommand = m_autoTwoBallSpicy;
       m_autoCommandName = "2 Cargo Spicy";
-      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = m_autoTwoBall;
       m_autoCommandName = "2 Cargo";
-      new SetGlobalPoseToWaypoint(m_nav, getTeamColorName() + "_start_2").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {

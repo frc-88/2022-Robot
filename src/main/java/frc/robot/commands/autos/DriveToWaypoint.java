@@ -18,15 +18,18 @@ public class DriveToWaypoint extends CommandBase {
   private final Navigation m_nav;
   private final Drive m_drive;
   private WaypointsPlan m_plan;
+  private String m_waypointName;
   private long m_is_finished_timeout = 0;
 
   /** Creates a new DriveToWaypoint. */
   public DriveToWaypoint(Navigation nav, Drive drive, String waypointName, long is_finished_timeout) {
     m_nav = nav;
     m_drive = drive;
-    m_plan = new WaypointsPlan(nav.getCoprocessorTable());
-    m_plan.addWaypoint(new Waypoint(waypointName));
+    m_waypointName = waypointName;
     m_is_finished_timeout = is_finished_timeout;
+    m_plan = new WaypointsPlan(m_nav.getCoprocessorTable());
+    m_plan.addWaypoint(new Waypoint(m_waypointName));
+
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(nav);
     addRequirements(drive);

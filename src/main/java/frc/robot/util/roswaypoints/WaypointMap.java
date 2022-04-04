@@ -6,6 +6,8 @@ import java.util.Set;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.util.coprocessortable.CoprocessorTable;
 
 public class WaypointMap {
@@ -33,7 +35,23 @@ public class WaypointMap {
     public boolean doesWaypointExist(String waypointName) {
         return m_table.containsSubTable(waypointName);
     }
+
+    public static String getTeamColorName() {
+        if (DriverStation.getAlliance() == Alliance.Red) {
+            return "red";
+        }
+        else {
+            return "blue";
+        }
+    }
+
+    public static String parseWaypointName(String waypointName) {
+        return waypointName.replaceAll("<team>", getTeamColorName());
+
+    }
+
     public Pose2d getWaypoint(String waypointName) {
+        waypointName = parseWaypointName(waypointName);
         if (doesWaypointExist(waypointName)) {
             double x = m_table.getSubTable(waypointName).getEntry("x").getDouble(Double.NaN);
             double y = m_table.getSubTable(waypointName).getEntry("y").getDouble(Double.NaN);

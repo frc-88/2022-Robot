@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.util.roswaypoints.WaypointMap;
 
 public class CoprocessorTable {
     protected ChassisInterface chassis;
@@ -329,8 +330,9 @@ public class CoprocessorTable {
      */
     
     public void sendGoal(Waypoint waypoint) {
+        String waypointName = WaypointMap.parseWaypointName(waypoint.waypoint_name);
         setCommonWaypointEntries(numSentGoals, waypoint);
-        waypointNameEntry.setValue(waypoint.waypoint_name);  // if the name is not empty, pose entries are ignored by planner
+        waypointNameEntry.setValue(waypointName);  // if the name is not empty, pose entries are ignored by planner
         waypointPoseXEntry.setValue(waypoint.pose.getX());
         waypointPoseYEntry.setValue(waypoint.pose.getY());
         waypointPoseTEntry.setValue(waypoint.pose.getRotation().getRadians());
