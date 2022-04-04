@@ -1,5 +1,8 @@
 package frc.robot.util.coprocessortable;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -95,6 +98,11 @@ public class CoprocessorTable {
     private NetworkTableEntry poseEstEntryUpdate;
 
     private NetworkTable jointsTable;
+    private NetworkTable jointCommandsTable;
+    ArrayList<NetworkTableEntry> jointCommandEntries = new ArrayList<>();
+    ArrayList<Double> jointCommandValues = new ArrayList<>();
+    ArrayList<MessageTimer> jointCommandTimers = new ArrayList<>();
+
     private NetworkTable waypointsTable;
 
     private NetworkTable shooterTargetTable;
@@ -182,6 +190,8 @@ public class CoprocessorTable {
         poseEstEntryUpdate = poseEstTable.getEntry("update");
 
         jointsTable = rootTable.getSubTable("joints");
+        jointCommandsTable = jointsTable.getSubTable("commands");
+
         waypointsTable = rootTable.getSubTable("waypoints");
 
         shooterTargetTable = rootTable.getSubTable("turret");
@@ -226,17 +236,17 @@ public class CoprocessorTable {
         shooterTimer.reset();
     }
 
-    public double getShooterDistance() {
-        return shooterDistance;
-    }
-    public double getShooterAngle() {
-        return shooterAngle;
-    }
-    public double getShooterProbability() {
-        return shooterProbability;
-    }
-    public boolean isShooterTargetValid() {
-        return shooterTimer.isActive();
+    private void jointCommandCallback(EntryNotification notification, int jointIndex, NetworkTableEntry valueEntry) {
+        if (Objects.isNull(jointCommandValues.get(jointIndex))) {
+            System.out.println("WARNING! jointCommandValues is null! Can't set joint command");
+            return;
+        }
+        if (Objects.isNull(jointCommandTimers.get(jointIndex))) {
+            System.out.println("WARNING! jointCommandTimers is null! Can't set joint command");
+            return;
+        }
+        jointCommandValues.set(jointIndex, valueEntry.getDouble(0.0));
+        jointCommandTimers.get(jointIndex).reset();
     }
 
     public NetworkTableInstance getNetworkTableInstance() {
@@ -325,6 +335,27 @@ public class CoprocessorTable {
         return updateInterval;
     }
 
+    public double getShooterDistance() {
+        return shooterDistance;
+    }
+    public double getShooterAngle() {
+        return shooterAngle;
+    }
+    public double getShooterProbability() {
+        return shooterProbability;
+    }
+    public boolean isShooterTargetValid() {
+        return shooterTimer.isActive();
+    }
+
+    public double getJointCommand(int jointIndex) {
+        return jointCommandValues.get(jointIndex);
+    }
+
+    public boolean isJointCommandActive(int jointIndex) {
+        return jointCommandTimers.get(jointIndex).isActive();
+    }
+
     /***
      * Setters for sending data to the coprocessor
      */
@@ -399,5 +430,22 @@ public class CoprocessorTable {
 
     public void setJointPosition(int index, double position) {
         jointsTable.getEntry(String.valueOf(index)).setDouble(position);
+
+        while (index >= jointCommandEntries.size()) {
+            jointCommandEntries.add(null);
+            jointCommandValues.add(null);
+            jointCommandTimers.add(null);
+        }
+        if (Objects.isNull(jointCommandEntries.get(index))) {
+            NetworkTableEntry jointUpdateEntry = jointCommandsTable.getEntry("update/" + String.valueOf(index));
+            NetworkTableEntry jointValueEntry = jointCommandsTable.getEntry("value/" + String.valueOf(index));
+            jointUpdateEntry.addListener(
+                (notification) -> jointCommandCallback(notification, index, jointValueEntry), 
+                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+            jointCommandEntries.set(index, jointUpdateEntry);
+            jointCommandValues.set(index, 0.0);
+            jointCommandTimers.set(index, new MessageTimer(1_000_000));
+        }
+
     }
 }

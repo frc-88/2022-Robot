@@ -146,6 +146,9 @@ public class ThisRobotTable extends CoprocessorTable {
         hoodStateUpdate.setDouble(getTime());
     }
 
+    public double getCameraTiltCommand() {
+        return Math.toDegrees(getJointCommand(camera_joint));
+    }
 
     private double convertClimberPivotAngle(WrappedAngle pivotAngle) {
         return Math.toRadians(-pivotAngle.asDouble() + 90.0);
@@ -172,17 +175,5 @@ public class ThisRobotTable extends CoprocessorTable {
 
     private double convertCameraTiltAngle(Rotation2d cameraAngle) {
         return cameraAngle.getRadians();
-    }
-
-    public String getGameObjectName() {
-        Alliance team_color = DriverStation.getAlliance();
-        String object_name = "";
-        if (team_color == Alliance.Red) {
-            object_name = "cargo_red";
-        }
-        else if (team_color == Alliance.Blue) {
-            object_name = "cargo_blue";
-        }
-        return object_name;
     }
 }
