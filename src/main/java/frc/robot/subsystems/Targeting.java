@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.drive.DriveUtils;
+import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class Targeting extends SubsystemBase {
@@ -21,6 +22,9 @@ public class Targeting extends SubsystemBase {
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
   private boolean m_has_target = false;
+  
+  private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
+
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -43,20 +47,32 @@ public class Targeting extends SubsystemBase {
   // private final TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
   private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret, Drive drive) {
-      double angle = Double.NaN;
-      double distance = 0.0;
+    boolean llMoving = p_limelightMovingTargetMode.getValue();
+    double angle = Double.NaN;
+    double distance = limelight.getTargetDistance();
+    double turretFacing = turret.getFacing();
 
-      if (limelight.hasTarget()) {
-          distance = limelight.calcMovingDistance(drive.getStraightSpeed(), turret.getFacing());
-          angle = turret.getFacing() - limelight.getTurretOffset() 
-            - limelight.calcMovingTurretOffset(drive.getStraightSpeed(), turret.getFacing(), distance);
+    if (llMoving && limelight.hasTarget()) {
+      distance = limelight.calcMovingDistance(drive.getStraightSpeed(), turretFacing);
+      angle = turretFacing - limelight.getTurretOffset() 
+        - limelight.calcMovingTurretOffset(drive.getStraightSpeed(), turretFacing, distance);
+    } else if (limelight.onTarget()) {
+        // keep on same target
+        angle = turretFacing;
+      } else if (limelight.hasTarget()) {
+        // if we have a target, track it
+        angle = turretFacing - limelight.getTurretOffset();
       }
 
-      if (distance <= 0.0) {
-          distance = Double.NaN;
-      }
-      
-      return new Pair<Double, Double>(distance, angle);
+    if (distance <= 0.0) {
+      distance = Double.NaN;
+    }
+  
+    if (!llMoving) {
+      distance += Constants.FIELD_UPPER_HUB_RADIUS;
+    }
+
+    return new Pair<Double, Double>(distance, angle);
   }
 
   private Pair<Double, Double> getWaypointTarget(Navigation nav) {
