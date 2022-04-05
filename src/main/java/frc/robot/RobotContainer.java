@@ -64,11 +64,8 @@ import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.commands.drive.DriveDegrees;
-import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PreferenceConstants;
-import frc.robot.util.roswaypoints.Waypoint;
-import frc.robot.util.roswaypoints.WaypointsPlan;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -83,12 +80,16 @@ public class RobotContainer {
   private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true, Constants.FEEDER_CENTRALIZER_BLOCKER_ID);
   private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
   private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer});
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(
+    m_drive,
+    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
+    Constants.COPROCESSOR_PORT,
+    Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
 
-  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_nav, m_turret);
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_nav, m_ros_interface, m_turret);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //

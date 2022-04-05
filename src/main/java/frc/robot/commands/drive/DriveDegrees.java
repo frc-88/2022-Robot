@@ -45,16 +45,21 @@ public class DriveDegrees extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    // TODO: fix angle wrap around issue for 180 degree edge case
     Pose2d currentPose = m_drive.getOdometryPose();
     Pose2d relativePose = currentPose.relativeTo(startPose);
-    System.out.println("Angle: " + relativePose.getRotation().getDegrees());
+    double angle = relativePose.getRotation().getDegrees();
     boolean should_stop = false;
     if (rotationalVelocityRadiansPerSecond > 0) {
-      should_stop = relativePose.getRotation().getDegrees() > angleDegrees;
+      if (angle < 0) {
+        angle += 360.0;  // put between 0..360 to avoid wrap around issues
+      }
+      should_stop = angle > angleDegrees;
     }
     else {
-      should_stop = relativePose.getRotation().getDegrees() < angleDegrees;
+      if (angle > 0) {
+        angle -= 360.0;  // put between -360..0 to avoid wrap around issues
+      }
+      should_stop = angle < angleDegrees;
     }
     return should_stop;
   }

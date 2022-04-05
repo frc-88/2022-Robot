@@ -83,6 +83,7 @@ public class CoprocessorTable {
     private NetworkTableEntry waypointIgnoreObstaclesEntry;
     private NetworkTableEntry waypointIgnoreWallsEntry;
     private NetworkTableEntry waypointInterruptableByEntry;
+    private NetworkTableEntry waypointTimeoutEntry;
     private int numSentGoals = 0;
 
     private NetworkTable planControlTable;
@@ -105,17 +106,6 @@ public class CoprocessorTable {
 
     private NetworkTable waypointsTable;
 
-    private NetworkTable shooterTargetTable;
-    private NetworkTableEntry shooterTargetEntryDist;
-    private NetworkTableEntry shooterTargetEntryAngle;
-    private NetworkTableEntry shooterTargetEntryProbability;
-    private NetworkTableEntry shooterTargetEntryUpdate;
-    private double shooterDistance = 0.0;
-    private double shooterAngle = 0.0;
-    private double shooterProbability = 0.0;
-    private MessageTimer shooterTimer = new MessageTimer(1_000_000);
-
-
     public CoprocessorTable(ChassisInterface chassis, String address, int port, double updateInterval) {
         this.chassis = chassis;
         this.address = address;
@@ -127,6 +117,7 @@ public class CoprocessorTable {
         this.updateInterval = updateInterval;
 
         rootTable = instance.getTable("ROS");
+
         pingEntry = rootTable.getEntry("ping");
         pingReturnEntry = rootTable.getEntry("ping_return");
 
@@ -193,13 +184,6 @@ public class CoprocessorTable {
         jointCommandsTable = jointsTable.getSubTable("commands");
 
         waypointsTable = rootTable.getSubTable("waypoints");
-
-        shooterTargetTable = rootTable.getSubTable("turret");
-        shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
-        shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
-        shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
-        shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
-        shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     private void cmdVelCallback(EntryNotification notification) {
@@ -227,13 +211,6 @@ public class CoprocessorTable {
         double y = odomResetEntryY.getDouble(0.0);
         double theta = odomResetEntryT.getDouble(0.0);
         this.chassis.resetPosition(new Pose2d(x, y, new Rotation2d(theta)));
-    }
-
-    private void shooterTargetCallback(EntryNotification notification) {
-        shooterDistance = shooterTargetEntryDist.getDouble(0.0);
-        shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
-        shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
-        shooterTimer.reset();
     }
 
     private void jointCommandCallback(EntryNotification notification, int jointIndex, NetworkTableEntry valueEntry) {
@@ -335,19 +312,6 @@ public class CoprocessorTable {
         return updateInterval;
     }
 
-    public double getShooterDistance() {
-        return shooterDistance;
-    }
-    public double getShooterAngle() {
-        return shooterAngle;
-    }
-    public double getShooterProbability() {
-        return shooterProbability;
-    }
-    public boolean isShooterTargetValid() {
-        return shooterTimer.isActive();
-    }
-
     public double getJointCommand(int jointIndex) {
         return jointCommandValues.get(jointIndex);
     }
@@ -382,6 +346,7 @@ public class CoprocessorTable {
         waypointIgnoreObstaclesEntry = waypointSegmentTable.getEntry("ignore_obstacles");
         waypointIgnoreWallsEntry = waypointSegmentTable.getEntry("ignore_walls");
         waypointInterruptableByEntry = waypointSegmentTable.getEntry("interruptable_by");
+        waypointTimeoutEntry = waypointSegmentTable.getEntry("timeout");
 
         waypointIsContinuousEntry.setValue(waypoint.is_continuous);
         waypointIgnoreOrientationEntry.setValue(waypoint.ignore_orientation);
@@ -389,6 +354,7 @@ public class CoprocessorTable {
         waypointIgnoreObstaclesEntry.setValue(waypoint.ignore_obstacles);
         waypointIgnoreWallsEntry.setValue(waypoint.ignore_walls);
         waypointInterruptableByEntry.setValue(waypoint.interruptableBy);
+        waypointTimeoutEntry.setValue(waypoint.timeout);
     }
 
     public void executeGoal() {

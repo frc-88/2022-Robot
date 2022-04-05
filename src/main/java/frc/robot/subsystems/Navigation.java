@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.roswaypoints.GoalStatus;
@@ -82,69 +81,6 @@ public class Navigation extends SubsystemBase {
 
   public boolean isPoseValid(Pose2d pose) {
     return m_waypointMap.isPoseValid(pose);
-  }
-
-
-  public double getShooterDistance() {
-    // Distance is in meters
-    return m_coprocessor.getShooterDistance();
-  }
-  public double getShooterAngle() {
-    // Angle is in radians
-    return m_coprocessor.getShooterAngle();
-  }
-  public boolean isShooterTargetValid() {
-    return m_coprocessor.isShooterTargetValid();
-  }
-
-  private Pose2d calculateNearestRingPose(double ringRadius) {
-    Pose2d pr = getRobotPose();
-    Pose2d pc = getCenterWaypoint();
-    double slope = (pr.getY() - pc.getY()) / (pr.getX() - pc.getX());
-    double x1 = pc.getX();
-    double y1 = pc.getY();
-    double numerator_1 = Math.sqrt((slope * slope + 1.0) * ringRadius - Math.pow(slope * x1 - y1, 2));
-    double numerator_2 = slope * (slope * x1 - y1);
-    double denominator = slope * slope + 1.0;
-
-    double ring_x1 = (-numerator_1 + numerator_2) / denominator;
-    double ring_y1 = slope * (ring_x1 - x1) + y1;
-    double ring_x2 = (numerator_1 + numerator_2) / denominator;
-    double ring_y2 = slope * (ring_x2 - x1) + y1;
-
-    double ring_1_dist = getDistance(pr.getX(), pr.getY(), ring_x1, ring_y1);
-    double ring_2_dist = getDistance(pr.getX(), pr.getY(), ring_x2, ring_y2);
-    double centerHeading = 0.0;
-    if (ring_1_dist < ring_2_dist) {
-      centerHeading = getHeading(pc.getX(), pc.getY(), ring_x1, ring_y1);
-      return new Pose2d(ring_x1, ring_y1, new Rotation2d(centerHeading));
-    } else {
-      centerHeading = getHeading(pc.getX(), pc.getY(), ring_x2, ring_y2);
-      return new Pose2d(ring_x2, ring_y2, new Rotation2d(centerHeading));
-    }
-  }
-
-  public Pose2d calculateNearestShootingZonePose(double innerRadius, double outerRadius) {
-    Pose2d pr = getRobotPose();
-    Pose2d pc = getCenterWaypoint();
-    double robot_dist = getDistance(pc.getX(), pc.getY(), pr.getX(), pr.getY());
-    if (Math.abs(robot_dist - innerRadius) > Math.abs(robot_dist - outerRadius)) {
-      return calculateNearestRingPose(innerRadius);
-    } else {
-      return calculateNearestRingPose(outerRadius);
-    }
-  }
-
-  private double getHeading(double x1, double y1, double x2, double y2) {
-    double x = x2 - x1;
-    double y = y2 - y1;
-    return Math.atan2(y, x);
-  }
-
-  private double getDistance(double x1, double y1, double x2, double y2) {
-    double x = x2 - x1;
-    double y = y2 - y1;
-    return Math.sqrt(x * x + y * y);
   }
 
   private long getTime() {

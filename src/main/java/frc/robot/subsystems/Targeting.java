@@ -9,6 +9,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.ThisRobotTable;
 import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.sensors.Limelight;
 
@@ -16,6 +17,7 @@ public class Targeting extends SubsystemBase {
   private final Limelight m_limelight;
   private final Navigation m_nav;
   private final Turret m_turret;
+  private final ThisRobotTable m_ros_interface;
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
   private boolean m_has_target = false;
@@ -27,10 +29,11 @@ public class Targeting extends SubsystemBase {
   }
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, Navigation nav, Turret turret) {
+  public Targeting(Limelight limelight, Navigation nav, ThisRobotTable ros_interface, Turret turret) {
     m_limelight = limelight;
     m_nav = nav;
     m_turret = turret;
+    m_ros_interface = ros_interface;
   }
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
@@ -59,12 +62,12 @@ public class Targeting extends SubsystemBase {
   }
 
   private Pair<Double, Double> getWaypointTarget(Navigation nav) {
-    if (nav.isShooterTargetValid()) {
-      double baseTargetAngle = Math.toDegrees(nav.getShooterAngle());
+    if (m_ros_interface.isShooterTargetValid()) {
+      double baseTargetAngle = Math.toDegrees(m_ros_interface.getShooterAngle());
       double adder = DriveUtils.mod(baseTargetAngle + 180., 360) - DriveUtils.mod(m_turret.getFacing() + 180., 360);
       double finalAngle = m_turret.getFacing() + adder;
       return new Pair<Double, Double>(
-        Units.metersToInches(nav.getShooterDistance()),
+        Units.metersToInches(m_ros_interface.getShooterDistance()),
         finalAngle);
     }
     else {
@@ -84,6 +87,10 @@ public class Targeting extends SubsystemBase {
 
   public boolean isTracking() {
     return m_turret.isTracking();
+  }
+
+  public boolean hasTarget() {
+    return m_has_target;
   }
 
   public void disableTurret() {
