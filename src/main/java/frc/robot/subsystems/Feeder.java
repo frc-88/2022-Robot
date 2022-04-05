@@ -40,8 +40,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private DoublePreferenceConstant p_feederTargetPosition;
   private DoublePreferenceConstant p_blockerDown;
   private DoublePreferenceConstant p_blockerUp;
+  private IntPreferenceConstant p_loseCargoCount;
 
   private boolean m_foundCargo = false;
+  private int m_loseCargoCounter = 0;
   
   public Feeder(String feederName, int feederMotorId, boolean invert, int blockerId) {
     m_feederName = feederName;
@@ -50,6 +52,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     p_feederMaxAcceleration = new DoublePreferenceConstant(feederName + " Max Acceleration", 50000);
     p_feederPID = new PIDPreferenceConstants(feederName, 0, 0, 0, 0, 0, 0, 0);
     p_feederTargetPosition = new DoublePreferenceConstant(feederName + " Target Position", 100);
+    p_loseCargoCount = new IntPreferenceConstant(feederName + " Lose Cargo Count", 15);
 
     m_feederMotor.configFactoryDefault();
     m_feederMotor.setInverted(invert ? InvertType.InvertMotorOutput : InvertType.None);
@@ -91,12 +94,11 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   public void runUntilBallFound() {
-    if (m_hasBlocker) {
-      m_blockerServo.setAngle(p_blockerUp.getValue());
-    }
+    blockCargo();
 
     if (sensorTriggered()) {
       m_foundCargo = true;
+      m_loseCargoCounter = 0;
       m_feederMotor.configClearPositionOnLimitR(false, 0);
     } else {
       m_feederMotor.configClearPositionOnLimitR(true, 0);
@@ -104,37 +106,52 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
         m_feederMotor.setSelectedSensorPosition(-10_000_000);
       }
     }
+
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
 
   public void forceForwards() {
-    if (m_hasBlocker) {
-      m_blockerServo.setAngle(p_blockerDown.getValue());
+    unblockCargo();
+
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
     }
-    m_foundCargo = false;
+
     m_feederMotor.configClearPositionOnLimitR(false, 0);
     if (m_feederMotor.getSelectedSensorPosition() > -5_000) {
       m_feederMotor.setSelectedSensorPosition(-5_000_000);
     }
+
     m_feederMotor.set(TalonFXControlMode.MotionMagic, 5_000_000);
   }
 
   public void forceReverse() {
-    if (m_hasBlocker) {
-      m_blockerServo.setAngle(p_blockerDown.getValue());
+    unblockCargo();
+    
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
     }
-    m_foundCargo = false;
+
     m_feederMotor.configClearPositionOnLimitR(false, 0);
     if (m_feederMotor.getSelectedSensorPosition() < 5_000) {
       m_feederMotor.setSelectedSensorPosition(5_000_000);
     }
+
     m_feederMotor.set(TalonFXControlMode.MotionMagic, -5_000_000);
   }
 
-  public void stop() {
-    if (m_hasBlocker) {
-      m_blockerServo.setAngle(p_blockerUp.getValue());
+  public void stopUnlessLostCargo() {
+    if (m_foundCargo && !sensorTriggered()) {
+      runUntilBallFound();
+    } else {
+      blockCargo();
+      m_feederMotor.set(ControlMode.PercentOutput, 0.0);
     }
+  }
+
+  public void stop() {
+    blockCargo();
+
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }
 
@@ -155,5 +172,17 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean(m_feederName + ":hasCargo?", hasCargo());
+  }
+
+  private void unblockCargo() {
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerDown.getValue());
+    }
+  }
+
+  private void blockCargo() {
+    if (m_hasBlocker) {
+      m_blockerServo.setAngle(p_blockerUp.getValue());
+    }
   }
 }
