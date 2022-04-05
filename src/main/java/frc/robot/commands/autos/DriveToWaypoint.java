@@ -6,9 +6,7 @@ package frc.robot.commands.autos;
 
 import java.util.Objects;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Navigation.RosAutoState;
@@ -16,30 +14,34 @@ import frc.robot.util.roswaypoints.Waypoint;
 import frc.robot.util.roswaypoints.WaypointsPlan;
 import frc.robot.util.coprocessortable.VelocityCommand;
 
-public class DriveToDonutZone extends CommandBase {
+public class DriveToWaypoint extends CommandBase {
   private final Navigation m_nav;
   private final Drive m_drive;
+  private WaypointsPlan m_plan;
+  private String m_waypointName;
   private long m_is_finished_timeout = 0;
 
-  /** Creates a new DriveToDonutZone. */
-  public DriveToDonutZone(Navigation nav, Drive drive, long is_finished_timeout) {
+  /** Creates a new DriveToWaypoint. */
+  public DriveToWaypoint(Navigation nav, Drive drive, String waypointName, long is_finished_timeout) {
     m_nav = nav;
     m_drive = drive;
+    m_waypointName = waypointName;
     m_is_finished_timeout = is_finished_timeout;
+    m_plan = new WaypointsPlan(m_nav.getCoprocessorTable());
+    m_plan.addWaypoint(new Waypoint(m_waypointName));
+
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(nav);
+    addRequirements(drive);
   }
-  public DriveToDonutZone(Navigation nav, Drive drive) {
-    this(nav, drive, 15_000_000);
+  public DriveToWaypoint(Navigation nav, Drive drive, String waypointName) {
+    this(nav, drive, waypointName, 15_000_000);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Pose2d goal_pose = m_nav.calculateNearestShootingZonePose(Constants.SHOOTING_ZONE_INNER_RADIUS_METERS, Constants.SHOOTING_ZONE_OUTER_RADIUS_METERS);
-    WaypointsPlan plan = m_nav.makeEmptyWaypointPlan();
-    plan.addWaypoint(new Waypoint(goal_pose));
-    m_nav.setWaypointsPlan(plan, m_is_finished_timeout);
+    m_nav.setWaypointsPlan(m_plan, m_is_finished_timeout);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -56,6 +58,7 @@ public class DriveToDonutZone extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     m_nav.cancelAutoGoal();  // Confirm whether cancelGoal should be called in all cases
+    m_drive.stop();
   }
 
   // Returns true when the command should end.

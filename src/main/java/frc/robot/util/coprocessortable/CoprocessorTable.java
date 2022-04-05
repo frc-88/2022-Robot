@@ -1,5 +1,8 @@
 package frc.robot.util.coprocessortable;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -13,6 +16,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.util.roswaypoints.WaypointMap;
 
 public class CoprocessorTable {
     protected ChassisInterface chassis;
@@ -79,6 +83,7 @@ public class CoprocessorTable {
     private NetworkTableEntry waypointIgnoreObstaclesEntry;
     private NetworkTableEntry waypointIgnoreWallsEntry;
     private NetworkTableEntry waypointInterruptableByEntry;
+    private NetworkTableEntry waypointTimeoutEntry;
     private int numSentGoals = 0;
 
     private NetworkTable planControlTable;
@@ -94,18 +99,12 @@ public class CoprocessorTable {
     private NetworkTableEntry poseEstEntryUpdate;
 
     private NetworkTable jointsTable;
+    private NetworkTable jointCommandsTable;
+    ArrayList<NetworkTableEntry> jointCommandEntries = new ArrayList<>();
+    ArrayList<Double> jointCommandValues = new ArrayList<>();
+    ArrayList<MessageTimer> jointCommandTimers = new ArrayList<>();
+
     private NetworkTable waypointsTable;
-
-    private NetworkTable shooterTargetTable;
-    private NetworkTableEntry shooterTargetEntryDist;
-    private NetworkTableEntry shooterTargetEntryAngle;
-    private NetworkTableEntry shooterTargetEntryProbability;
-    private NetworkTableEntry shooterTargetEntryUpdate;
-    private double shooterDistance = 0.0;
-    private double shooterAngle = 0.0;
-    private double shooterProbability = 0.0;
-    private MessageTimer shooterTimer = new MessageTimer(1_000_000);
-
 
     public CoprocessorTable(ChassisInterface chassis, String address, int port, double updateInterval) {
         this.chassis = chassis;
@@ -118,6 +117,7 @@ public class CoprocessorTable {
         this.updateInterval = updateInterval;
 
         rootTable = instance.getTable("ROS");
+
         pingEntry = rootTable.getEntry("ping");
         pingReturnEntry = rootTable.getEntry("ping_return");
 
@@ -181,14 +181,9 @@ public class CoprocessorTable {
         poseEstEntryUpdate = poseEstTable.getEntry("update");
 
         jointsTable = rootTable.getSubTable("joints");
-        waypointsTable = rootTable.getSubTable("waypoints");
+        jointCommandsTable = jointsTable.getSubTable("commands");
 
-        shooterTargetTable = rootTable.getSubTable("turret");
-        shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
-        shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
-        shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
-        shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
-        shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        waypointsTable = rootTable.getSubTable("waypoints");
     }
 
     private void cmdVelCallback(EntryNotification notification) {
@@ -218,24 +213,17 @@ public class CoprocessorTable {
         this.chassis.resetPosition(new Pose2d(x, y, new Rotation2d(theta)));
     }
 
-    private void shooterTargetCallback(EntryNotification notification) {
-        shooterDistance = shooterTargetEntryDist.getDouble(0.0);
-        shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
-        shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
-        shooterTimer.reset();
-    }
-
-    public double getShooterDistance() {
-        return shooterDistance;
-    }
-    public double getShooterAngle() {
-        return shooterAngle;
-    }
-    public double getShooterProbability() {
-        return shooterProbability;
-    }
-    public boolean isShooterTargetValid() {
-        return shooterTimer.isActive();
+    private void jointCommandCallback(EntryNotification notification, int jointIndex, NetworkTableEntry valueEntry) {
+        if (Objects.isNull(jointCommandValues.get(jointIndex))) {
+            System.out.println("WARNING! jointCommandValues is null! Can't set joint command");
+            return;
+        }
+        if (Objects.isNull(jointCommandTimers.get(jointIndex))) {
+            System.out.println("WARNING! jointCommandTimers is null! Can't set joint command");
+            return;
+        }
+        jointCommandValues.set(jointIndex, valueEntry.getDouble(0.0));
+        jointCommandTimers.get(jointIndex).reset();
     }
 
     public NetworkTableInstance getNetworkTableInstance() {
@@ -324,13 +312,22 @@ public class CoprocessorTable {
         return updateInterval;
     }
 
+    public double getJointCommand(int jointIndex) {
+        return jointCommandValues.get(jointIndex);
+    }
+
+    public boolean isJointCommandActive(int jointIndex) {
+        return jointCommandTimers.get(jointIndex).isActive();
+    }
+
     /***
      * Setters for sending data to the coprocessor
      */
     
     public void sendGoal(Waypoint waypoint) {
+        String waypointName = WaypointMap.parseWaypointName(waypoint.waypoint_name);
         setCommonWaypointEntries(numSentGoals, waypoint);
-        waypointNameEntry.setValue(waypoint.waypoint_name);  // if the name is not empty, pose entries are ignored by planner
+        waypointNameEntry.setValue(waypointName);  // if the name is not empty, pose entries are ignored by planner
         waypointPoseXEntry.setValue(waypoint.pose.getX());
         waypointPoseYEntry.setValue(waypoint.pose.getY());
         waypointPoseTEntry.setValue(waypoint.pose.getRotation().getRadians());
@@ -349,6 +346,7 @@ public class CoprocessorTable {
         waypointIgnoreObstaclesEntry = waypointSegmentTable.getEntry("ignore_obstacles");
         waypointIgnoreWallsEntry = waypointSegmentTable.getEntry("ignore_walls");
         waypointInterruptableByEntry = waypointSegmentTable.getEntry("interruptable_by");
+        waypointTimeoutEntry = waypointSegmentTable.getEntry("timeout");
 
         waypointIsContinuousEntry.setValue(waypoint.is_continuous);
         waypointIgnoreOrientationEntry.setValue(waypoint.ignore_orientation);
@@ -356,6 +354,7 @@ public class CoprocessorTable {
         waypointIgnoreObstaclesEntry.setValue(waypoint.ignore_obstacles);
         waypointIgnoreWallsEntry.setValue(waypoint.ignore_walls);
         waypointInterruptableByEntry.setValue(waypoint.interruptableBy);
+        waypointTimeoutEntry.setValue(waypoint.timeout);
     }
 
     public void executeGoal() {
@@ -397,5 +396,22 @@ public class CoprocessorTable {
 
     public void setJointPosition(int index, double position) {
         jointsTable.getEntry(String.valueOf(index)).setDouble(position);
+
+        while (index >= jointCommandEntries.size()) {
+            jointCommandEntries.add(null);
+            jointCommandValues.add(null);
+            jointCommandTimers.add(null);
+        }
+        if (Objects.isNull(jointCommandEntries.get(index))) {
+            NetworkTableEntry jointUpdateEntry = jointCommandsTable.getEntry("update/" + String.valueOf(index));
+            NetworkTableEntry jointValueEntry = jointCommandsTable.getEntry("value/" + String.valueOf(index));
+            jointUpdateEntry.addListener(
+                (notification) -> jointCommandCallback(notification, index, jointValueEntry), 
+                EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+            jointCommandEntries.set(index, jointUpdateEntry);
+            jointCommandValues.set(index, 0.0);
+            jointCommandTimers.set(index, new MessageTimer(1_000_000));
+        }
+
     }
 }

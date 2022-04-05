@@ -12,11 +12,12 @@ public class Waypoint {
     public boolean ignore_obstacles = false;
     public boolean ignore_walls = false;
     public String interruptableBy = "";
+    public double timeout = 0.0;
 
     // -----
     // Named waypoint constructors
     // -----
-    public Waypoint(String waypoint_name, boolean is_continuous, boolean ignore_orientation, double intermediate_tolerance, boolean ignore_obstacles, boolean ignore_walls, String interruptableBy)
+    public Waypoint(String waypoint_name, boolean is_continuous, boolean ignore_orientation, double intermediate_tolerance, boolean ignore_obstacles, boolean ignore_walls, String interruptableBy, double timeout)
     {
         this.waypoint_name = waypoint_name;
         this.is_continuous = is_continuous;
@@ -25,21 +26,22 @@ public class Waypoint {
         this.ignore_obstacles = ignore_obstacles;
         this.ignore_walls = ignore_walls;
         this.interruptableBy = interruptableBy;
+        this.timeout = timeout;
     }
 
     public Waypoint(String waypoint_name, boolean is_continuous) {
-        this(waypoint_name, is_continuous, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "");
+        this(waypoint_name, is_continuous, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "", 0.0);
     }
 
     public Waypoint(String waypoint_name) {
-        this(waypoint_name, false, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "");
+        this(waypoint_name, false, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "", 0.0);
     }
 
 
     // -----
     // Pose waypoint constructors
     // -----
-    public Waypoint(Pose2d pose, boolean is_continuous, boolean ignore_orientation, double intermediate_tolerance, boolean ignore_obstacles, boolean ignore_walls, String interruptableBy)
+    public Waypoint(Pose2d pose, boolean is_continuous, boolean ignore_orientation, double intermediate_tolerance, boolean ignore_obstacles, boolean ignore_walls, String interruptableBy, double timeout)
     {
         this.pose = pose;
         this.is_continuous = is_continuous;
@@ -48,14 +50,15 @@ public class Waypoint {
         this.ignore_obstacles = ignore_obstacles;
         this.ignore_walls = ignore_walls;
         this.interruptableBy = interruptableBy;
+        this.timeout = timeout;
     }
 
     public Waypoint(Pose2d pose, boolean is_continuous) {
-        this(pose, is_continuous, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "");
+        this(pose, is_continuous, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "", 0.0);
     }
 
     public Waypoint(Pose2d pose) {
-        this(pose, false, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "");
+        this(pose, false, true, DEFAULT_INTERMEDIATE_TOLERANCE, false, false, "", 0.0);
     }
 
     public Waypoint(Waypoint other)
@@ -68,6 +71,7 @@ public class Waypoint {
         this.ignore_obstacles = other.ignore_obstacles;
         this.ignore_walls = other.ignore_walls;
         this.interruptableBy = other.interruptableBy;
+        this.timeout = other.timeout;
     }
 
     public Waypoint makeWithTolerance(double intermediate_tolerance) {
@@ -103,6 +107,12 @@ public class Waypoint {
     public Waypoint makeInterruptable(String waypointName) {
         Waypoint other = new Waypoint(this);
         other.interruptableBy = waypointName;
+        return other;
+    }
+
+    public Waypoint makeWithTimeout(double timeout) {
+        Waypoint other = new Waypoint(this);
+        other.timeout = timeout;
         return other;
     }
 }

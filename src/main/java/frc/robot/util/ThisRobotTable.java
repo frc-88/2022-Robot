@@ -2,10 +2,10 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -13,6 +13,7 @@ import frc.robot.subsystems.Turret;
 import frc.robot.util.climber.ClimberArm;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.CoprocessorTable;
+import frc.robot.util.coprocessortable.MessageTimer;
 
 public class ThisRobotTable extends CoprocessorTable {
     final int left_outer_climber_joint = 0;
@@ -39,6 +40,16 @@ public class ThisRobotTable extends CoprocessorTable {
     private NetworkTableEntry hoodStateEntry;
     private NetworkTableEntry hoodStateUpdate;
 
+    private NetworkTable shooterTargetTable;
+    private NetworkTableEntry shooterTargetEntryDist;
+    private NetworkTableEntry shooterTargetEntryAngle;
+    private NetworkTableEntry shooterTargetEntryProbability;
+    private NetworkTableEntry shooterTargetEntryUpdate;
+    private double shooterDistance = 0.0;
+    private double shooterAngle = 0.0;
+    private double shooterProbability = 0.0;
+    private MessageTimer shooterTimer = new MessageTimer(1_000_000);
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
@@ -58,6 +69,13 @@ public class ThisRobotTable extends CoprocessorTable {
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
         hoodStateUpdate = hoodTable.getEntry("update");
+
+        shooterTargetTable = rootTable.getSubTable("target");
+        shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
+        shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
+        shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
+        shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
+        shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     // @Override
@@ -122,7 +140,7 @@ public class ThisRobotTable extends CoprocessorTable {
         // intake
         setJointPosition(
             intake_joint,
-            convertIntakeAngle(intake.getArmPosition())
+            convertIntakeAngle(intake.isDeployLimitTriggered(), intake.isStowLimitTriggered())
         );
 
         // turret
@@ -146,24 +164,30 @@ public class ThisRobotTable extends CoprocessorTable {
         hoodStateUpdate.setDouble(getTime());
     }
 
+    public double getCameraTiltCommand() {
+        return Math.toDegrees(getJointCommand(camera_joint));
+    }
 
     private double convertClimberPivotAngle(WrappedAngle pivotAngle) {
-        return Math.toRadians(pivotAngle.asDouble());
+        return Math.toRadians(-pivotAngle.asDouble() + 90.0);
     }
 
     private double convertClimberTelescopeHeight(double telescopeHeight) {
         return Units.inchesToMeters(telescopeHeight - ClimberArm.TELESCOPE_MIN_HEIGHT);
     }
 
-    private static final double ROS_INTAKE_ARM_DEPLOYED = 0.0;
-    private static final double ROS_INTAKE_ARM_STOWED = -93.0;
-    private double convertIntakeAngle(double intakeAngle) {
-        return Math.toRadians(
-            (intake.m_armDeployed - intake.m_armStowed) / 
-            (ROS_INTAKE_ARM_DEPLOYED - ROS_INTAKE_ARM_STOWED) * 
-            (intakeAngle - intake.m_armStowed)
-             + ROS_INTAKE_ARM_STOWED
-        );
+    private double convertIntakeAngle(boolean isDeployLimit, boolean isStowLimit) {
+        double angle = 0.0;
+        if (!isDeployLimit && !isStowLimit) {
+            angle = 45.0;
+        }
+        else if (isDeployLimit) {
+            angle = 90.0;
+        }
+        else if (isStowLimit) {
+            angle = 0.0;
+        }
+        return Math.toRadians(angle);
     }
 
     private double convertTurretAngle(double turretAngle) {
@@ -174,15 +198,23 @@ public class ThisRobotTable extends CoprocessorTable {
         return cameraAngle.getRadians();
     }
 
-    public String getGameObjectName() {
-        Alliance team_color = DriverStation.getAlliance();
-        String object_name = "";
-        if (team_color == Alliance.Red) {
-            object_name = "cargo_red";
-        }
-        else if (team_color == Alliance.Blue) {
-            object_name = "cargo_blue";
-        }
-        return object_name;
+    private void shooterTargetCallback(EntryNotification notification) {
+        shooterDistance = shooterTargetEntryDist.getDouble(0.0);
+        shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
+        shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
+        shooterTimer.reset();
+    }
+
+    public double getShooterDistance() {
+        return shooterDistance;
+    }
+    public double getShooterAngle() {
+        return shooterAngle;
+    }
+    public double getShooterProbability() {
+        return shooterProbability;
+    }
+    public boolean isShooterTargetValid() {
+        return shooterTimer.isActive();
     }
 }
