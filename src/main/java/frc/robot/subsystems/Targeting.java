@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.util.drive.DriveUtils;
+import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class Targeting extends SubsystemBase {
@@ -18,9 +19,14 @@ public class Targeting extends SubsystemBase {
   private final Navigation m_nav;
   private final Turret m_turret;
   private final ThisRobotTable m_ros_interface;
+  private final Drive m_drive;
+
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
   private boolean m_has_target = false;
+  
+  private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
+
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -29,11 +35,12 @@ public class Targeting extends SubsystemBase {
   }
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, Navigation nav, ThisRobotTable ros_interface, Turret turret) {
+  public Targeting(Limelight limelight, Navigation nav, ThisRobotTable ros_interface, Turret turret, Drive drive) {
     m_limelight = limelight;
     m_nav = nav;
     m_turret = turret;
     m_ros_interface = ros_interface;
+    m_drive = drive;
   }
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
@@ -42,23 +49,33 @@ public class Targeting extends SubsystemBase {
   private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
   // private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
-  private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
-      double angle = Double.NaN;
-      if (limelight.onTarget()) {
-          // keep on same target
-          angle = turret.getFacing();
+  private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret, Drive drive) {
+    boolean llMoving = p_limelightMovingTargetMode.getValue();
+    double angle = Double.NaN;
+    double distance = limelight.getTargetDistance();
+    double turretFacing = turret.getFacing();
+
+    if (llMoving && limelight.hasTarget()) {
+      distance = limelight.calcMovingDistance(drive.getStraightSpeed(), turretFacing);
+      angle = turretFacing - limelight.getTurretOffset() 
+        - limelight.calcMovingTurretOffset(drive.getStraightSpeed(), turretFacing, distance);
+    } else if (limelight.onTarget()) {
+        // keep on same target
+        angle = turretFacing;
       } else if (limelight.hasTarget()) {
-          // if we have a target, track it
-          angle = turret.getFacing() - limelight.getTurretOffset();
+        // if we have a target, track it
+        angle = turretFacing - limelight.getTurretOffset();
       }
-      double distance = limelight.getTargetDistance();
-      if (distance <= 0.0) {
-          distance = Double.NaN;
-      }
-      else {
-          distance += Constants.FIELD_UPPER_HUB_RADIUS;
-      }
-      return new Pair<Double, Double>(distance, angle);
+
+    if (distance <= 0.0) {
+      distance = Double.NaN;
+    }
+  
+    if (!llMoving) {
+      distance += Constants.FIELD_UPPER_HUB_RADIUS;
+    }
+
+    return new Pair<Double, Double>(distance, angle);
   }
 
   private Pair<Double, Double> getWaypointTarget(Navigation nav) {
@@ -136,7 +153,7 @@ public class Targeting extends SubsystemBase {
     
     switch (targeting_mode) {
       case LIMELIGHT_ONLY:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget(m_limelight, m_turret, m_drive);
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         break;
@@ -146,7 +163,7 @@ public class Targeting extends SubsystemBase {
         waypoint_target_angle = waypoint_target.getSecond();
         break;
       case COMBO:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget(m_limelight, m_turret, m_drive);
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         

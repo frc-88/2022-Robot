@@ -51,9 +51,13 @@ public class Limelight {
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
     private final ValueInterpolator m_tofInterpolator = new ValueInterpolator(
-        new ValueInterpolator.ValuePair(6.0, 1),
-        new ValueInterpolator.ValuePair(12.0, 2),
-        new ValueInterpolator.ValuePair(24.0, 3));
+        new ValueInterpolator.ValuePair(9.0, 0.9),
+        new ValueInterpolator.ValuePair(10.0, 1.0),
+        new ValueInterpolator.ValuePair(12.8, 1.2),
+        new ValueInterpolator.ValuePair(14.0, 1.25),
+        new ValueInterpolator.ValuePair(15.9, 1.31),
+        new ValueInterpolator.ValuePair(18.8, 1.55),
+        new ValueInterpolator.ValuePair(23.5, 1.89));
         
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -196,15 +200,16 @@ public class Limelight {
      * @return
      */
     public double calcMovingDistance(double robotSpeed, double turretAngle) {
-        double target = m_targetDistance / 12.0;
+        double hubDist = (m_targetDistance + Constants.FIELD_UPPER_HUB_RADIUS)  / 12.0;
+        double target = hubDist;
         double tof;
 
         for (int i = 0; i < 3; i++) {
             tof = m_tofInterpolator.getInterpolatedValue(target);
             target = Math.sqrt(
-                Math.pow(m_targetDistance/12.0, 2) 
+                Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
-                - (2 * m_targetDistance/12.0 * robotSpeed * tof * 
+                - (2 * hubDist * robotSpeed * tof * 
                     Math.cos(180 + m_turretOffset - turretAngle)
                 )
             );
@@ -218,13 +223,14 @@ public class Limelight {
      * @param robotSpeed in feet per second
      * @return
      */
-    public double calcMovingTurretOffset(double robotSpeed, double turretAngle) {
+    public double calcMovingTurretOffset(double robotSpeed, double turretAngle, double distance) {
         double offset = 0.0;
-        double distance = calcMovingDistance(robotSpeed, turretAngle);
         double tof = m_tofInterpolator.getInterpolatedValue(distance);
 
-        Math.asin(Math.sin(180 + m_turretOffset - turretAngle) *
-            robotSpeed * tof / distance);
+        Math.asin(
+            Math.sin(180 + m_turretOffset - turretAngle) *
+            (robotSpeed * tof / distance) 
+        );
 
         return offset;
     }
