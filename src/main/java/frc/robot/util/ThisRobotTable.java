@@ -70,7 +70,7 @@ public class ThisRobotTable extends CoprocessorTable {
         hoodStateEntry = hoodTable.getEntry("state");
         hoodStateUpdate = hoodTable.getEntry("update");
 
-        shooterTargetTable = rootTable.getSubTable("turret");
+        shooterTargetTable = rootTable.getSubTable("target");
         shooterTargetEntryDist = shooterTargetTable.getEntry("distance");
         shooterTargetEntryAngle = shooterTargetTable.getEntry("heading");
         shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
@@ -140,7 +140,7 @@ public class ThisRobotTable extends CoprocessorTable {
         // intake
         setJointPosition(
             intake_joint,
-            convertIntakeAngle(intake.getArmPosition())
+            convertIntakeAngle(intake.isDeployLimitTriggered(), intake.isStowLimitTriggered())
         );
 
         // turret
@@ -176,15 +176,18 @@ public class ThisRobotTable extends CoprocessorTable {
         return Units.inchesToMeters(telescopeHeight - ClimberArm.TELESCOPE_MIN_HEIGHT);
     }
 
-    private static final double ROS_INTAKE_ARM_DEPLOYED = 35.0;
-    private static final double ROS_INTAKE_ARM_STOWED = -55.0;
-    private double convertIntakeAngle(double intakeAngle) {
-        return Math.toRadians(
-            (intake.m_armDeployed - intake.m_armStowed) / 
-            (ROS_INTAKE_ARM_DEPLOYED - ROS_INTAKE_ARM_STOWED) * 
-            (intakeAngle - intake.m_armStowed)
-             + ROS_INTAKE_ARM_STOWED
-        );
+    private double convertIntakeAngle(boolean isDeployLimit, boolean isStowLimit) {
+        double angle = 0.0;
+        if (!isDeployLimit && !isStowLimit) {
+            angle = 45.0;
+        }
+        else if (isDeployLimit) {
+            angle = 90.0;
+        }
+        else if (isStowLimit) {
+            angle = 0.0;
+        }
+        return Math.toRadians(angle);
     }
 
     private double convertTurretAngle(double turretAngle) {
