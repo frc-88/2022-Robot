@@ -141,6 +141,10 @@ public class Targeting extends SubsystemBase {
     targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
   }
 
+  public void setModeToCombo() {
+    targeting_mode = TARGETING_MODE.COMBO;
+  }
+
   @Override
   public void periodic() {
     double target_angle = m_turret.getDefaultFacing();

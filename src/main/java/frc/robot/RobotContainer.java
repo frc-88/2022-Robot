@@ -415,7 +415,7 @@ public class RobotContainer {
         return true;
       }
     });
-    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToWaypoint) {
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToCombo) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
