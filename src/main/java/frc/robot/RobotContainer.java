@@ -89,7 +89,7 @@ public class RobotContainer {
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
 
-  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_nav, m_ros_interface, m_turret, m_drive);
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
