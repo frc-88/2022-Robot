@@ -6,6 +6,7 @@ import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -50,6 +51,16 @@ public class ThisRobotTable extends CoprocessorTable {
     private double shooterProbability = 0.0;
     private MessageTimer shooterTimer = new MessageTimer(1_000_000);
 
+    private NetworkTable barTable;
+    private NetworkTableEntry barEntryDist;
+    private NetworkTableEntry barEntryAngle;
+    private NetworkTableEntry barEntryCount;
+    private NetworkTableEntry barEntryUpdate;
+    private double barDistance = 0.0;
+    private double barAngle = 0.0;
+    private int barCount = 0;
+    private MessageTimer barTimer = new MessageTimer(1_000_000);
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
@@ -76,6 +87,13 @@ public class ThisRobotTable extends CoprocessorTable {
         shooterTargetEntryProbability = shooterTargetTable.getEntry("probability");
         shooterTargetEntryUpdate = shooterTargetTable.getEntry("update");
         shooterTargetEntryUpdate.addListener(this::shooterTargetCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+
+        barTable = rootTable.getSubTable("bar");
+        barEntryDist = barTable.getEntry("distance");
+        barEntryAngle = barTable.getEntry("angle");
+        barEntryCount = barTable.getEntry("count");
+        barEntryUpdate = barTable.getEntry("update");
+        barEntryUpdate.addListener(this::barCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     // @Override
@@ -202,7 +220,17 @@ public class ThisRobotTable extends CoprocessorTable {
         shooterDistance = shooterTargetEntryDist.getDouble(0.0);
         shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
         shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
+        SmartDashboard.getEntry("Shot Probability").setDouble(shooterProbability);
         shooterTimer.reset();
+    }
+
+    private void barCallback(EntryNotification notification) {
+        barDistance = barEntryDist.getDouble(0.0);
+        barAngle = barEntryAngle.getDouble(0.0);
+        barCount = (int)barEntryCount.getDouble(0.0);
+        SmartDashboard.getEntry("Bar angle (deg)").setDouble(Units.radiansToDegrees(barAngle));
+        SmartDashboard.getEntry("Bar distance (m)").setDouble(barDistance);
+        barTimer.reset();
     }
 
     public double getShooterDistance() {
@@ -216,5 +244,19 @@ public class ThisRobotTable extends CoprocessorTable {
     }
     public boolean isShooterTargetValid() {
         return shooterTimer.isActive();
+    }
+
+
+    public double getBarDistance() {
+        return barDistance;
+    }
+    public double getBarAngle() {
+        return barAngle;
+    }
+    public int getBarCount() {
+        return barCount;
+    }
+    public boolean isBarValid() {
+        return barTimer.isActive();
     }
 }

@@ -61,6 +61,6 @@ public class DriveToWaypointWithHeading extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_nav.getRosAutoState() == RosAutoState.FINISHED;
+    return m_nav.isRosAutoFinished();
   }
 }
