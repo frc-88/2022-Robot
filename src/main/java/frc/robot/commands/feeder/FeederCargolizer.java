@@ -42,7 +42,7 @@ public class FeederCargolizer extends CommandBase {
       } else if (m_cargoFoundCount++ < 50) {
         m_feeder.runUntilBallFound();
       } else {
-        m_feeder.stop();
+        m_feeder.stopUnlessLostCargo();
       }
     } else if (m_source.hasCargo()) {
       m_cargoComing = true;
@@ -55,7 +55,7 @@ public class FeederCargolizer extends CommandBase {
     } else {
       m_cargoFoundCount = -1;
       m_cargoComing = false;
-      m_feeder.stop();
+      m_feeder.stopUnlessLostCargo();
     }
   }
 
