@@ -47,8 +47,8 @@ public class Targeting extends SubsystemBase {
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 30.0;
   // private TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
-  // private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
+  private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
+  // private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
   private Pair<Double, Double> getLimelightTarget() {
     boolean llMoving = p_limelightMovingTargetMode.getValue();
@@ -135,14 +135,17 @@ public class Targeting extends SubsystemBase {
 
   public void setModeToLimelight() {
     targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
+    m_limelight.ledOn();
   }
 
   public void setModeToWaypoint() {
     targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
+    m_limelight.ledOff();
   }
 
   public void setModeToCombo() {
     targeting_mode = TARGETING_MODE.COMBO;
+    m_limelight.ledOn();
   }
 
   @Override

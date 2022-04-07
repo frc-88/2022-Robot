@@ -365,6 +365,7 @@ public class RobotContainer {
       m_targeting.setModeToLimelight();
     } else {
       m_targeting.setModeToWaypoint();
+      // m_targeting.setModeToCombo();
     }
 
     if (m_buttonBox.isDefaultTurretSwitchOn()) {
@@ -402,6 +403,7 @@ public class RobotContainer {
       }
     });
     m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToWaypoint) {
+    // m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToCombo) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
