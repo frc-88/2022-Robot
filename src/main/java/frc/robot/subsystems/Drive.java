@@ -353,6 +353,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     return (getLeftSpeed() + getRightSpeed()) / 2;
   }
 
+  public double getAccelerationEstimate() {
+    return Math.abs(getLeftSpeed() - m_leftCommandedSpeed) + Math.abs(getRightSpeed() - m_rightCommandedSpeed);
+  }
+
   public void setBrakeMode() {
     m_inBrake = true;
     m_leftDrive.brakeAll();

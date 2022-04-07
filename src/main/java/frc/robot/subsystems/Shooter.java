@@ -217,7 +217,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     boolean onTarget = onTarget();
     boolean turretOnTarget = m_turret.onTarget();
     boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) < 90.;
-    boolean wantsCargo = (m_active && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning);
+    boolean driveNotAccelerating = m_drive.getAccelerationEstimate() < 4.;
+    boolean wantsCargo = (m_active && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning && driveNotAccelerating);
 
     if (m_active && !wantsCargo) {
       System.out.println("***Shot blocked***");
@@ -225,6 +226,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       System.out.println("onTarget:" + onTarget);
       System.out.println("Turret onTarget:" + turretOnTarget);
       System.out.println("driveNotSpinning:" + driveNotSpinning);
+      System.out.println("driveNotAcclerating:" + driveNotAccelerating);
     }
 
     if (m_active && wantsCargo) {
