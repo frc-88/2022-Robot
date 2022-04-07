@@ -9,18 +9,25 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.util.drive.DriveUtils;
+import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
 public class Targeting extends SubsystemBase {
   private final Limelight m_limelight;
-  private final Navigation m_nav;
   private final Turret m_turret;
+  private final Hood m_hood;
   private final ThisRobotTable m_ros_interface;
+  private final Drive m_drive;
+
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
   private boolean m_has_target = false;
+  
+  private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
+
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -29,39 +36,54 @@ public class Targeting extends SubsystemBase {
   }
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, Navigation nav, ThisRobotTable ros_interface, Turret turret) {
+  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive) {
     m_limelight = limelight;
-    m_nav = nav;
     m_turret = turret;
+    m_hood = hood;
     m_ros_interface = ros_interface;
+    m_drive = drive;
   }
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
-  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 3.0;
+  private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 30.0;
+  // private TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
   // private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  // private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
+  private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
-  private Pair<Double, Double> getLimelightTarget(Limelight limelight, Turret turret) {
-      double angle = Double.NaN;
-      if (limelight.onTarget()) {
-          // keep on same target
-          angle = turret.getFacing();
-      } else if (limelight.hasTarget()) {
-          // if we have a target, track it
-          angle = turret.getFacing() - limelight.getTurretOffset();
+  private Pair<Double, Double> getLimelightTarget() {
+    boolean llMoving = p_limelightMovingTargetMode.getValue();
+    double angle = Double.NaN;
+    double distance = m_limelight.getTargetDistance();
+    double turretFacing = m_turret.getFacing();
+
+    if (llMoving && m_limelight.hasTarget()) {
+      distance = m_limelight.calcMovingDistance(m_drive.getStraightSpeed(), turretFacing, m_hood.isUp());
+      angle = turretFacing - m_limelight.getTurretOffset() 
+        - m_limelight.calcMovingTurretOffset(m_drive.getStraightSpeed(), turretFacing, distance, m_hood.isUp());
+    } else if (m_limelight.onTarget()) {
+        // keep on same target
+        angle = turretFacing;
+      } else if (m_limelight.hasTarget()) {
+        // if we have a target, track it
+        angle = turretFacing - m_limelight.getTurretOffset();
       }
-      double distance = limelight.getTargetDistance();
-      if (distance <= 0.0) {
-          distance = Double.NaN;
-      }
-      else {
-          distance += Constants.FIELD_UPPER_HUB_RADIUS;
-      }
-      return new Pair<Double, Double>(distance, angle);
+
+    if (distance <= 0.0) {
+      distance = Double.NaN;
+    }
+  
+    if (!llMoving) {
+      distance += Constants.FIELD_UPPER_HUB_RADIUS;
+    }
+
+    // Leave this on for ROS logging
+    SmartDashboard.putNumber("Limelight Target Angle", angle);
+    SmartDashboard.putNumber("Limelight Target Distance", distance);
+
+    return new Pair<Double, Double>(distance, angle);
   }
 
-  private Pair<Double, Double> getWaypointTarget(Navigation nav) {
+  private Pair<Double, Double> getWaypointTarget() {
     if (m_ros_interface.isShooterTargetValid()) {
       double baseTargetAngle = Math.toDegrees(m_ros_interface.getShooterAngle());
       double adder = DriveUtils.mod(baseTargetAngle + 180., 360) - DriveUtils.mod(m_turret.getFacing() + 180., 360);
@@ -119,6 +141,10 @@ public class Targeting extends SubsystemBase {
     targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
   }
 
+  public void setModeToCombo() {
+    targeting_mode = TARGETING_MODE.COMBO;
+  }
+
   @Override
   public void periodic() {
     double target_angle = m_turret.getDefaultFacing();
@@ -136,21 +162,21 @@ public class Targeting extends SubsystemBase {
     
     switch (targeting_mode) {
       case LIMELIGHT_ONLY:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget();
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         break;
       case WAYPOINT_ONLY:
-        waypoint_target = getWaypointTarget(m_nav);
+        waypoint_target = getWaypointTarget();
         waypoint_target_dist = waypoint_target.getFirst();
         waypoint_target_angle = waypoint_target.getSecond();
         break;
       case COMBO:
-        limelight_target = getLimelightTarget(m_limelight, m_turret);
+        limelight_target = getLimelightTarget();
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
         
-        waypoint_target = getWaypointTarget(m_nav);
+        waypoint_target = getWaypointTarget();
         waypoint_target_dist = waypoint_target.getFirst();
         waypoint_target_angle = waypoint_target.getSecond();
         break;
@@ -179,7 +205,9 @@ public class Targeting extends SubsystemBase {
     else {
         // If both the limelight and waypoint have a target,
         double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
-        SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
+        if (RobotContainer.isPublishingEnabled()) {
+          SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
+        }
         if (limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
             // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
             target_angle = limelight_target_angle;
@@ -191,9 +219,11 @@ public class Targeting extends SubsystemBase {
         has_target = true;
     }
 
-    SmartDashboard.putNumber("Turret:Waypoint target angle (degrees)", waypoint_target_angle);
-    SmartDashboard.putNumber("Turret:Limelight target angle (degrees)", limelight_target_angle);
-    SmartDashboard.putNumber("Turret:Track target angle (degrees)", target_angle);
+    if (RobotContainer.isPublishingEnabled()) {
+      SmartDashboard.putNumber("Turret:Waypoint target angle (degrees)", waypoint_target_angle);
+      SmartDashboard.putNumber("Turret:Limelight target angle (degrees)", limelight_target_angle);
+      SmartDashboard.putNumber("Turret:Track target angle (degrees)", target_angle);
+    }
 
     if (Double.isNaN(target_dist)) {
         // If the target distance hasn't been set yet,
@@ -223,9 +253,11 @@ public class Targeting extends SubsystemBase {
         }
     }
 
-    SmartDashboard.putNumber("Turret:Waypoint target dist (inches)", waypoint_target_dist);
-    SmartDashboard.putNumber("Turret:Limelight target dist (inches)", limelight_target_dist);
-    SmartDashboard.putNumber("Turret:Track target dist (inches)", target_dist);
+    if (RobotContainer.isPublishingEnabled()) {
+      SmartDashboard.putNumber("Turret:Waypoint target dist (inches)", waypoint_target_dist);
+      SmartDashboard.putNumber("Turret:Limelight target dist (inches)", limelight_target_dist);
+      SmartDashboard.putNumber("Turret:Track target dist (inches)", target_dist);
+    }
 
     m_target_dist = target_dist;
     m_target_angle = target_angle;

@@ -50,10 +50,77 @@ public class Limelight {
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
 
-    private final ValueInterpolator m_tofInterpolator = new ValueInterpolator(
-        new ValueInterpolator.ValuePair(6.0, 1),
-        new ValueInterpolator.ValuePair(12.0, 2),
-        new ValueInterpolator.ValuePair(24.0, 3));
+    // TOF table for hood up position (distance feet -> time of flight seconds):
+    private final ValueInterpolator m_tofInterpolatorHoodUp = new ValueInterpolator(
+        new ValueInterpolator.ValuePair(0.0, 0.0),
+        new ValueInterpolator.ValuePair(9.028942677707947, 0.83),
+        new ValueInterpolator.ValuePair(9.024921808216812, 0.88),
+        new ValueInterpolator.ValuePair(9.023835382214395, 0.89),
+        new ValueInterpolator.ValuePair(9.023274035824189, 0.92),
+        new ValueInterpolator.ValuePair(9.995079655928496, 0.82),
+        new ValueInterpolator.ValuePair(9.995210182513578, 1.01),
+        new ValueInterpolator.ValuePair(9.991552914785162, 0.83),
+        new ValueInterpolator.ValuePair(9.985967594225198, 0.98),
+        new ValueInterpolator.ValuePair(10.789694580590524, 1.03),
+        new ValueInterpolator.ValuePair(10.791006901932485, 0.94),
+        new ValueInterpolator.ValuePair(10.790540495279535, 0.88),
+        new ValueInterpolator.ValuePair(10.790199922538028, 1.0),
+        new ValueInterpolator.ValuePair(11.798104385607898, 1.0),
+        new ValueInterpolator.ValuePair(11.797955636477022, 1.15),
+        new ValueInterpolator.ValuePair(11.798032446468522, 0.99),
+        new ValueInterpolator.ValuePair(11.796991266778544, 1.18),
+        new ValueInterpolator.ValuePair(12.820827367215085, 1.09),
+        new ValueInterpolator.ValuePair(12.819698859949412, 1.15),
+        new ValueInterpolator.ValuePair(12.81877577676131, 1.12),
+        new ValueInterpolator.ValuePair(12.818387976504084, 1.27),
+        new ValueInterpolator.ValuePair(14.063237052180625, 1.2),
+        new ValueInterpolator.ValuePair(14.065336559641345, 1.24),
+        new ValueInterpolator.ValuePair(14.021858051908762, 1.07),
+        new ValueInterpolator.ValuePair(14.06427429826244, 1.23),
+        new ValueInterpolator.ValuePair(14.941989315003845, 1.31),
+        new ValueInterpolator.ValuePair(14.940192612361377, 1.25),
+        new ValueInterpolator.ValuePair(14.939139473957008, 1.25),
+        new ValueInterpolator.ValuePair(14.939519906628794, 1.16),
+        new ValueInterpolator.ValuePair(15.980572882947346, 1.14),
+        new ValueInterpolator.ValuePair(15.980319481995929, 1.23),
+        new ValueInterpolator.ValuePair(15.978856523541044, 1.28),
+        new ValueInterpolator.ValuePair(15.97792805164801, 1.31),
+        new ValueInterpolator.ValuePair(18.834241985906978, 1.55),
+        new ValueInterpolator.ValuePair(18.83308222714893, 1.69),
+        new ValueInterpolator.ValuePair(18.83307101375248, 1.63),
+        new ValueInterpolator.ValuePair(18.833007808043302, 1.56),
+        new ValueInterpolator.ValuePair(23.50616837308037, 1.86),
+        new ValueInterpolator.ValuePair(23.517527737644986, 1.89),
+        new ValueInterpolator.ValuePair(23.50366432728981, 1.82),
+        new ValueInterpolator.ValuePair(23.49570568058398, 1.86)
+    );
+
+    // TOF table for hood down position (distance feet -> time of flight seconds):
+    private final ValueInterpolator m_tofInterpolatorHoodDown = new ValueInterpolator(
+        new ValueInterpolator.ValuePair(0.0, 0.0),
+        new ValueInterpolator.ValuePair(0.8152195913844539, 0.0),
+        new ValueInterpolator.ValuePair(5.184239705524143, 1.11),
+        new ValueInterpolator.ValuePair(5.182767016671604, 1.01),
+        new ValueInterpolator.ValuePair(5.18241340539956, 1.06),
+        new ValueInterpolator.ValuePair(5.182585331009195, 1.12),
+        new ValueInterpolator.ValuePair(5.902512500656772, 1.08),
+        new ValueInterpolator.ValuePair(5.899989737464692, 1.04),
+        new ValueInterpolator.ValuePair(5.900924428276131, 1.11),
+        new ValueInterpolator.ValuePair(5.900194723534539, 1.09),
+        new ValueInterpolator.ValuePair(6.848232612200721, 0.97),
+        new ValueInterpolator.ValuePair(6.844102154915822, 1.15),
+        new ValueInterpolator.ValuePair(6.852439788954117, 1.08),
+        new ValueInterpolator.ValuePair(6.842353695229917, 1.1),
+        new ValueInterpolator.ValuePair(7.89100704921658, 1.09),
+        new ValueInterpolator.ValuePair(7.8903334409829515, 1.04),
+        new ValueInterpolator.ValuePair(7.890748940271609, 1.11),
+        new ValueInterpolator.ValuePair(7.888622327881805, 1.05),
+        new ValueInterpolator.ValuePair(9.10426859664236, 1.22),
+        new ValueInterpolator.ValuePair(9.10355986122437, 1.11),
+        new ValueInterpolator.ValuePair(9.103830335581618, 1.16),
+        new ValueInterpolator.ValuePair(9.102893582044421, 1.24),
+        new ValueInterpolator.ValuePair(9.978194737951139, 1.49)
+    );
         
     /**
      * Construct a Limelight instance with the default NetworkTables table name.
@@ -195,16 +262,17 @@ public class Limelight {
      * @param robotSpeed in feet per second
      * @return
      */
-    public double calcMovingDistance(double robotSpeed, double turretAngle) {
-        double target = m_targetDistance / 12.0;
+    public double calcMovingDistance(double robotSpeed, double turretAngle, boolean isHoodUp) {
+        double hubDist = (m_targetDistance + Constants.FIELD_UPPER_HUB_RADIUS)  / 12.0;
+        double target = hubDist;
         double tof;
 
         for (int i = 0; i < 3; i++) {
-            tof = m_tofInterpolator.getInterpolatedValue(target);
+            tof = getTofTable(isHoodUp).getInterpolatedValue(target);
             target = Math.sqrt(
-                Math.pow(m_targetDistance/12.0, 2) 
+                Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
-                - (2 * m_targetDistance/12.0 * robotSpeed * tof * 
+                - (2 * hubDist * robotSpeed * tof * 
                     Math.cos(180 + m_turretOffset - turretAngle)
                 )
             );
@@ -218,15 +286,27 @@ public class Limelight {
      * @param robotSpeed in feet per second
      * @return
      */
-    public double calcMovingTurretOffset(double robotSpeed, double turretAngle) {
+    public double calcMovingTurretOffset(double robotSpeed, double turretAngle, double distance, boolean isHoodUp) {
         double offset = 0.0;
-        double distance = calcMovingDistance(robotSpeed, turretAngle);
-        double tof = m_tofInterpolator.getInterpolatedValue(distance);
+        double tof = getTofTable(isHoodUp).getInterpolatedValue(distance);
 
-        Math.asin(Math.sin(180 + m_turretOffset - turretAngle) *
-            robotSpeed * tof / distance);
+        Math.asin(
+            Math.sin(180 + m_turretOffset - turretAngle) *
+            (robotSpeed * tof / distance) 
+        );
 
         return offset;
+    }
+
+    private ValueInterpolator getTofTable(boolean isHoodUp) {
+        ValueInterpolator tofInterpolator;
+        if (isHoodUp) {
+            tofInterpolator = m_tofInterpolatorHoodUp;
+        }
+        else {
+            tofInterpolator = m_tofInterpolatorHoodDown;
+        }
+        return tofInterpolator;
     }
     
     /**

@@ -56,6 +56,7 @@ public class ClimberStateMachineExecutor extends CommandBase {
     if (m_rolled) { 
       m_climber.setInnerMotionMagic(m_climber.getAverageInnerPivotAngle(), m_climber.getAverageInnerTelescopeHeight());
       m_climber.setOuterMotionMagic(m_climber.getAverageOuterPivotAngle(), m_climber.getAverageOuterTelescopeHeight());
+      m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);  // tilt camera to look down at the intake
       return;
     }
 
