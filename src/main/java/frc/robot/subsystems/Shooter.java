@@ -195,6 +195,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         m_cargoWaitTimer.start();
       } else if (m_cargoWaitTimer.get() > p_shooterReady.getValue()) {
         ready = true;
+      } else {
       }
     } else {
       ready = true;
