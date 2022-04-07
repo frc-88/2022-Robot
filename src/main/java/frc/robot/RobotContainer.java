@@ -52,6 +52,7 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
+import frc.robot.commands.autos.DriveToCargo;
 import frc.robot.commands.autos.DriveToWaypoint;
 import frc.robot.commands.autos.DriveToWaypointWithHeading;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
@@ -196,16 +197,7 @@ public class RobotContainer {
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
       new DriveDegrees(m_drive, 170.0, 120.0),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-      new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-      new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-      new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-      new ShootAll(m_shooter),
-      new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-      new ShootAll(m_shooter)
+      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
     )
   );
 
@@ -213,7 +205,7 @@ public class RobotContainer {
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new DriveToWaypoint(m_nav, m_drive, "cargo_<team>")
+    new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
   );
 
   private CommandBase m_autoTwoBallSpicy = 
@@ -223,7 +215,6 @@ public class RobotContainer {
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
     new SequentialCommandGroup(
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
@@ -241,18 +232,7 @@ public class RobotContainer {
       ),
       new ParallelCommandGroup(
         new HoodTrackCombo(m_hood, m_targeting),
-        new SequentialCommandGroup(
-          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-          new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-          new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-          new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-          new ShootAll(m_shooter).withTimeout(0.75),
-          new DriveToWaypoint(m_nav, m_drive, "cargo_<team>").withInterrupt(m_chamber::hasCargo),
-          new ShootAll(m_shooter).withTimeout(0.75)
-        )
+        new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
       )
     )
   );
@@ -263,7 +243,6 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5"),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
         new WaitCommand(0.5),
@@ -351,6 +330,7 @@ public class RobotContainer {
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
+      new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
     }
 
     if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {
