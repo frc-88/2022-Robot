@@ -50,13 +50,13 @@ public class DriveDegrees extends CommandBase {
     double angle = relativePose.getRotation().getDegrees();
     boolean should_stop = false;
     if (rotationalVelocityRadiansPerSecond > 0) {
-      if (angle < 0) {
+      if (angle < -180) {
         angle += 360.0;  // put between 0..360 to avoid wrap around issues
       }
       should_stop = angle > angleDegrees;
     }
     else {
-      if (angle > 0) {
+      if (angle > 180) {
         angle -= 360.0;  // put between -360..0 to avoid wrap around issues
       }
       should_stop = angle < angleDegrees;

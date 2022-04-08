@@ -209,7 +209,7 @@ public class Targeting extends SubsystemBase {
         // If both the limelight and waypoint have a target,
         double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
         if (RobotContainer.isPublishingEnabled()) {
-          SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
+          SmartDashboard.putNumber("Targeting:Limelight-waypoint delta (degrees)", limelight_global_delta);
         }
         if (limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
             // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
@@ -223,9 +223,9 @@ public class Targeting extends SubsystemBase {
     }
 
     if (RobotContainer.isPublishingEnabled()) {
-      SmartDashboard.putNumber("Turret:Waypoint target angle (degrees)", waypoint_target_angle);
-      SmartDashboard.putNumber("Turret:Limelight target angle (degrees)", limelight_target_angle);
-      SmartDashboard.putNumber("Turret:Track target angle (degrees)", target_angle);
+      SmartDashboard.putNumber("Targeting:Waypoint target angle (degrees)", waypoint_target_angle);
+      SmartDashboard.putNumber("Targeting:Limelight target angle (degrees)", limelight_target_angle);
+      SmartDashboard.putNumber("Targeting:Track target angle (degrees)", target_angle);
     }
 
     if (Double.isNaN(target_dist)) {
@@ -257,13 +257,15 @@ public class Targeting extends SubsystemBase {
     }
 
     if (RobotContainer.isPublishingEnabled()) {
-      SmartDashboard.putNumber("Turret:Waypoint target dist (inches)", waypoint_target_dist);
-      SmartDashboard.putNumber("Turret:Limelight target dist (inches)", limelight_target_dist);
-      SmartDashboard.putNumber("Turret:Track target dist (inches)", target_dist);
+      SmartDashboard.putNumber("Targeting:Waypoint target dist (inches)", waypoint_target_dist);
+      SmartDashboard.putNumber("Targeting:Limelight target dist (inches)", limelight_target_dist);
+      SmartDashboard.putNumber("Targeting:Track target dist (inches)", target_dist);
     }
 
     m_target_dist = target_dist;
     m_target_angle = target_angle;
     m_has_target = has_target;
+
+    SmartDashboard.putBoolean("Targeting:Has Target", m_has_target);
   }
 }

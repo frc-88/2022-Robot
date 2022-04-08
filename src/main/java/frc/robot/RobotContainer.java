@@ -224,9 +224,10 @@ public class RobotContainer {
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
           new InstantCommand(m_turret::stopTracking),
           new InstantCommand(m_sensors.limelight::ledOff),
-          new ShootAll(m_shooter).withTimeout(0.75),
+          new ShootAll(m_shooter).withTimeout(2.0),
           new InstantCommand(m_turret::startTracking),
-          new InstantCommand(m_sensors.limelight::ledOn)
+          new InstantCommand(m_sensors.limelight::ledOn),
+          new DriveDegrees(m_drive, -120.0, -120.0)
         ),
         new RunCommand(m_hood::raiseHood, m_hood)
       ),

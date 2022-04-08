@@ -70,7 +70,8 @@ public class DriveToCargo extends CommandBase {
       return;
     }
     m_drive.drive(command);
-    m_sensors.setCameraTilterAngle(m_robot_table.getCameraTiltCommand());
+    m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
+    // m_sensors.setCameraTilterAngle(m_robot_table.getCameraTiltCommand());
   }
 
   // Called once the command ends or is interrupted.
