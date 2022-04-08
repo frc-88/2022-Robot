@@ -349,7 +349,11 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    m_shooter.deactivate();
+    if (m_buttonBox.isAutoShootSwitchOn()) {
+      m_shooter.activateRestrictive();
+    } else {
+      m_shooter.deactivate();
+    }
     
     if (m_buttonBox.isTrackTurretSwitchOn()) {
       m_turret.startTracking();
@@ -369,11 +373,7 @@ public class RobotContainer {
       // m_targeting.setModeToCombo();
     }
 
-    if (m_buttonBox.isDefaultTurretSwitchOn()) {
-      m_turret.setDefaultFacing(180.);
-    } else {
-      m_turret.setDefaultFacing(0.);
-    }
+    m_turret.setDefaultFacing(0.);
   }
 
   public void robotFirstPeriodic() {
