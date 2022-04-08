@@ -7,6 +7,7 @@ import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -36,6 +37,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private Turret turret;
     private Sensors sensors;
     private Hood hood;
+    private Drive drive;
 
     private NetworkTable hoodTable;
     private NetworkTableEntry hoodStateEntry;
@@ -61,13 +63,18 @@ public class ThisRobotTable extends CoprocessorTable {
     private int barCount = 0;
     private MessageTimer barTimer = new MessageTimer(1_000_000);
 
+    private NetworkTable wheelSpeedTable;
+    private NetworkTableEntry leftSpeedEntry;
+    private NetworkTableEntry rightSpeedEntry;
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
             Intake intake,
             Turret turret,
             Sensors sensors,
-            Hood hood) {
+            Hood hood,
+            Drive drive) {
         super(chassis, address, port, updateInterval);
 
         this.outerArm = outerArm;
@@ -76,6 +83,7 @@ public class ThisRobotTable extends CoprocessorTable {
         this.turret = turret;
         this.sensors = sensors;
         this.hood = hood;
+        this.drive = drive;
 
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
@@ -94,12 +102,23 @@ public class ThisRobotTable extends CoprocessorTable {
         barEntryCount = barTable.getEntry("count");
         barEntryUpdate = barTable.getEntry("update");
         barEntryUpdate.addListener(this::barCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+
+        wheelSpeedTable = getRootTable().getSubTable("wheel_speeds");
+        leftSpeedEntry = wheelSpeedTable.getEntry("left");
+        rightSpeedEntry = wheelSpeedTable.getEntry("right");
     }
 
-    // @Override
-    // public void update() {
-    //     super.update();
-    // }
+    @Override
+    public void update() {
+        super.update();
+
+        if (!isConnected()) {
+            return;
+        }
+
+        leftSpeedEntry.setDouble(drive.getLeftSpeed());
+        rightSpeedEntry.setDouble(drive.getRightSpeed());
+    }
 
     public void updateSlow() {
         if (!isConnected()) {

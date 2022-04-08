@@ -86,7 +86,7 @@ public class RobotContainer {
     Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
     Constants.COPROCESSOR_PORT,
     Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
-    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
+    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood, m_drive
   );
   private final Navigation m_nav = new Navigation(m_ros_interface);
 

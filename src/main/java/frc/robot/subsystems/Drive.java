@@ -338,7 +338,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       return NumberCache.getValue("Drive Left Speed");
     }
 
-    return NumberCache.pushValue("Drive Left Speed", m_leftDrive.getScaledSensorVelocity());
+    return NumberCache.pushValue("Drive Left Speed", getRawLeftSpeed());
+  }
+
+  public double getRawLeftSpeed() {
+    return m_leftDrive.getScaledSensorVelocity();
   }
 
   public double getRightSpeed() {
@@ -346,7 +350,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       return NumberCache.getValue("Drive Right Speed");
     }
 
-    return NumberCache.pushValue("Drive Right Speed", m_rightDrive.getScaledSensorVelocity());
+    return NumberCache.pushValue("Drive Right Speed", getRawRightSpeed());
+  }
+
+  public double getRawRightSpeed() {
+    return m_rightDrive.getScaledSensorVelocity();
   }
 
   public double getStraightSpeed() {
@@ -386,7 +394,12 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public ChassisSpeeds getCurrentChassisSpeeds() {
-    return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(Units.feetToMeters(getLeftSpeed()), Units.feetToMeters(getRightSpeed())));
+    return m_kinematics.toChassisSpeeds(
+      new DifferentialDriveWheelSpeeds(
+        Units.feetToMeters(getLeftSpeed()),
+        Units.feetToMeters(getRightSpeed())
+      )
+    );
   }
 
   public DifferentialDriveWheelSpeeds wheelSpeedsFromChassisSpeeds(ChassisSpeeds speeds) {
