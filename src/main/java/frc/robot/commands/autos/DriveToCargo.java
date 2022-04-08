@@ -58,7 +58,7 @@ public class DriveToCargo extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_shooter.activate();
+    m_shooter.activateRestrictive();
     m_nav.setWaypointsPlan(m_plan, m_is_finished_timeout);
   }
 

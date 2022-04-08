@@ -44,6 +44,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     NumberCache.clear();
+    m_robotContainer.robotFirstPeriodic();
 
     // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
     // commands, running already-scheduled commands, removing finished or interrupted commands,

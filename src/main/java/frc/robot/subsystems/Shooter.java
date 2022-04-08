@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -34,7 +36,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Hood m_hood;
   private Turret m_turret;
   private Drive m_drive;
-  private Boolean m_active = false;
+  private DoubleSupplier m_shotProbabilitySupplier;
+
+  private static enum ActiveMode {
+    DEACTIVATED,
+    ACTIVE_PERMISSIVE,
+    ACTIVE_RESTRICTIVE
+  }
+
+  private ActiveMode m_active = ActiveMode.DEACTIVATED;
   private Timer m_cargoWaitTimer = new Timer();
   private boolean m_cargoWaiting = false;
   private boolean m_sourcesHadCargoLastCheck = false;
@@ -80,6 +90,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       5000.0);
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.5);
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
+  private DoublePreferenceConstant p_shooterSpinLimit = new DoublePreferenceConstant("Shooter Spin Limit", 90.);
+  private DoublePreferenceConstant p_shooterAccelerationLimit = new DoublePreferenceConstant("Shooter Acceleration Limit", 4.);
+  private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
 
   /** Creates a new Shooter. */
   public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources) {
@@ -88,6 +101,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_drive = drive;
     m_turret = turret;
     m_sources = sources;
+    m_shotProbabilitySupplier = () -> 1.;
 
     configureFlywheel();
 
@@ -159,12 +173,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return Math.abs(convertMotorTicksToRPM(m_flywheel.getClosedLoopError())) < p_flywheelPID.getTolerance().getValue();
   }
 
-  public void activate() {
-    m_active = true;
+  public void activatePermissive() {
+    m_active = ActiveMode.ACTIVE_PERMISSIVE;
+  }
+
+  public void activateRestrictive() {
+    m_active = ActiveMode.ACTIVE_RESTRICTIVE;
   }
 
   public void deactivate() {
-    m_active = false;
+    m_active = ActiveMode.DEACTIVATED;
   }
 
   private double convertMotorTicksToRPM(double motorVelocity) {
@@ -216,12 +234,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     boolean isFlywheelReady = isFlywheelReady();
     boolean onTarget = onTarget();
     boolean turretOnTarget = m_turret.onTarget();
-    boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) < 90.;
-    boolean driveNotAccelerating = m_drive.getAccelerationEstimate() < 4.;
+    boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) <= p_shooterSpinLimit.getValue();
+    boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
     boolean hoodNotMoving = !m_hood.isMoving();
-    boolean wantsCargo = (m_active && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning && driveNotAccelerating && hoodNotMoving);
+    boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
+    boolean wantsCargo = (m_active == ActiveMode.ACTIVE_RESTRICTIVE && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning && driveNotAccelerating && hoodNotMoving & highShotProbability)
+                          || (m_active == ActiveMode.ACTIVE_PERMISSIVE && isFlywheelReady && onTarget);
 
-    if (m_active && !wantsCargo) {
+    if (m_active != ActiveMode.DEACTIVATED && !wantsCargo) {
       System.out.println("***Shot blocked***");
       System.out.println("isFlywheelReasdy:" + isFlywheelReady);
       System.out.println("onTarget:" + onTarget);
@@ -231,7 +251,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       System.out.println("hoodNotMoving" + hoodNotMoving);
     }
 
-    if (m_active && wantsCargo) {
+    if (m_active != ActiveMode.DEACTIVATED && wantsCargo) {
       System.out.println("!!!SHOOT!!!");
     }
 
@@ -240,7 +260,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
+    if (m_active != ActiveMode.DEACTIVATED && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
     }
 

@@ -254,7 +254,7 @@ public class RobotContainer {
         new ShootAll(m_shooter),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfive.wpilib.json"), false),
-        new InstantCommand(m_shooter::activate)
+        new InstantCommand(m_shooter::activatePermissive)
       )
     );
 
@@ -376,6 +376,10 @@ public class RobotContainer {
     }
   }
 
+  public void robotFirstPeriodic() {
+    m_targeting.firstPeriodic();
+  }
+
   private void configureButtonBox() {
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
@@ -385,8 +389,12 @@ public class RobotContainer {
     m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::forceForwards, m_chamber));
     m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::forceReverse, m_chamber));
 
-    m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
-    m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
+    m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    m_buttonBox.shootButton.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activateRestrictive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isAutoShootSwitchOn));
+    m_buttonBox.autoShootSwitch.whenPressed(new InstantCommand(m_shooter::activateRestrictive));
+    m_buttonBox.autoShootSwitch.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
+
+
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.turretTrackSwitch.whenPressed(m_hoodAuto);
@@ -423,8 +431,8 @@ public class RobotContainer {
     //     return true;
     //   }
     // });
-    m_buttonBox.defaultTurretSwitch.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
-    m_buttonBox.defaultTurretSwitch.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
+    m_buttonBox.defaultTurretButton.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
+    m_buttonBox.defaultTurretButton.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
 
     m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
@@ -561,7 +569,8 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:RunSpeed", new InstantCommand(() -> {m_shooter.setFlywheelSpeed(new DoublePreferenceConstant("Shooter Test Speed", 0.0).getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:RunAuto", m_startFlywheel);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
-    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
+    SmartDashboard.putData("Shooter:ActivatePermissive", new InstantCommand(m_shooter::activatePermissive, m_shooter));
+    SmartDashboard.putData("Shooter:ActivateRestrictive", new InstantCommand(m_shooter::activateRestrictive, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 
     SmartDashboard.putData("Hood:Raise", m_hoodUp);
