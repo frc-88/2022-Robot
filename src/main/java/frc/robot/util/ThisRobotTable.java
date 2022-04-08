@@ -48,7 +48,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private NetworkTableEntry shooterTargetEntryUpdate;
     private double shooterDistance = 0.0;
     private double shooterAngle = 0.0;
-    private double shooterProbability = 0.0;
+    private double shooterProbability = 1.0;
     private MessageTimer shooterTimer = new MessageTimer(1_000_000);
 
     private NetworkTable barTable;
@@ -219,7 +219,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private void shooterTargetCallback(EntryNotification notification) {
         shooterDistance = shooterTargetEntryDist.getDouble(0.0);
         shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
-        shooterProbability = shooterTargetEntryProbability.getDouble(100.);
+        shooterProbability = shooterTargetEntryProbability.getDouble(1.);
         SmartDashboard.getEntry("Shot Probability").setDouble(shooterProbability);
         shooterTimer.reset();
     }

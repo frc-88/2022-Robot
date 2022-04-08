@@ -24,7 +24,7 @@ public class Targeting extends SubsystemBase {
 
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
-  private double m_shot_probability = 100.0;
+  private double m_shot_probability = 1.0;
   private boolean m_has_target = false;
   
   private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
@@ -172,7 +172,7 @@ public class Targeting extends SubsystemBase {
         limelight_target_dist = limelight_target.getFirst();
         limelight_target_angle = limelight_target.getSecond();
 
-        m_shot_probability = 100.;
+        m_shot_probability = 1.;
         break;
       case WAYPOINT_ONLY:
         waypoint_target = getWaypointTarget();
@@ -189,7 +189,7 @@ public class Targeting extends SubsystemBase {
         waypoint_target = getWaypointTarget();
         waypoint_target_dist = waypoint_target.getFirst();
         waypoint_target_angle = waypoint_target.getSecond();
-        
+
         m_shot_probability = m_ros_interface.getShooterProbability();
         break;
       default:
