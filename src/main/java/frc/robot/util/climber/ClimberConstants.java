@@ -136,7 +136,8 @@ public class ClimberConstants {
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR = new ClimberState(-28, 44, 10, 27, ClimberState.DEFAULT_PIVOT_TOLERANCE, 100, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR = new ClimberState(-28, 52, 10, 27);
     public static final ClimberState S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR = new ClimberState(-20, 54, 10, 27);
-    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(-10, 38, 10, 35);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR_HEAD_START = new ClimberState(-20, 54, 10, 35, 5, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(0, 38, -15, 35);
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR_AGAIN = new ClimberState(0, 38, -15, 35);
     public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ABOVE_TRAVERSAL_BAR = new ClimberState(0, 38, -15, 44);
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_ONTO_TRAVERSAL_BAR = new ClimberState(0, 38, -3, 44);
@@ -152,6 +153,7 @@ public class ClimberConstants {
                                                             .addState(S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR)
                                                             .addState(S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR)
                                                             .addState(new ClimberState(0.1))
+                                                            .addState(S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR_HEAD_START)
                                                             .addState(S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR)
                                                             .addState(S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR_AGAIN)
                                                             .addState(S_TRAVERSAL_REVERSE_LIFT_ABOVE_TRAVERSAL_BAR)
