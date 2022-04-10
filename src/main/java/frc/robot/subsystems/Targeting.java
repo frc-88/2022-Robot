@@ -122,12 +122,13 @@ public class Targeting extends SubsystemBase {
   }
 
   public void enableTurret() {
-    if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
-      m_limelight.ledOn();
-    }
-    else {
-      m_limelight.ledOff();
-    }
+    m_limelight.ledOn();
+    // if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
+    //   m_limelight.ledOn();
+    // }
+    // else {
+    //   m_limelight.ledOff();
+    // }
   }
 
   public void setTargetingMode(TARGETING_MODE mode) {
@@ -136,17 +137,14 @@ public class Targeting extends SubsystemBase {
 
   public void setModeToLimelight() {
     targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
-    m_limelight.ledOn();
   }
 
   public void setModeToWaypoint() {
     targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-    m_limelight.ledOff();
   }
 
   public void setModeToCombo() {
     targeting_mode = TARGETING_MODE.COMBO;
-    m_limelight.ledOn();
   }
 
   /**
@@ -164,31 +162,44 @@ public class Targeting extends SubsystemBase {
     Pair<Double, Double> limelight_target;
     Pair<Double, Double> waypoint_target;
 
+    limelight_target = getLimelightTarget();
+    limelight_target_dist = limelight_target.getFirst();
+    limelight_target_angle = limelight_target.getSecond();
+    
+    waypoint_target = getWaypointTarget();
+    waypoint_target_dist = waypoint_target.getFirst();
+    waypoint_target_angle = waypoint_target.getSecond();
+
+
     // both limelight_target and waypoint_target are in the format: distance (inches), angle (degrees)
     
     switch (targeting_mode) {
       case LIMELIGHT_ONLY:
-        limelight_target = getLimelightTarget();
-        limelight_target_dist = limelight_target.getFirst();
-        limelight_target_angle = limelight_target.getSecond();
+        // limelight_target = getLimelightTarget();
+        // limelight_target_dist = limelight_target.getFirst();
+        // limelight_target_angle = limelight_target.getSecond();
+        waypoint_target_dist = Double.NaN;
+        waypoint_target_angle = Double.NaN;
 
         m_shot_probability = 1.;
         break;
       case WAYPOINT_ONLY:
-        waypoint_target = getWaypointTarget();
-        waypoint_target_dist = waypoint_target.getFirst();
-        waypoint_target_angle = waypoint_target.getSecond();
+        // waypoint_target = getWaypointTarget();
+        // waypoint_target_dist = waypoint_target.getFirst();
+        // waypoint_target_angle = waypoint_target.getSecond();
+        limelight_target_dist = Double.NaN;
+        limelight_target_angle = Double.NaN;
 
         m_shot_probability = m_ros_interface.getShooterProbability();
         break;
       case COMBO:
-        limelight_target = getLimelightTarget();
-        limelight_target_dist = limelight_target.getFirst();
-        limelight_target_angle = limelight_target.getSecond();
+        // limelight_target = getLimelightTarget();
+        // limelight_target_dist = limelight_target.getFirst();
+        // limelight_target_angle = limelight_target.getSecond();
         
-        waypoint_target = getWaypointTarget();
-        waypoint_target_dist = waypoint_target.getFirst();
-        waypoint_target_angle = waypoint_target.getSecond();
+        // waypoint_target = getWaypointTarget();
+        // waypoint_target_dist = waypoint_target.getFirst();
+        // waypoint_target_angle = waypoint_target.getSecond();
 
         m_shot_probability = m_ros_interface.getShooterProbability();
         break;
