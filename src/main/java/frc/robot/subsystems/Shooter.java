@@ -55,12 +55,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(62.2, 2000),
-      new ValueInterpolator.ValuePair(70.9, 2050),
-      new ValueInterpolator.ValuePair(82.3, 2085),
-      new ValueInterpolator.ValuePair(94.9, 2150),
-      new ValueInterpolator.ValuePair(109.1, 2200),
-      new ValueInterpolator.ValuePair(119.7, 2500));
+      new ValueInterpolator.ValuePair(62.2, 2450),
+      new ValueInterpolator.ValuePair(70.9, 2350),
+      new ValueInterpolator.ValuePair(82.3, 2350),
+      new ValueInterpolator.ValuePair(94.9, 2350),
+      new ValueInterpolator.ValuePair(109.1, 2350),
+      new ValueInterpolator.ValuePair(119.7, 2350));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),

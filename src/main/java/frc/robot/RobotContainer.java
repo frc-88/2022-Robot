@@ -222,7 +222,7 @@ public class RobotContainer {
         new SequentialCommandGroup(
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
           new WaitCommand(0.5),
-          new ShootAll(m_shooter).withTimeout(2.0),
+          new ShootAll(m_shooter).withTimeout(3.0),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
           new InstantCommand(m_turret::stopTracking),
           new InstantCommand(m_sensors.limelight::ledOff),
@@ -253,7 +253,7 @@ public class RobotContainer {
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
-        new ShootAll(m_shooter).withTimeout(2.0),
+        new ShootAll(m_shooter).withTimeout(3.0),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfive.wpilib.json"), false),
         new InstantCommand(m_shooter::activatePermissive)
