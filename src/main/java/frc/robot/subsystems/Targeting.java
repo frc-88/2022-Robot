@@ -122,12 +122,13 @@ public class Targeting extends SubsystemBase {
   }
 
   public void enableTurret() {
-    if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
-      m_limelight.ledOn();
-    }
-    else {
-      m_limelight.ledOff();
-    }
+    m_limelight.ledOn();
+    // if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
+    //   m_limelight.ledOn();
+    // }
+    // else {
+    //   m_limelight.ledOff();
+    // }
   }
 
   public void setTargetingMode(TARGETING_MODE mode) {
@@ -136,17 +137,14 @@ public class Targeting extends SubsystemBase {
 
   public void setModeToLimelight() {
     targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
-    m_limelight.ledOn();
   }
 
   public void setModeToWaypoint() {
     targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-    m_limelight.ledOff();
   }
 
   public void setModeToCombo() {
     targeting_mode = TARGETING_MODE.COMBO;
-    m_limelight.ledOn();
   }
 
   /**

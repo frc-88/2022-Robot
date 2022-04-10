@@ -19,6 +19,7 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
+import frc.robot.util.ThisRobotTable;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -36,6 +37,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Hood m_hood;
   private Turret m_turret;
   private Drive m_drive;
+  private ThisRobotTable m_ros_interface;
   private DoubleSupplier m_shotProbabilitySupplier;
 
   private static enum ActiveMode {
@@ -95,12 +97,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
 
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources) {
+  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
     m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
     m_sources = sources;
+    m_ros_interface = ros_interface;
     m_shotProbabilitySupplier = () -> 1.;
 
     configureFlywheel();
@@ -248,7 +251,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       System.out.println("Turret onTarget:" + turretOnTarget);
       System.out.println("driveNotSpinning:" + driveNotSpinning);
       System.out.println("driveNotAcclerating:" + driveNotAccelerating);
-      System.out.println("hoodNotMoving" + hoodNotMoving);
+      System.out.println("highShotProbability:" + highShotProbability);
+      System.out.println("hoodNotMoving:" + hoodNotMoving);
     }
 
     if (m_active != ActiveMode.DEACTIVATED && wantsCargo) {
@@ -260,12 +264,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
+    double flyWheelSpeed = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
     if (m_active != ActiveMode.DEACTIVATED && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
+
+      // Tell ROS we shot something
+      m_ros_interface.signalShot(m_turret.getFacing(), 0.0, flyWheelSpeed);
     }
 
     if (RobotController.getFPGATime() - m_lastCargoEnteredShooter < p_cargoInShooter.getValue() * 1_000_000) {
-      m_drive.lockDrive();
+      m_drive.unlockDrive();
     } else {
       m_drive.unlockDrive();
     }
@@ -275,7 +283,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
     
     SmartDashboard.putNumber("Shooter Flywheel Velocity",
-        convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
+      flyWheelSpeed);
     SmartDashboard.putNumber("Shooter Flywheel Commanded Velocity",
         convertMotorTicksToRPM(m_flywheel.getClosedLoopTarget()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());

@@ -6,7 +6,9 @@ import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -36,6 +38,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private Turret turret;
     private Sensors sensors;
     private Hood hood;
+    private Drive drive;
 
     private NetworkTable hoodTable;
     private NetworkTableEntry hoodStateEntry;
@@ -61,6 +64,13 @@ public class ThisRobotTable extends CoprocessorTable {
     private int barCount = 0;
     private MessageTimer barTimer = new MessageTimer(1_000_000);
 
+    private NetworkTable shooterTable;
+    private NetworkTableEntry shooterEntryDist;
+    private NetworkTableEntry shooterEntryAngle;
+    private NetworkTableEntry shooterEntryCounter;
+    private NetworkTableEntry shooterEntrySpeed;
+    private int shotCounter = 0;
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
@@ -76,6 +86,7 @@ public class ThisRobotTable extends CoprocessorTable {
         this.turret = turret;
         this.sensors = sensors;
         this.hood = hood;
+        this.drive = (Drive)chassis;
 
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
@@ -94,12 +105,19 @@ public class ThisRobotTable extends CoprocessorTable {
         barEntryCount = barTable.getEntry("count");
         barEntryUpdate = barTable.getEntry("update");
         barEntryUpdate.addListener(this::barCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+
+        shooterTable = rootTable.getSubTable("shooter");
+        shooterEntryCounter = shooterTable.getEntry("counter");
+        shooterEntryAngle = shooterTable.getEntry("angle");
+        shooterEntryDist = shooterTable.getEntry("distance");
+        shooterEntrySpeed = shooterTable.getEntry("speed");
     }
 
-    // @Override
-    // public void update() {
-    //     super.update();
-    // }
+    @Override
+    public void update() {
+        drive.updateOdometry();
+        super.update();
+    }
 
     public void updateSlow() {
         if (!isConnected()) {
@@ -175,11 +193,21 @@ public class ThisRobotTable extends CoprocessorTable {
 
         // hood
         setHoodState(this.hood.isUp());
+
+        SmartDashboard.putNumber("ROS Ping", NetworkTableInstance.getDefault().getEntry("/ROS/status/tunnel/ping").getDouble(0.0));
     }
 
     private void setHoodState(boolean state) {
         hoodStateEntry.setBoolean(state);
         hoodStateUpdate.setDouble(getTime());
+    }
+
+    public void signalShot(double shotAngle, double shotDistance, double shotSpeed) {
+        shooterEntryCounter.setDouble(shotCounter);
+        shotCounter++;
+        shooterEntryAngle.setDouble(shotAngle);
+        shooterEntryDist.setDouble(shotDistance);
+        shooterEntrySpeed.setDouble(shotSpeed);
     }
 
     public double getCameraTiltCommand() {

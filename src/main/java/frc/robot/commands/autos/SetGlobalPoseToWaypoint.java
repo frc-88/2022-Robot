@@ -5,8 +5,11 @@
 package frc.robot.commands.autos;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Navigation;
+import frc.robot.util.roswaypoints.WaypointMap;
 
 public class SetGlobalPoseToWaypoint extends CommandBase {
   private final Navigation m_nav;
@@ -25,8 +28,17 @@ public class SetGlobalPoseToWaypoint extends CommandBase {
     Pose2d pose = m_nav.getWaypoint(m_waypointName);
     if (m_nav.isPoseValid(pose)) {
       m_nav.setPoseEstimate(pose);
+      SmartDashboard.putBoolean("ROS start pose valid", true);
     }
     else {
+      switch (WaypointMap.parseWaypointName(m_waypointName)) {
+        case "blue_start_5": m_nav.setPoseEstimate(new Pose2d(-0.5706, -2.3307, new Rotation2d(-1.5113))); break;
+        case "blue_start_2": m_nav.setPoseEstimate(new Pose2d(-2.2705, 1.1093, new Rotation2d(2.4611))); break;
+        case "red_start_5": m_nav.setPoseEstimate(new Pose2d(0.5706, 2.3307, new Rotation2d(1.6303))); break;
+        case "red_start_2": m_nav.setPoseEstimate(new Pose2d(2.2705, -1.1093, new Rotation2d(-0.68053))); break;
+        default: break;
+      }
+      SmartDashboard.putBoolean("ROS start pose valid", false);
       System.out.println("Warning: " + m_waypointName + " is not a valid waypoint name");
     }
   }

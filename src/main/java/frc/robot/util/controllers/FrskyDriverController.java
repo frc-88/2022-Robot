@@ -28,5 +28,10 @@ public class FrskyDriverController extends FrskyController implements DriverCont
     public boolean getForceLowGear() {
         return isTopRightSwitchOn();
     }
+
+    @Override
+    public boolean getMolassesMode() {
+        return isTopLeftSwitchOn();
+    }
     
 }

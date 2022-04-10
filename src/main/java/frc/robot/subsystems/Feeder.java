@@ -108,6 +108,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       }
     }
 
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
+    }
+
     m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityFinding.getValue());
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
@@ -115,7 +119,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   public void forceForwards() {
     unblockCargo();
 
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
       m_foundCargo = false;
     }
 
@@ -131,7 +135,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   public void forceReverse() {
     unblockCargo();
 
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
       m_foundCargo = false;
     }
 
@@ -146,6 +150,10 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
   public void stop() {
     blockCargo();
+
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
+    }
 
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }

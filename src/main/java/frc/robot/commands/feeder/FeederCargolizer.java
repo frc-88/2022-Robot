@@ -44,9 +44,17 @@ public class FeederCargolizer extends CommandBase {
     } else if (m_source.hasCargo()) {
       m_cargoComing = true;
       m_waitingCount = 0;
-      m_feeder.runUntilBallFound();
-    } else if (m_cargoComing && m_waitingCount++<100) {
-      m_feeder.runUntilBallFound();
+      if (m_target.wantsCargo()) {
+        m_feeder.forceForwards();
+      } else {
+        m_feeder.runUntilBallFound();
+      }
+    } else if (m_cargoComing && m_waitingCount++<50) {
+      if (m_target.wantsCargo()) {
+        m_feeder.forceForwards();
+      } else {
+        m_feeder.runUntilBallFound();
+      }
     } else {
       m_cargoComing = false;
       m_feeder.stop();
