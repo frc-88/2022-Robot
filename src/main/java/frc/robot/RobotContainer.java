@@ -235,7 +235,10 @@ public class RobotContainer {
       ),
       new ParallelCommandGroup(
         new HoodTrackCombo(m_hood, m_targeting),
-        new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+        new SequentialCommandGroup(
+          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
+          new InstantCommand(m_shooter::activatePermissive)
+        )
       )
     )
   );
