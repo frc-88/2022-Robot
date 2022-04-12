@@ -235,13 +235,13 @@ public class ThisRobotTable extends CoprocessorTable {
     private double convertIntakeAngle(boolean isDeployLimit, boolean isStowLimit) {
         double angle = 0.0;
         if (!isDeployLimit && !isStowLimit) {
-            angle = 45.0;
+            angle = -45.0;
         }
         else if (isDeployLimit) {
-            angle = 90.0;
+            angle = 0.0;
         }
         else if (isStowLimit) {
-            angle = 0.0;
+            angle = -90.0;
         }
         return Math.toRadians(angle);
     }
