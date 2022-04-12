@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -28,6 +29,8 @@ public class Targeting extends SubsystemBase {
   
   private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
 
+  private long m_resetToLimelightCooldownTimer = 0;
+  private long m_resetToLimelightCooldown = 1_000_000;
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -262,5 +265,14 @@ public class Targeting extends SubsystemBase {
     m_target_dist = target_dist;
     m_target_angle = target_angle;
     m_has_target = has_target;
+
+    if (targeting_mode == TARGETING_MODE.LIMELIGHT_ONLY) {
+      // Tell ROS to reset to the limelight + odometry estimated position
+      long currentTime = RobotController.getFPGATime();
+      if (currentTime - m_resetToLimelightCooldownTimer > m_resetToLimelightCooldown) {
+        m_ros_interface.resetPoseToLimelight();
+        m_resetToLimelightCooldownTimer = currentTime;
+      }
+    }
   }
 }

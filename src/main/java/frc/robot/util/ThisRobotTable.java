@@ -61,6 +61,9 @@ public class ThisRobotTable extends CoprocessorTable {
     private int barCount = 0;
     private MessageTimer barTimer = new MessageTimer(1_000_000);
 
+    private NetworkTable resetPoseToLimelightTable;
+    private NetworkTableEntry resetPoseToLimelightUpdate;
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
@@ -94,6 +97,9 @@ public class ThisRobotTable extends CoprocessorTable {
         barEntryCount = barTable.getEntry("count");
         barEntryUpdate = barTable.getEntry("update");
         barEntryUpdate.addListener(this::barCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+
+        resetPoseToLimelightTable = rootTable.getSubTable("resetToLimelight");
+        resetPoseToLimelightUpdate = resetPoseToLimelightTable.getEntry("update");
     }
 
     // @Override
@@ -180,6 +186,10 @@ public class ThisRobotTable extends CoprocessorTable {
     private void setHoodState(boolean state) {
         hoodStateEntry.setBoolean(state);
         hoodStateUpdate.setDouble(getTime());
+    }
+
+    public void resetPoseToLimelight() {
+        resetPoseToLimelightUpdate.setDouble(getTime());
     }
 
     public double getCameraTiltCommand() {

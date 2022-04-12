@@ -57,6 +57,7 @@ import frc.robot.commands.autos.DriveToWaypoint;
 import frc.robot.commands.autos.DriveToWaypointWithHeading;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
 import frc.robot.commands.autos.PassthroughRosCommand;
+import frc.robot.commands.autos.SetGlobalPoseToLimelight;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -395,6 +396,7 @@ public class RobotContainer {
         return true;
       }
     });
+
     m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToCombo) {
       @Override
       public boolean runsWhenDisabled() {
