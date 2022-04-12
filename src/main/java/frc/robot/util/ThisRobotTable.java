@@ -119,10 +119,21 @@ public class ThisRobotTable extends CoprocessorTable {
         shooterEntrySpeed = shooterTable.getEntry("speed");
     }
 
+    private double gsToMetersPerSecondSquared(double gs) {
+        return gs * 9.81;
+    }
+    
     @Override
     public void update() {
         drive.updateOdometry();
         super.update();
+        
+        sendImu(
+            Units.degreesToRadians(sensors.navx.getYaw()),
+            Units.degreesToRadians(sensors.navx.getYawRate()),
+            gsToMetersPerSecondSquared(sensors.navx.getAccelX()),
+            gsToMetersPerSecondSquared(sensors.navx.getAccelY())
+        );
     }
 
     public void updateSlow() {

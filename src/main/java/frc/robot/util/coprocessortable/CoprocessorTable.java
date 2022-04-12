@@ -38,6 +38,18 @@ public class CoprocessorTable {
     private NetworkTableEntry odomEntryVt;
     private NetworkTableEntry odomEntryUpdate;
 
+    private NetworkTable imuTable;
+    private NetworkTableEntry imuEntryAccelX;
+    private NetworkTableEntry imuEntryAccelY;
+    private NetworkTableEntry imuEntryAccelZ;
+    private NetworkTableEntry imuEntryGyroX;
+    private NetworkTableEntry imuEntryGyroY;
+    private NetworkTableEntry imuEntryGyroZ;
+    private NetworkTableEntry imuEntryAngleX;
+    private NetworkTableEntry imuEntryAngleY;
+    private NetworkTableEntry imuEntryAngleZ;
+    private NetworkTableEntry imuEntryUpdate;
+
     private NetworkTable cmdVelTable;
     private NetworkTableEntry cmdVelEntryX;
     private NetworkTableEntry cmdVelEntryY;
@@ -134,6 +146,18 @@ public class CoprocessorTable {
         odomEntryVt = odomTable.getEntry("vt");
         odomEntryUpdate = odomTable.getEntry("update");
 
+        imuTable = rootTable.getSubTable("imu");
+        imuEntryAccelX = imuTable.getEntry("accel/x");
+        imuEntryAccelY = imuTable.getEntry("accel/y");
+        imuEntryAccelZ = imuTable.getEntry("accel/z");
+        imuEntryGyroX = imuTable.getEntry("gyro/x");
+        imuEntryGyroY = imuTable.getEntry("gyro/y");
+        imuEntryGyroZ = imuTable.getEntry("gyro/z");
+        imuEntryAngleX = imuTable.getEntry("angle/x");
+        imuEntryAngleY = imuTable.getEntry("angle/y");
+        imuEntryAngleZ = imuTable.getEntry("angle/z");
+        imuEntryUpdate = imuTable.getEntry("update");
+
         cmdVelTable = rootTable.getSubTable("cmd_vel");
         cmdVelEntryX = cmdVelTable.getEntry("x");
         cmdVelEntryY = cmdVelTable.getEntry("y");
@@ -184,6 +208,9 @@ public class CoprocessorTable {
         jointCommandsTable = jointsTable.getSubTable("commands");
 
         waypointsTable = rootTable.getSubTable("waypoints");
+
+        sendOdometry();
+        sendImu(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
 
     private void cmdVelCallback(EntryNotification notification) {
@@ -239,6 +266,17 @@ public class CoprocessorTable {
             return;
         }
         
+        sendOdometry();
+        
+        sendMatchStatus(
+            DriverStation.isAutonomous(),
+            DriverStation.getMatchTime(),
+            DriverStation.getAlliance()
+        );
+    }
+
+    public void sendOdometry()
+    {
         Pose2d pose = this.chassis.getOdometryPose();
         ChassisSpeeds velocity = this.chassis.getChassisVelocity();
         odomEntryX.setDouble(pose.getX());
@@ -248,12 +286,30 @@ public class CoprocessorTable {
         odomEntryVy.setDouble(velocity.vyMetersPerSecond);
         odomEntryVt.setDouble(velocity.omegaRadiansPerSecond);
         odomEntryUpdate.setDouble(getTime());
+    }
 
-        sendMatchStatus(
-            DriverStation.isAutonomous(),
-            DriverStation.getMatchTime(),
-            DriverStation.getAlliance()
-        );
+    public void sendImu(double ax, double ay, double az, double gx, double gy, double gz, double tx, double ty, double tz)
+    {
+        imuEntryAccelX.setDouble(ax);
+        imuEntryAccelY.setDouble(ay);
+        imuEntryAccelZ.setDouble(az);
+        imuEntryGyroX.setDouble(gx);
+        imuEntryGyroY.setDouble(gy);
+        imuEntryGyroZ.setDouble(gz);
+        imuEntryAngleX.setDouble(tx);
+        imuEntryAngleY.setDouble(ty);
+        imuEntryAngleZ.setDouble(tz);
+        imuEntryUpdate.setDouble(getTime());
+    }
+
+    public void sendImu(double ax, double ay, double gz, double tz)
+    {
+        // Only send 2D parameters
+        imuEntryAccelX.setDouble(ax);
+        imuEntryAccelY.setDouble(ay);
+        imuEntryGyroZ.setDouble(gz);
+        imuEntryAngleZ.setDouble(tz);
+        imuEntryUpdate.setDouble(getTime());
     }
 
     public NetworkTable getWaypointsTable() {
