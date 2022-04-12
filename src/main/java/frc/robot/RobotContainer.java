@@ -376,7 +376,7 @@ public class RobotContainer {
     if (!m_nav.isConnected() || m_buttonBox.isROSDisableSwitchOn()) {
       m_targeting.setModeToLimelight();
     } else {
-      m_targeting.setModeToWaypoint();
+      m_targeting.setModeToDefault();
     }
 
     m_sensors.firstPeriodic();
@@ -419,7 +419,7 @@ public class RobotContainer {
       }
     });
 
-    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToCombo) {
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToDefault) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
