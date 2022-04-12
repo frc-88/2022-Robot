@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -29,6 +30,8 @@ public class Targeting extends SubsystemBase {
   
   private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
 
+  private long m_resetToLimelightCooldownTimer = 0;
+  private long m_resetToLimelightCooldown = 1_000_000;
 
   private enum TARGETING_MODE {
     LIMELIGHT_ONLY,
@@ -47,9 +50,8 @@ public class Targeting extends SubsystemBase {
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 30.0;
-  // private TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
-  private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  // private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
+  private TARGETING_MODE DEFAULT_MODE = TARGETING_MODE.WAYPOINT_ONLY;
+  private TARGETING_MODE targeting_mode = DEFAULT_MODE;
 
   private Pair<Double, Double> getLimelightTarget() {
     boolean llMoving = p_limelightMovingTargetMode.getValue();
@@ -145,6 +147,10 @@ public class Targeting extends SubsystemBase {
 
   public void setModeToCombo() {
     targeting_mode = TARGETING_MODE.COMBO;
+  }
+
+  public void setModeToDefault() {
+    targeting_mode = DEFAULT_MODE;
   }
 
   /**
@@ -286,6 +292,14 @@ public class Targeting extends SubsystemBase {
     m_target_angle = target_angle;
     m_has_target = has_target;
 
+    if (targeting_mode == TARGETING_MODE.LIMELIGHT_ONLY) {
+      // Tell ROS to reset to the limelight + odometry estimated position
+      long currentTime = RobotController.getFPGATime();
+      if (currentTime - m_resetToLimelightCooldownTimer > m_resetToLimelightCooldown) {
+        m_ros_interface.resetPoseToLimelight();
+        m_resetToLimelightCooldownTimer = currentTime;
+      }
+    }
     SmartDashboard.putBoolean("Targeting:Has Target", m_has_target);
   }
 }

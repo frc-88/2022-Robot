@@ -64,6 +64,9 @@ public class ThisRobotTable extends CoprocessorTable {
     private int barCount = 0;
     private MessageTimer barTimer = new MessageTimer(1_000_000);
 
+    private NetworkTable resetPoseToLimelightTable;
+    private NetworkTableEntry resetPoseToLimelightUpdate;
+
     private NetworkTable shooterTable;
     private NetworkTableEntry shooterEntryDist;
     private NetworkTableEntry shooterEntryAngle;
@@ -106,6 +109,9 @@ public class ThisRobotTable extends CoprocessorTable {
         barEntryUpdate = barTable.getEntry("update");
         barEntryUpdate.addListener(this::barCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
 
+        resetPoseToLimelightTable = rootTable.getSubTable("resetToLimelight");
+        resetPoseToLimelightUpdate = resetPoseToLimelightTable.getEntry("update");
+
         shooterTable = rootTable.getSubTable("shooter");
         shooterEntryCounter = shooterTable.getEntry("counter");
         shooterEntryAngle = shooterTable.getEntry("angle");
@@ -113,10 +119,21 @@ public class ThisRobotTable extends CoprocessorTable {
         shooterEntrySpeed = shooterTable.getEntry("speed");
     }
 
+    private double gsToMetersPerSecondSquared(double gs) {
+        return gs * 9.81;
+    }
+    
     @Override
     public void update() {
         drive.updateOdometry();
         super.update();
+        
+        sendImu(
+            Units.degreesToRadians(sensors.navx.getYaw()),
+            Units.degreesToRadians(sensors.navx.getYawRate()),
+            gsToMetersPerSecondSquared(sensors.navx.getAccelX()),
+            gsToMetersPerSecondSquared(sensors.navx.getAccelY())
+        );
     }
 
     public void updateSlow() {
@@ -202,6 +219,10 @@ public class ThisRobotTable extends CoprocessorTable {
         hoodStateUpdate.setDouble(getTime());
     }
 
+    public void resetPoseToLimelight() {
+        resetPoseToLimelightUpdate.setDouble(getTime());
+    }
+
     public void signalShot(double shotAngle, double shotDistance, double shotSpeed) {
         shooterEntryCounter.setDouble(shotCounter);
         shotCounter++;
@@ -225,13 +246,13 @@ public class ThisRobotTable extends CoprocessorTable {
     private double convertIntakeAngle(boolean isDeployLimit, boolean isStowLimit) {
         double angle = 0.0;
         if (!isDeployLimit && !isStowLimit) {
-            angle = 45.0;
+            angle = -45.0;
         }
         else if (isDeployLimit) {
-            angle = 90.0;
+            angle = 0.0;
         }
         else if (isStowLimit) {
-            angle = 0.0;
+            angle = -90.0;
         }
         return Math.toRadians(angle);
     }

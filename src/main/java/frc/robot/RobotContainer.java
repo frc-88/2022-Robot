@@ -59,6 +59,7 @@ import frc.robot.commands.autos.DriveToWaypoint;
 import frc.robot.commands.autos.DriveToWaypointWithHeading;
 import frc.robot.commands.autos.DriveWithWaypointsPlan;
 import frc.robot.commands.autos.PassthroughRosCommand;
+import frc.robot.commands.autos.SetGlobalPoseToLimelight;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -378,7 +379,7 @@ public class RobotContainer {
     if (!m_nav.isConnected() || m_buttonBox.isROSDisableSwitchOn()) {
       m_targeting.setModeToLimelight();
     } else {
-      m_targeting.setModeToWaypoint();
+      m_targeting.setModeToDefault();
     }
 
     m_sensors.firstPeriodic();
@@ -413,6 +414,20 @@ public class RobotContainer {
     
     // m_buttonBox.rosDisableSwitch.whenPressed(m_arcadeDrive);
     // m_buttonBox.rosDisableSwitch.whenReleased(new PassthroughRosCommand(m_drive, m_ros_interface));
+    
+    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_targeting::setModeToLimelight) {
+      @Override
+      public boolean runsWhenDisabled() {
+        return true;
+      }
+    });
+
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToDefault) {
+      @Override
+      public boolean runsWhenDisabled() {
+        return true;
+      }
+    });
 
     // m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
     //   @Override

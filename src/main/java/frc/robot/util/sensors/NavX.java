@@ -33,6 +33,14 @@ public class NavX {
         return Math.toDegrees(m_ahrs.getRate());
     }
 
+    public double getAccelX() {
+        return m_ahrs.getRawAccelX();
+    }
+
+    public double getAccelY() {
+        return m_ahrs.getRawAccelY();
+    }
+
     // 1-Jan-2020 Adding Pitch and Roll functions
     // At startup, the NavX will calibrate.  It is necessary to set yaw to zero, 
     // but it does not appear that pitch and roll need to be zeroed.
