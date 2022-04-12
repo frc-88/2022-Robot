@@ -23,7 +23,7 @@ public class ShootAll extends CommandBase {
   public void initialize() {
     m_count = 0;
     m_ballSeen = false;
-    m_shooter.activate();
+    m_shooter.activatePermissive();
   }
 
   // Called every time the scheduler runs while the command is scheduled.

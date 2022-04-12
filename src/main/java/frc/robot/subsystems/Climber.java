@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -31,6 +32,10 @@ public class Climber extends SubsystemBase {
     }
 
     public void calibrate() {
+        if (DriverStation.isAutonomous()) {
+            return;
+        }
+
         if (!innerArm.isCalibrated()) {
             innerArm.calibrate();
         } else if (!outerArm.isCalibrated()) {

@@ -6,7 +6,9 @@ import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -36,6 +38,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private Turret turret;
     private Sensors sensors;
     private Hood hood;
+    private Drive drive;
 
     private NetworkTable hoodTable;
     private NetworkTableEntry hoodStateEntry;
@@ -48,7 +51,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private NetworkTableEntry shooterTargetEntryUpdate;
     private double shooterDistance = 0.0;
     private double shooterAngle = 0.0;
-    private double shooterProbability = 0.0;
+    private double shooterProbability = 1.0;
     private MessageTimer shooterTimer = new MessageTimer(1_000_000);
 
     private NetworkTable barTable;
@@ -63,6 +66,13 @@ public class ThisRobotTable extends CoprocessorTable {
 
     private NetworkTable resetPoseToLimelightTable;
     private NetworkTableEntry resetPoseToLimelightUpdate;
+
+    private NetworkTable shooterTable;
+    private NetworkTableEntry shooterEntryDist;
+    private NetworkTableEntry shooterEntryAngle;
+    private NetworkTableEntry shooterEntryCounter;
+    private NetworkTableEntry shooterEntrySpeed;
+    private int shotCounter = 0;
 
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
@@ -79,6 +89,7 @@ public class ThisRobotTable extends CoprocessorTable {
         this.turret = turret;
         this.sensors = sensors;
         this.hood = hood;
+        this.drive = (Drive)chassis;
 
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
@@ -100,12 +111,19 @@ public class ThisRobotTable extends CoprocessorTable {
 
         resetPoseToLimelightTable = rootTable.getSubTable("resetToLimelight");
         resetPoseToLimelightUpdate = resetPoseToLimelightTable.getEntry("update");
+
+        shooterTable = rootTable.getSubTable("shooter");
+        shooterEntryCounter = shooterTable.getEntry("counter");
+        shooterEntryAngle = shooterTable.getEntry("angle");
+        shooterEntryDist = shooterTable.getEntry("distance");
+        shooterEntrySpeed = shooterTable.getEntry("speed");
     }
 
-    // @Override
-    // public void update() {
-    //     super.update();
-    // }
+    @Override
+    public void update() {
+        drive.updateOdometry();
+        super.update();
+    }
 
     public void updateSlow() {
         if (!isConnected()) {
@@ -181,6 +199,8 @@ public class ThisRobotTable extends CoprocessorTable {
 
         // hood
         setHoodState(this.hood.isUp());
+
+        SmartDashboard.putNumber("ROS Ping", NetworkTableInstance.getDefault().getEntry("/ROS/status/tunnel/ping").getDouble(0.0));
     }
 
     private void setHoodState(boolean state) {
@@ -190,6 +210,14 @@ public class ThisRobotTable extends CoprocessorTable {
 
     public void resetPoseToLimelight() {
         resetPoseToLimelightUpdate.setDouble(getTime());
+    }
+
+    public void signalShot(double shotAngle, double shotDistance, double shotSpeed) {
+        shooterEntryCounter.setDouble(shotCounter);
+        shotCounter++;
+        shooterEntryAngle.setDouble(shotAngle);
+        shooterEntryDist.setDouble(shotDistance);
+        shooterEntrySpeed.setDouble(shotSpeed);
     }
 
     public double getCameraTiltCommand() {
@@ -229,7 +257,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private void shooterTargetCallback(EntryNotification notification) {
         shooterDistance = shooterTargetEntryDist.getDouble(0.0);
         shooterAngle = shooterTargetEntryAngle.getDouble(0.0);
-        shooterProbability = shooterTargetEntryProbability.getDouble(0.0);
+        shooterProbability = shooterTargetEntryProbability.getDouble(1.);
         SmartDashboard.getEntry("Shot Probability").setDouble(shooterProbability);
         shooterTimer.reset();
     }

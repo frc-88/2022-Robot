@@ -25,6 +25,7 @@ public class Targeting extends SubsystemBase {
 
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
+  private double m_shot_probability = 1.0;
   private boolean m_has_target = false;
   
   private BooleanPreferenceConstant p_limelightMovingTargetMode = new BooleanPreferenceConstant("LL Moving Shot", false);
@@ -50,8 +51,8 @@ public class Targeting extends SubsystemBase {
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_DIST_INCHES = 30.0;
   // private TARGETING_MODE targeting_mode = TARGETING_MODE.LIMELIGHT_ONLY;
-  // private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
-  private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
+  private TARGETING_MODE targeting_mode = TARGETING_MODE.WAYPOINT_ONLY;
+  // private TARGETING_MODE targeting_mode = TARGETING_MODE.COMBO;
 
   private Pair<Double, Double> getLimelightTarget() {
     boolean llMoving = p_limelightMovingTargetMode.getValue();
@@ -124,12 +125,13 @@ public class Targeting extends SubsystemBase {
   }
 
   public void enableTurret() {
-    if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
-      m_limelight.ledOn();
-    }
-    else {
-      m_limelight.ledOff();
-    }
+    m_limelight.ledOn();
+    // if (targeting_mode != TARGETING_MODE.WAYPOINT_ONLY) {
+    //   m_limelight.ledOn();
+    // }
+    // else {
+    //   m_limelight.ledOff();
+    // }
   }
 
   public void setTargetingMode(TARGETING_MODE mode) {
@@ -148,8 +150,10 @@ public class Targeting extends SubsystemBase {
     targeting_mode = TARGETING_MODE.COMBO;
   }
 
-  @Override
-  public void periodic() {
+  /**
+   * Like periodic(), but runs before commands
+   */
+  public void firstPeriodic() {
     double target_angle = m_turret.getDefaultFacing();
     double target_dist = Double.NaN;
     boolean has_target = true;
@@ -161,27 +165,46 @@ public class Targeting extends SubsystemBase {
     Pair<Double, Double> limelight_target;
     Pair<Double, Double> waypoint_target;
 
+    limelight_target = getLimelightTarget();
+    limelight_target_dist = limelight_target.getFirst();
+    limelight_target_angle = limelight_target.getSecond();
+    
+    waypoint_target = getWaypointTarget();
+    waypoint_target_dist = waypoint_target.getFirst();
+    waypoint_target_angle = waypoint_target.getSecond();
+
+
     // both limelight_target and waypoint_target are in the format: distance (inches), angle (degrees)
     
     switch (targeting_mode) {
       case LIMELIGHT_ONLY:
-        limelight_target = getLimelightTarget();
-        limelight_target_dist = limelight_target.getFirst();
-        limelight_target_angle = limelight_target.getSecond();
+        // limelight_target = getLimelightTarget();
+        // limelight_target_dist = limelight_target.getFirst();
+        // limelight_target_angle = limelight_target.getSecond();
+        waypoint_target_dist = Double.NaN;
+        waypoint_target_angle = Double.NaN;
+
+        m_shot_probability = 1.;
         break;
       case WAYPOINT_ONLY:
-        waypoint_target = getWaypointTarget();
-        waypoint_target_dist = waypoint_target.getFirst();
-        waypoint_target_angle = waypoint_target.getSecond();
+        // waypoint_target = getWaypointTarget();
+        // waypoint_target_dist = waypoint_target.getFirst();
+        // waypoint_target_angle = waypoint_target.getSecond();
+        limelight_target_dist = Double.NaN;
+        limelight_target_angle = Double.NaN;
+
+        m_shot_probability = m_ros_interface.getShooterProbability();
         break;
       case COMBO:
-        limelight_target = getLimelightTarget();
-        limelight_target_dist = limelight_target.getFirst();
-        limelight_target_angle = limelight_target.getSecond();
+        // limelight_target = getLimelightTarget();
+        // limelight_target_dist = limelight_target.getFirst();
+        // limelight_target_angle = limelight_target.getSecond();
         
-        waypoint_target = getWaypointTarget();
-        waypoint_target_dist = waypoint_target.getFirst();
-        waypoint_target_angle = waypoint_target.getSecond();
+        // waypoint_target = getWaypointTarget();
+        // waypoint_target_dist = waypoint_target.getFirst();
+        // waypoint_target_angle = waypoint_target.getSecond();
+
+        m_shot_probability = m_ros_interface.getShooterProbability();
         break;
       default:
         break;
@@ -209,7 +232,7 @@ public class Targeting extends SubsystemBase {
         // If both the limelight and waypoint have a target,
         double limelight_global_delta = Math.abs((limelight_target_angle % 360) - waypoint_target_angle);
         if (RobotContainer.isPublishingEnabled()) {
-          SmartDashboard.putNumber("Turret:Limelight-waypoint delta (degrees)", limelight_global_delta);
+          SmartDashboard.putNumber("Targeting:Limelight-waypoint delta (degrees)", limelight_global_delta);
         }
         if (limelight_global_delta <= LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES) {
             // if the limelight and waypoint target are within a threshold of agreement, use the limelight's target angle
@@ -223,9 +246,9 @@ public class Targeting extends SubsystemBase {
     }
 
     if (RobotContainer.isPublishingEnabled()) {
-      SmartDashboard.putNumber("Turret:Waypoint target angle (degrees)", waypoint_target_angle);
-      SmartDashboard.putNumber("Turret:Limelight target angle (degrees)", limelight_target_angle);
-      SmartDashboard.putNumber("Turret:Track target angle (degrees)", target_angle);
+      SmartDashboard.putNumber("Targeting:Waypoint target angle (degrees)", waypoint_target_angle);
+      SmartDashboard.putNumber("Targeting:Limelight target angle (degrees)", limelight_target_angle);
+      SmartDashboard.putNumber("Targeting:Track target angle (degrees)", target_angle);
     }
 
     if (Double.isNaN(target_dist)) {
@@ -257,9 +280,9 @@ public class Targeting extends SubsystemBase {
     }
 
     if (RobotContainer.isPublishingEnabled()) {
-      SmartDashboard.putNumber("Turret:Waypoint target dist (inches)", waypoint_target_dist);
-      SmartDashboard.putNumber("Turret:Limelight target dist (inches)", limelight_target_dist);
-      SmartDashboard.putNumber("Turret:Track target dist (inches)", target_dist);
+      SmartDashboard.putNumber("Targeting:Waypoint target dist (inches)", waypoint_target_dist);
+      SmartDashboard.putNumber("Targeting:Limelight target dist (inches)", limelight_target_dist);
+      SmartDashboard.putNumber("Targeting:Track target dist (inches)", target_dist);
     }
 
     m_target_dist = target_dist;
@@ -274,5 +297,6 @@ public class Targeting extends SubsystemBase {
         m_resetToLimelightCooldownTimer = currentTime;
       }
     }
+    SmartDashboard.putBoolean("Targeting:Has Target", m_has_target);
   }
 }

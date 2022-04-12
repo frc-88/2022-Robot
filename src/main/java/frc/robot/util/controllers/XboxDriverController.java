@@ -28,5 +28,10 @@ public class XboxDriverController extends XboxController implements DriverContro
     public boolean getForceLowGear() {
         return getLeftTrigger() > 0.5;
     }
+
+    @Override
+    public boolean getMolassesMode() {
+        return getRightTrigger() > 0.5;
+    }
     
 }

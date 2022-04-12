@@ -34,7 +34,8 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private TalonFX m_feederMotor;
   private Servo m_blockerServo;
   private boolean m_hasBlocker;
-  private DoublePreferenceConstant p_feederMaxVelocity;
+  private DoublePreferenceConstant p_feederMaxVelocityFinding;
+  private DoublePreferenceConstant p_feederMaxVelocityForcing;
   private DoublePreferenceConstant p_feederMaxAcceleration;
   private PIDPreferenceConstants p_feederPID;
   private DoublePreferenceConstant p_feederTargetPosition;
@@ -46,9 +47,11 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private int m_loseCargoCounter = 0;
   
   public Feeder(String feederName, int feederMotorId, boolean invert, int blockerId) {
+    setName(feederName);
     m_feederName = feederName;
     m_feederMotor = new TalonFX(feederMotorId, "1");
-    p_feederMaxVelocity = new DoublePreferenceConstant(feederName + " Max Velocity", 5000);
+    p_feederMaxVelocityFinding = new DoublePreferenceConstant(feederName + " Max Velocity Finding", 1700);
+    p_feederMaxVelocityForcing = new DoublePreferenceConstant(feederName + " Max Velocity Forcing", 1700);
     p_feederMaxAcceleration = new DoublePreferenceConstant(feederName + " Max Acceleration", 50000);
     p_feederPID = new PIDPreferenceConstants(feederName, 0, 0, 0, 0, 0, 0, 0);
     p_feederTargetPosition = new DoublePreferenceConstant(feederName + " Target Position", 100);
@@ -63,7 +66,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     m_feederMotor.configClearPositionOnLimitR(true, 0);
     configPID();
 
-    p_feederMaxVelocity.addChangeHandler((Double unused) -> configPID());
     p_feederMaxAcceleration.addChangeHandler((Double unused) -> configPID());
     p_feederPID.addChangeHandler((Double unused) -> configPID());
 
@@ -83,7 +85,6 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   private void configPID() {
-    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocity.getValue());
     m_feederMotor.configMotionAcceleration(p_feederMaxAcceleration.getValue());
     m_feederMotor.config_kP(0, p_feederPID.getKP().getValue());
     m_feederMotor.config_kI(0, p_feederPID.getKI().getValue());
@@ -107,13 +108,18 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       }
     }
 
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
+    }
+
+    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityFinding.getValue());
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
 
   public void forceForwards() {
     unblockCargo();
 
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
       m_foundCargo = false;
     }
 
@@ -122,13 +128,14 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       m_feederMotor.setSelectedSensorPosition(-5_000_000);
     }
 
+    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityForcing.getValue());
     m_feederMotor.set(TalonFXControlMode.MotionMagic, 5_000_000);
   }
 
   public void forceReverse() {
     unblockCargo();
-    
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ <= p_loseCargoCount.getValue()) {
+
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
       m_foundCargo = false;
     }
 
@@ -137,20 +144,16 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       m_feederMotor.setSelectedSensorPosition(5_000_000);
     }
 
+    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityForcing.getValue());
     m_feederMotor.set(TalonFXControlMode.MotionMagic, -5_000_000);
-  }
-
-  public void stopUnlessLostCargo() {
-    if (m_foundCargo && !sensorTriggered()) {
-      runUntilBallFound();
-    } else {
-      blockCargo();
-      m_feederMotor.set(ControlMode.PercentOutput, 0.0);
-    }
   }
 
   public void stop() {
     blockCargo();
+
+    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+      m_foundCargo = false;
+    }
 
     m_feederMotor.set(ControlMode.PercentOutput, 0.0);
   }

@@ -61,6 +61,8 @@ public class Sensors extends SubsystemBase {
   private boolean checkedWorkingPressure = false;
   private double currentWorkingVoltage = 0;
 
+  private boolean m_compressorEnabled = true;
+
   /**
    * Creates a new Sensors subsystem
    */
@@ -159,14 +161,19 @@ public class Sensors extends SubsystemBase {
     return foundOurs;
   }
 
-  @Override
-  public void periodic() {
+  public void firstPeriodic() {
 
     if (DriverStation.isEnabled()) {
       SmartDashboard.putBoolean("Virtual Coast Button", false);
     }
     SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
     limelight.periodic();
+
+    if (m_compressorEnabled && DriverStation.isAutonomous()) {
+      m_pneumaticHub.disableCompressor();
+    } else if (!m_compressorEnabled && DriverStation.isTeleop()) {
+      m_pneumaticHub.enableCompressorDigital();
+    }
 
     if (!RobotContainer.isPublishingEnabled()) {
       return;

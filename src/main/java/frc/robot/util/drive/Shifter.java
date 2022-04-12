@@ -82,13 +82,17 @@ public class Shifter {
     }
 
     public void shiftToLow() {
-        m_solenoid.set(Value.kReverse);
-        m_commandedGear = Gear.LOW;
+        if (m_commandedGear != Gear.LOW) {
+            m_solenoid.set(Value.kReverse);
+            m_commandedGear = Gear.LOW;
+        }
     }
 
     public void shiftToHigh() {
-        m_solenoid.set(Value.kForward);
-        m_commandedGear = Gear.HIGH;
+        if (m_commandedGear != Gear.HIGH) {
+            m_solenoid.set(Value.kForward);
+            m_commandedGear = Gear.HIGH;
+        }
     }
 
     public Gear getGear() {

@@ -273,7 +273,7 @@ public class Limelight {
                 Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
                 - (2 * hubDist * robotSpeed * tof * 
-                    Math.cos(180 + m_turretOffset - turretAngle)
+                    Math.cos(Math.toRadians(180 + m_turretOffset - turretAngle))
                 )
             );
         }
@@ -291,7 +291,7 @@ public class Limelight {
         double tof = getTofTable(isHoodUp).getInterpolatedValue(distance);
 
         Math.asin(
-            Math.sin(180 + m_turretOffset - turretAngle) *
+            Math.sin(Math.toRadians(180 + m_turretOffset - turretAngle)) *
             (robotSpeed * tof / distance) 
         );
 
