@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.test.CollectLimelightRectification;
 import frc.robot.commands.turret.HoodTrackCombo;
 import frc.robot.commands.turret.ShooterTrackCombo;
 import frc.robot.commands.turret.TurretCalibrate;
@@ -590,6 +591,8 @@ public class RobotContainer {
     SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
     SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
     SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
+
+    SmartDashboard.putData("Rectify Limelight", new CollectLimelightRectification(m_sensors.limelight, m_ros_interface));
 
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));

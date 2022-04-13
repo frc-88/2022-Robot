@@ -119,7 +119,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   public void forceForwards() {
     unblockCargo();
 
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+    if (m_foundCargo && !sensorTriggered()) {
       m_foundCargo = false;
     }
 
@@ -135,7 +135,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   public void forceReverse() {
     unblockCargo();
 
-    if (m_foundCargo && !sensorTriggered() && m_loseCargoCounter++ > p_loseCargoCount.getValue()) {
+    if (m_foundCargo && !sensorTriggered()) {
       m_foundCargo = false;
     }
 

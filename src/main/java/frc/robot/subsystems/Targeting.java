@@ -39,6 +39,10 @@ public class Targeting extends SubsystemBase {
     COMBO;
   }
 
+  private boolean m_enableDefault = false;
+  private double m_defaultDistance = 0;
+  private double m_defaultAngle = 0;
+
   /** Creates a new Targeting. */
   public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive) {
     m_limelight = limelight;
@@ -100,13 +104,29 @@ public class Targeting extends SubsystemBase {
     }
   }
 
+  public void enableDefault(double distance, double angle) {
+    m_enableDefault = true;
+    m_defaultDistance = distance;
+    m_defaultAngle = angle;
+  }
+
+  public void disableDefault() {
+    m_enableDefault = false;
+  }
+
   public double getShooterDistance() {
     // Shooter/Turret target in inches
+    if (m_enableDefault && (Math.abs(m_target_dist - m_defaultDistance) > 18. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 10)) {
+      return m_defaultDistance;
+    }
     return m_target_dist;
   }
 
   public double getTurretAngle() {
     // Shooter/Turret angle in degrees
+    if (m_enableDefault && (Math.abs(m_target_dist - m_defaultDistance) > 18. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 10)) {
+      return m_defaultAngle;
+    }
     return m_target_angle;
   }
 

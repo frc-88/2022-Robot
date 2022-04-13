@@ -26,7 +26,7 @@ public class Hood extends SubsystemBase {
   private Sensors m_sensors;
 
   private static final double HOOD_RATIO = 20;
-  private static final double HOOD_LOWERED = 0.0;
+  private static final double HOOD_LOWERED = 7.5;
   private static final double HOOD_RAISED = 27.0;
   private static final double HOOD_MID = 15.;
   private static final double HOOD_SETPOINT_TOLERANCE = 3;

@@ -55,12 +55,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(62.2, 2450),
-      new ValueInterpolator.ValuePair(70.9, 2350),
-      new ValueInterpolator.ValuePair(82.3, 2350),
-      new ValueInterpolator.ValuePair(94.9, 2350),
-      new ValueInterpolator.ValuePair(109.1, 2350),
-      new ValueInterpolator.ValuePair(119.7, 2350));
+      new ValueInterpolator.ValuePair(64, 2200),
+      new ValueInterpolator.ValuePair(79, 2200),
+      new ValueInterpolator.ValuePair(93, 2100),
+      new ValueInterpolator.ValuePair(114, 2200),
+      new ValueInterpolator.ValuePair(142, 2375),
+      new ValueInterpolator.ValuePair(160, 2375));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
@@ -71,15 +71,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(166, 3100));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(108.3, 2365),
-      new ValueInterpolator.ValuePair(120.1, 2450),
-      new ValueInterpolator.ValuePair(129.5, 2450),
-      new ValueInterpolator.ValuePair(141.7, 2475),
-      new ValueInterpolator.ValuePair(168.9, 2600),
-      new ValueInterpolator.ValuePair(179.1, 2700),
-      new ValueInterpolator.ValuePair(191.7, 2875),
-      new ValueInterpolator.ValuePair(226.0, 3325),
-      new ValueInterpolator.ValuePair(282.3, 4275));
+      new ValueInterpolator.ValuePair(128, 2400),
+      new ValueInterpolator.ValuePair(160, 2550),
+      new ValueInterpolator.ValuePair(186, 2750),
+      new ValueInterpolator.ValuePair(212, 3300),
+      new ValueInterpolator.ValuePair(228, 3750),
+      new ValueInterpolator.ValuePair(248, 4000),
+      new ValueInterpolator.ValuePair(276, 4150));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
