@@ -102,6 +102,13 @@ public class TJDriveModule extends WPI_TalonFX {
     }
 
     /**
+     * Sets the position of the sensor on the master, scaled to the output units of the transmission.
+     */
+    public void setScaledSensorPosition(double position) {
+        this.setSelectedSensorPosition(m_transmission.convertOutputPositionToSensor(position));
+    }
+
+    /**
      * Get the velocity being read by the sensor on the master, scaled to the
      * output units of the transmission.
      */

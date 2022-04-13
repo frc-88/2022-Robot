@@ -38,6 +38,7 @@ import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.drive.Shifter.Gear;
+import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
@@ -71,6 +72,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private ChassisSpeeds m_velocities;
   private Pose2d m_traj_reset_pose;
   private Pose2d m_traj_offset;
+  private Double m_previousLeftPosition, m_previousRightPosition;
 
   private PIDPreferenceConstants velPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
@@ -84,6 +86,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DoublePreferenceConstant leftHighEfficiency;
   private DoublePreferenceConstant rightHighEfficiency;
   private DoublePreferenceConstant maxCurrent;
+  private BooleanPreferenceConstant odometryTipCompensation;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -126,6 +129,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
+    odometryTipCompensation = new BooleanPreferenceConstant("Odometry Tip Compensation", true);
     accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
     accelLimitMolasses = new DoublePreferenceConstant("Drive Accel Limit Molasses", 1.5);
     accelSpinLimitMolasses = new DoublePreferenceConstant("Drive Accel Spin Limit Molasses", 1.5);
@@ -344,11 +348,19 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public double getLeftPosition() {
-    return m_leftDrive.getScaledSensorPosition();
+    if (Objects.nonNull(m_previousLeftPosition) && shouldIgnoreEncoders()) {
+      m_leftDrive.setScaledSensorPosition(m_previousLeftPosition);
+    }
+    m_previousLeftPosition = m_leftDrive.getScaledSensorPosition();
+    return m_previousLeftPosition;
   }
 
   public double getRightPosition() {
-    return m_rightDrive.getScaledSensorPosition();
+    if (Objects.nonNull(m_previousRightPosition) && shouldIgnoreEncoders()) {
+      m_rightDrive.setScaledSensorPosition(m_previousRightPosition);
+    }
+    m_previousRightPosition = m_rightDrive.getScaledSensorPosition();
+    return m_previousRightPosition;
   }
 
   public double getLeftSpeed() {
@@ -412,6 +424,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   private ChassisSpeeds getComputeChassisSpeeds() {
+    if (shouldIgnoreEncoders()) {
+      return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(0, 0));
+    }
     return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(Units.feetToMeters(getRawLeftSpeed()), Units.feetToMeters(getRawRightSpeed())));
   }
 
@@ -470,6 +485,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_rightEncoder.setPosition(0);
     m_leftDrive.setSelectedSensorPosition(0);
     m_rightDrive.setSelectedSensorPosition(0);
+  }
+
+  private boolean shouldIgnoreEncoders() {
+    return odometryTipCompensation.getValue() && (Math.abs(m_sensors.navx.getPitch()) > 5 || Math.abs(m_sensors.navx.getRoll()) > 5);
   }
 
   public void resetOdometry() {
