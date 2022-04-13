@@ -160,6 +160,10 @@ public class Limelight {
         return m_motionOffset;
     }
 
+    private double rectifyDistance(double x) {
+        return 2.69840693e-01 * -x * Math.log(1.25456722e-04 * x) + -1.63681970e+01;
+    }
+
     /**
      * Calculate the distance to the target.
      * 
@@ -176,6 +180,8 @@ public class Limelight {
             distance = (Constants.FIELD_VISION_TARGET_HEIGHT - p_height.getValue()) /
                     (Math.tan(Math.toRadians(p_angle.getValue() + m_targetVerticalOffsetAngle))
                             * Math.cos(Math.toRadians(m_targetHorizontalOffsetAngle)));
+            distance += Constants.FIELD_UPPER_HUB_RADIUS;
+            distance = rectifyDistance(distance);
         }
 
         return distance;
@@ -206,7 +212,7 @@ public class Limelight {
     private double calcTurretOffset() {
         double angle = Math.toRadians(m_targetHorizontalOffsetAngle);
 
-        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/m_targetDistance)))) + m_motionOffset : 0.0;
+        return hasTarget() ? Math.toDegrees(Math.atan(Math.sin(angle)/(Math.cos(angle) + (p_radius.getValue()/(m_targetDistance - Constants.FIELD_UPPER_HUB_RADIUS))))) + m_motionOffset : 0.0;
     }
 
     /**
@@ -215,7 +221,7 @@ public class Limelight {
      * @return
      */
     public double calcMovingDistance(double robotSpeed, double turretAngle, boolean isHoodUp) {
-        double hubDist = (m_targetDistance + Constants.FIELD_UPPER_HUB_RADIUS)  / 12.0;
+        double hubDist = m_targetDistance  / 12.0;
         double target = hubDist;
         double tof;
 

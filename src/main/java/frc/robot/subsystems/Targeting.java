@@ -78,10 +78,6 @@ public class Targeting extends SubsystemBase {
     if (distance <= 0.0) {
       distance = Double.NaN;
     }
-  
-    if (!llMoving) {
-      distance += Constants.FIELD_UPPER_HUB_RADIUS;
-    }
 
     // Leave this on for ROS logging
     SmartDashboard.putNumber("Limelight Target Angle", angle);
