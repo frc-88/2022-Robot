@@ -170,8 +170,10 @@ public class Sensors extends SubsystemBase {
     limelight.periodic();
 
     if (m_compressorEnabled && DriverStation.isAutonomous()) {
+      m_compressorEnabled = false;
       m_pneumaticHub.disableCompressor();
     } else if (!m_compressorEnabled && DriverStation.isTeleop()) {
+      m_compressorEnabled = true;
       m_pneumaticHub.enableCompressorDigital();
     }
 

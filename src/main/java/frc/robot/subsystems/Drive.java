@@ -350,16 +350,18 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   public double getLeftPosition() {
     if (Objects.nonNull(m_previousLeftPosition) && shouldIgnoreEncoders()) {
       m_leftDrive.setScaledSensorPosition(m_previousLeftPosition);
+    } else {
+      m_previousLeftPosition = m_leftDrive.getScaledSensorPosition();
     }
-    m_previousLeftPosition = m_leftDrive.getScaledSensorPosition();
     return m_previousLeftPosition;
   }
 
   public double getRightPosition() {
     if (Objects.nonNull(m_previousRightPosition) && shouldIgnoreEncoders()) {
       m_rightDrive.setScaledSensorPosition(m_previousRightPosition);
+    } else {
+      m_previousRightPosition = m_rightDrive.getScaledSensorPosition();
     }
-    m_previousRightPosition = m_rightDrive.getScaledSensorPosition();
     return m_previousRightPosition;
   }
 
@@ -488,7 +490,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   private boolean shouldIgnoreEncoders() {
-    return odometryTipCompensation.getValue() && (Math.abs(m_sensors.navx.getPitch()) > 5 || Math.abs(m_sensors.navx.getRoll()) > 5);
+    return odometryTipCompensation.getValue() && (Math.abs(m_sensors.navx.getPitch()) > 15 || Math.abs(m_sensors.navx.getRoll()) > 15);
   }
 
   public void resetOdometry() {

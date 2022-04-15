@@ -38,7 +38,7 @@ public class ClimberStateMachine {
         return new ClimberStateMachine(newStates);
     }
 
-    public void run(Climber climber) {
+    public void run(Climber climber, boolean resendTarget) {
         ClimberState previousState;
         if (m_currentState <= 0) {
             if (Objects.isNull(m_initialState)) {
@@ -56,6 +56,8 @@ public class ClimberStateMachine {
 
         if (m_currentState < 0 || m_currentState < (m_states.size() - 1) && onTarget(m_states.get(m_currentState), climber)) {
             m_currentState++;
+            executeState(m_states.get(m_currentState), previousState, climber);
+        } else if (resendTarget) {
             executeState(m_states.get(m_currentState), previousState, climber);
         }
     }

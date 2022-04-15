@@ -74,6 +74,20 @@ public class ThisRobotTable extends CoprocessorTable {
     private NetworkTableEntry shooterEntrySpeed;
     private int shotCounter = 0;
 
+    private NetworkTable targetConfigTable;
+    private NetworkTableEntry targetConfigEntryShotCorrection;
+    private NetworkTableEntry targetConfigEntryShotProbability;
+    private NetworkTableEntry targetConfigEntryLimelightFineTuning;
+    private NetworkTableEntry targetConfigEntryCargoMarauding;
+    private NetworkTableEntry targetConfigEntryResetToLimelight;
+    private NetworkTableEntry targetConfigEntryUpdate;
+
+    private boolean default_enable_shot_correction = true;
+    private boolean default_enable_shot_probability = false;
+    private boolean default_enable_limelight_fine_tuning = false;
+    private boolean default_enable_marauding = true;
+    private boolean default_enable_reset_to_limelight = true;
+
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
             ClimberArm outerArm, ClimberArm innerArm,
@@ -117,6 +131,14 @@ public class ThisRobotTable extends CoprocessorTable {
         shooterEntryAngle = shooterTable.getEntry("angle");
         shooterEntryDist = shooterTable.getEntry("distance");
         shooterEntrySpeed = shooterTable.getEntry("speed");
+
+        targetConfigTable = rootTable.getSubTable("target_config");
+        targetConfigEntryShotCorrection = targetConfigTable.getEntry("enable_shot_correction");
+        targetConfigEntryShotProbability = targetConfigTable.getEntry("enable_shot_probability");
+        targetConfigEntryLimelightFineTuning = targetConfigTable.getEntry("enable_limelight_fine_tuning");
+        targetConfigEntryCargoMarauding = targetConfigTable.getEntry("enable_marauding");
+        targetConfigEntryResetToLimelight = targetConfigTable.getEntry("enable_reset_to_limelight");
+        targetConfigEntryUpdate = targetConfigTable.getEntry("update");
     }
 
     private double gsToMetersPerSecondSquared(double gs) {
@@ -307,5 +329,34 @@ public class ThisRobotTable extends CoprocessorTable {
     }
     public boolean isBarValid() {
         return barTimer.isActive();
+    }
+
+    public void setTargetConfig(boolean enable_shot_correction, boolean enable_shot_probability, boolean enable_limelight_fine_tuning, boolean enable_marauding, boolean enable_reset_to_limelight)
+    {
+        targetConfigEntryShotCorrection.setBoolean(enable_shot_correction);
+        targetConfigEntryShotProbability.setBoolean(enable_shot_probability);
+        targetConfigEntryLimelightFineTuning.setBoolean(enable_limelight_fine_tuning);
+        targetConfigEntryCargoMarauding.setBoolean(enable_marauding);
+        targetConfigEntryResetToLimelight.setBoolean(enable_reset_to_limelight);
+        targetConfigEntryUpdate.setDouble(getTime());
+    }
+
+    public void setEnableCargoMarauding(boolean enable_marauding)
+    {
+        setTargetConfig(
+            default_enable_shot_correction, 
+            default_enable_shot_probability, 
+            default_enable_limelight_fine_tuning, 
+            enable_marauding, 
+            default_enable_reset_to_limelight
+        );
+    }
+
+    public void enableCargoMarauding() {
+        setEnableCargoMarauding(true);
+    }
+
+    public void disableCargoMarauding() {
+        setEnableCargoMarauding(false);
     }
 }

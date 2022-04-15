@@ -14,7 +14,7 @@ public class ClimberConstants {
     public static final ClimberStateMachine M_PREP_LOW_MID = new ClimberStateMachine(S_LOW_MID_PREP);
 
     
-    public static final ClimberState S_HIGH_TRAVERSAL_FORWARDS_PREP = new ClimberState(-3, 29, 10, 30);
+    public static final ClimberState S_HIGH_TRAVERSAL_FORWARDS_PREP = new ClimberState(0, 29, 10, 30);
 
     public static final ClimberStateMachine M_PREP_HIGH_TRAVERSAL_FORWARDS = new ClimberStateMachine(S_HIGH_TRAVERSAL_FORWARDS_PREP);
 
@@ -35,7 +35,7 @@ public class ClimberConstants {
     public static final ClimberStateMachine M_RAISE_MID = new ClimberStateMachine(S_MID_RAISED);
 
 
-    public static final ClimberState S_HIGH_TRAVERSAL_FORWARDS_RAISED = new ClimberState(-3, 49, 10, 37);
+    public static final ClimberState S_HIGH_TRAVERSAL_FORWARDS_RAISED = new ClimberState(0, 49, 10, 37);
 
     public static final ClimberStateMachine M_RAISE_HIGH_TRAVERSAL_FORWARDS = new ClimberStateMachine(S_HIGH_TRAVERSAL_FORWARDS_RAISED);
 
@@ -76,13 +76,16 @@ public class ClimberConstants {
                                                             .addState(S_HIGH_FORWARDS_RAISE_ABOVE_MID_BAR)
                                                             .addState(S_HIGH_FORWARDS_PIVOT_BEHIND_MID_BAR)
                                                             .addState(S_HIGH_FORWARDS_LOWER_BELOW_MID_BAR);
-    public static final ClimberStateMachine M_CLIMB_HIGH_FORWARDS = M_CLIMB_HIGH_FORWARDS_TRANSFERABLE
-                                                            .addState(S_HIGH_FORWARDS_PIVOT_UNDER_MID_BAR)
-                                                            .addState(S_HIGH_FORWARDS_RAISE_TO_HIGH_BAR)
-                                                            .addState(S_HIGH_FORWARDS_PIVOT_ONTO_HIGH_BAR)
-                                                            .addState(S_HIGH_FORWARDS_MATCH_HEIGHTS)
-                                                            .addState(S_HIGH_FORWARDS_LIFT_FULLY);
-
+    public static final ClimberStateMachine M_CLIMB_HIGH_FORWARDS = new ClimberStateMachine(new ClimberState(0, 27, 10, 53, ClimberState.DEFAULT_PIVOT_TOLERANCE, 6, false))
+                                                            .addState(new ClimberState(0, 27, 30, 53))
+                                                            .addState(new ClimberState(-10, 35, 30, 35))
+                                                            .addState(new ClimberState(-30, 35, 30, 35))
+                                                            .addState(new ClimberState(-30, 27, 30, 37))
+                                                            .addState(new ClimberState(30, 27, 22, 37))
+                                                            .addState(new ClimberState(30, 54, 22, 27))
+                                                            .addState(new ClimberState(30, 54, -5, 27))
+                                                            .addState(new ClimberState(30, 50, -5, 50))
+                                                            .addState(new ClimberState(30, 50, -20, 50));
 
     public static final ClimberState S_TRAVERSAL_FORWARDS_PIVOT_UNDER_MID_BAR = new ClimberState(15, 35, 5, 43, 7, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
     public static final ClimberState S_TRAVERSAL_FORWARDS_LIFT_FULLY_ONTO_HIGH_BAR = new ClimberState(15, 55, -3, 29.5, ClimberState.DEFAULT_PIVOT_TOLERANCE, 6, false);

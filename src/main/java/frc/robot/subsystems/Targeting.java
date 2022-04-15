@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -112,7 +113,8 @@ public class Targeting extends SubsystemBase {
 
   public double getShooterDistance() {
     // Shooter/Turret target in inches
-    if (m_enableDefault && (Math.abs(m_target_dist - m_defaultDistance) > 18. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 10)) {
+    if (m_enableDefault && DriverStation.isAutonomous() && (Math.abs(m_target_dist - m_defaultDistance) > 24. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 20)) {
+      System.out.println("Using default (" + m_defaultDistance + ", " + m_defaultAngle + ") instead of (" + m_target_dist + ", " + m_target_angle + ")");
       return m_defaultDistance;
     }
     return m_target_dist;
@@ -120,7 +122,7 @@ public class Targeting extends SubsystemBase {
 
   public double getTurretAngle() {
     // Shooter/Turret angle in degrees
-    if (m_enableDefault && (Math.abs(m_target_dist - m_defaultDistance) > 18. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 10)) {
+    if (m_enableDefault && DriverStation.isAutonomous() && (Math.abs(m_target_dist - m_defaultDistance) > 24. || Math.abs(DriveUtils.mod(m_target_dist, 360) - DriveUtils.mod(m_defaultDistance, 360)) > 20)) {
       return m_defaultAngle;
     }
     return m_target_angle;
