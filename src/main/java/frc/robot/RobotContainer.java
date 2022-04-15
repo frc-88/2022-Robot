@@ -262,10 +262,11 @@ public class RobotContainer {
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
         new ShootAll(m_shooter).withTimeout(3.0),
         new InstantCommand(m_targeting::disableDefault),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour.wpilib.json"), false),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour_blue.wpilib.json"), false),
         // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
-        new InstantCommand(m_targeting::disableDefault),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfive.wpilib.json"), true),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+          DriverStation.getAlliance() == Alliance.Red ? "legfive.wpilib.json" : "legfive_blue.wpilib.json"), true),
         new InstantCommand(m_shooter::activatePermissive)
       )
     );
