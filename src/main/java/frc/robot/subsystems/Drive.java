@@ -47,6 +47,11 @@ import frc.robot.util.transmission.ShiftingTransmission;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.VelocityCommand;
 
+/**
+ * Current control on.
+ * Autshiftnig enabled.
+ * Ramsete Tracking.
+ */
 public class Drive extends SubsystemBase implements ChassisInterface {
   
   private final Sensors m_sensors;

@@ -21,6 +21,11 @@ import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
+/**
+ * Shots from the hangar,
+ * from against the fender and
+ * everywhere between
+ */
 public class Hood extends SubsystemBase {
   private TalonFX m_hood = new TalonFX(Constants.HOOD_ID, "1");
   private Sensors m_sensors;
