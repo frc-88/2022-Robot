@@ -117,8 +117,8 @@ public class ClimberConstants {
                                                             .addState(S_TRAVERSAL_FORWARDS_LIFT_FULLY);
 
 
-    public static final ClimberState S_HIGH_REVERSE_FIRST_LIFT = new ClimberState(10, 27, -28, 52);
-    public static final ClimberState S_HIGH_REVERSE_HIT_HIGH_BAR = new ClimberState(10, 27, -20, 52);
+    public static final ClimberState S_HIGH_REVERSE_FIRST_LIFT = new ClimberState(10, 27, -28, 54);
+    public static final ClimberState S_HIGH_REVERSE_HIT_HIGH_BAR = new ClimberState(10, 27, -20, 54);
     public static final ClimberState S_HIGH_REVERSE_LIFT_ONTO_HIGH_BAR = new ClimberState(-15, 35, 0, 38);
     public static final ClimberState S_HIGH_REVERSE_LIFT_ABOVE_HIGH_BAR = new ClimberState(-15, 44, 0, 38);
     public static final ClimberState S_HIGH_REVERSE_PIVOT_ONTO_HIGH_BAR = new ClimberState(0, 44, -3, 38);

@@ -222,16 +222,18 @@ public class RobotContainer {
     new SequentialCommandGroup(
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
+          new InstantCommand(() -> m_targeting.setModeToLimelight()),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
           new WaitCommand(0.5),
-          new ShootAll(m_shooter).withTimeout(3.0),
+          new ShootAll(m_shooter).withTimeout(4.0),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
           new InstantCommand(m_turret::stopTracking),
           new InstantCommand(m_sensors.limelight::ledOff),
           new ShootAll(m_shooter).withTimeout(2.0),
           new InstantCommand(m_turret::startTracking),
           new InstantCommand(m_sensors.limelight::ledOn),
-          new DriveDegrees(m_drive, -120.0, -120.0)
+          new DriveDegrees(m_drive, -120.0, -120.0),
+          new InstantCommand(() -> m_targeting.setModeToDefault())
         ),
         new RunCommand(m_hood::raiseHood, m_hood)
       ),
@@ -251,6 +253,7 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new InstantCommand(() -> m_targeting.setModeToLimelight()),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
         new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
@@ -264,6 +267,7 @@ public class RobotContainer {
         new InstantCommand(m_targeting::disableDefault),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
           DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour_blue.wpilib.json"), false),
+        new WaitCommand(.5),
         // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
           DriverStation.getAlliance() == Alliance.Red ? "legfive.wpilib.json" : "legfive_blue.wpilib.json"), true),
@@ -386,7 +390,7 @@ public class RobotContainer {
   public void robotFirstPeriodic() {
     if (!m_nav.isConnected() || m_buttonBox.isROSDisableSwitchOn() || DriverStation.isAutonomous()) {
       m_targeting.setModeToLimelight();
-    } else {
+    } else if (!DriverStation.isAutonomous()) {
       m_targeting.setModeToDefault();
     }
 
