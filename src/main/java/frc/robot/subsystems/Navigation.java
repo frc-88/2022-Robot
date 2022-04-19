@@ -8,25 +8,21 @@ import java.util.Objects;
 import java.util.Set;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.WaypointMap;
 import frc.robot.util.roswaypoints.WaypointsPlan;
-import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.util.coprocessortable.CoprocessorTable;
 import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class Navigation extends SubsystemBase {
   private final WaypointMap m_waypointMap;
   private final CoprocessorTable m_coprocessor;
-  private final Drive m_drive;
   public static final String CENTER_WAYPOINT_NAME = "center";
 
   public static enum RosAutoState {
-    SEND_PLAN, WAIT_FOR_RUNNING, WAIT_FOR_FINISHED, FINISHED
+    SEND_PLAN, WAIT_FOR_RUNNING, WAIT_FOR_FINISHED, FINISHED, FAILED
   }
 
   private RosAutoState m_ros_auto_state = RosAutoState.FINISHED;
@@ -38,22 +34,20 @@ public class Navigation extends SubsystemBase {
   private long m_is_finished_timeout = 0;
 
   /** Creates a new NavigationSubsystem. */
-  public Navigation(Drive drive, CoprocessorTable coprocessor) {
-    m_drive = drive;
+  public Navigation(CoprocessorTable coprocessor) {
     m_coprocessor = coprocessor;
-    m_waypointMap = new WaypointMap((waypointMap, waypointName) -> {
-      SmartDashboard.putData("Set ROS pose to " + waypointName, new SetGlobalPoseToWaypoint(this, waypointName));
-      Pose2d pose = waypointMap.getWaypoint(waypointName);
-      if (waypointMap.isPoseValid(pose)) {
-        m_drive.getField().getObject(waypointName).setPose(pose);
-      }
-    });
+    m_waypointMap = new WaypointMap(m_coprocessor);
   }
 
   @Override
   public void periodic() {
 
   }
+
+  public CoprocessorTable getCoprocessorTable() {
+    return m_coprocessor;
+  }
+
   public Set<String> getWaypointNames() {
     return m_waypointMap.getWaypointNames();
   }
@@ -62,7 +56,7 @@ public class Navigation extends SubsystemBase {
   }
 
   public boolean isConnected() {
-    return m_coprocessor.isConected();
+    return m_coprocessor.isConnected();
   }
 
   public WaypointsPlan makeEmptyWaypointPlan() {
@@ -89,62 +83,12 @@ public class Navigation extends SubsystemBase {
     return m_waypointMap.isPoseValid(pose);
   }
 
-  private Pose2d calculateNearestRingPose(double ringRadius) {
-    Pose2d pr = getRobotPose();
-    Pose2d pc = getCenterWaypoint();
-    double slope = (pr.getY() - pc.getY()) / (pr.getX() - pc.getX());
-    double x1 = pc.getX();
-    double y1 = pc.getY();
-    double numerator_1 = Math.sqrt((slope * slope + 1.0) * ringRadius - Math.pow(slope * x1 - y1, 2));
-    double numerator_2 = slope * (slope * x1 - y1);
-    double denominator = slope * slope + 1.0;
-
-    double ring_x1 = (-numerator_1 + numerator_2) / denominator;
-    double ring_y1 = slope * (ring_x1 - x1) + y1;
-    double ring_x2 = (numerator_1 + numerator_2) / denominator;
-    double ring_y2 = slope * (ring_x2 - x1) + y1;
-
-    double ring_1_dist = getDistance(pr.getX(), pr.getY(), ring_x1, ring_y1);
-    double ring_2_dist = getDistance(pr.getX(), pr.getY(), ring_x2, ring_y2);
-    double centerHeading = 0.0;
-    if (ring_1_dist < ring_2_dist) {
-      centerHeading = getHeading(pc.getX(), pc.getY(), ring_x1, ring_y1);
-      return new Pose2d(ring_x1, ring_y1, new Rotation2d(centerHeading));
-    } else {
-      centerHeading = getHeading(pc.getX(), pc.getY(), ring_x2, ring_y2);
-      return new Pose2d(ring_x2, ring_y2, new Rotation2d(centerHeading));
-    }
-  }
-
-  public Pose2d calculateNearestShootingZonePose(double innerRadius, double outerRadius) {
-    Pose2d pr = getRobotPose();
-    Pose2d pc = getCenterWaypoint();
-    double robot_dist = getDistance(pc.getX(), pc.getY(), pr.getX(), pr.getY());
-    if (Math.abs(robot_dist - innerRadius) > Math.abs(robot_dist - outerRadius)) {
-      return calculateNearestRingPose(innerRadius);
-    } else {
-      return calculateNearestRingPose(outerRadius);
-    }
-  }
-
-  private double getHeading(double x1, double y1, double x2, double y2) {
-    double x = x2 - x1;
-    double y = y2 - y1;
-    return Math.atan2(y, x);
-  }
-
-  private double getDistance(double x1, double y1, double x2, double y2) {
-    double x = x2 - x1;
-    double y = y2 - y1;
-    return Math.sqrt(x * x + y * y);
-  }
-
   private long getTime() {
     return RobotController.getFPGATime();
   }
 
   public void setWaypointsPlan(WaypointsPlan plan, long is_finished_timeout) {
-    if (m_ros_auto_state == RosAutoState.FINISHED) {
+    if (isRosAutoFinished()) {
       m_ros_auto_state = RosAutoState.SEND_PLAN;
       m_plan = plan;
       m_is_finished_timeout = is_finished_timeout;
@@ -155,17 +99,25 @@ public class Navigation extends SubsystemBase {
 
   public void cancelAutoGoal() {
     m_coprocessor.cancelGoal();
-    m_ros_auto_state = RosAutoState.FINISHED;
+    m_ros_auto_state = RosAutoState.FAILED;
   }
 
   public RosAutoState getRosAutoState() {
     return m_ros_auto_state;
   }
 
+  public boolean isRosAutoFinished() {
+    return m_ros_auto_state == RosAutoState.FINISHED || m_ros_auto_state == RosAutoState.FAILED;
+  }
+
+  public boolean isRosAutoFailed() {
+    return m_ros_auto_state == RosAutoState.FINISHED || m_ros_auto_state == RosAutoState.FAILED;
+  }
+
   public VelocityCommand getAutoCommand() {
     VelocityCommand command = null;
     if (Objects.isNull(m_plan)) {
-      m_ros_auto_state = RosAutoState.FINISHED;
+      m_ros_auto_state = RosAutoState.FAILED;
       return command;
     }
     switch (m_ros_auto_state) {
@@ -181,13 +133,13 @@ public class Navigation extends SubsystemBase {
         }
         if (getTime() - m_is_running_timer > m_is_running_timeout) {
           System.out.println("Timeout exceeded while waiting for goal to signal running");
-          m_ros_auto_state = RosAutoState.FINISHED;
+          m_ros_auto_state = RosAutoState.FAILED;
         }
         break;
       case WAIT_FOR_FINISHED:
         if (m_is_finished_timeout > 0 && getTime() - m_is_finished_timer > m_is_finished_timeout) {
           System.out.println("Timeout exceeded while waiting for goal to signal running");
-          m_ros_auto_state = RosAutoState.FINISHED;
+          m_ros_auto_state = RosAutoState.FAILED;
         }
         switch (m_coprocessor.getGoalStatus()) {
           case RUNNING:
@@ -196,7 +148,9 @@ public class Navigation extends SubsystemBase {
           case IDLE:
           case FAILED:
             System.out.println("Coprocessor entered into an aborted state. Cancelling goal.");
-          case FINISHED:
+            m_ros_auto_state = RosAutoState.FAILED;
+            break;
+            case FINISHED:
             m_ros_auto_state = RosAutoState.FINISHED;
             break;
         }
@@ -205,6 +159,8 @@ public class Navigation extends SubsystemBase {
         }
         break;
       case FINISHED:
+        break;
+      case FAILED:
         break;
     }
     return command;

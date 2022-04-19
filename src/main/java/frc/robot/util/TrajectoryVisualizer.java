@@ -156,7 +156,7 @@ public class TrajectoryVisualizer extends JPanel {
    }
 
    private static void createAndShowGui() {
-      Trajectory traj = RapidReactTrajectories.generateFiveBallTrajectory();
+      Trajectory traj = RapidReactTrajectories.generateStraightTrajectory(15.0);
       List<State> states = new ArrayList<State>();
 
       for (double t = 0; t < traj.getTotalTimeSeconds(); t += 0.1) {

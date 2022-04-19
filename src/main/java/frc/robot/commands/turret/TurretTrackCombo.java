@@ -4,26 +4,20 @@
 
 package frc.robot.commands.turret;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
-import frc.robot.subsystems.Navigation;
+import frc.robot.subsystems.Targeting;
 import frc.robot.subsystems.Turret;
-import frc.robot.util.sensors.Limelight;
 
 public class TurretTrackCombo extends CommandBase {
+  private Targeting m_targeting;
   private Turret m_turret;
-  private final Navigation m_nav;
-  private Limelight m_limelight;
   
   /** Creates a new TurretTrackWithGlobalPose. */
-  public TurretTrackCombo(Turret turret, Navigation nav, Limelight limelight) {
+  public TurretTrackCombo(Turret turret, Targeting targeting) {
+    m_targeting = targeting;
     m_turret = turret;
-    m_nav = nav;
-    m_limelight = limelight;
 
-    addRequirements(turret);
-    addRequirements(nav);
+    addRequirements(m_turret);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -34,17 +28,14 @@ public class TurretTrackCombo extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (!m_turret.isTracking()) {
-      m_turret.goToDefaultFacing();
-      m_limelight.ledOff();
+    if (!m_targeting.isTracking()) {
+      m_targeting.disableTurret();
+      m_turret.setHasTarget(false);
       return;
     }
     
-    m_limelight.ledOn();
-
-    Pair<Double, Double> turret_target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME, m_limelight, m_turret);
-
-    m_turret.goToFacing(turret_target.getSecond());
+    m_targeting.enableTurret();
+    m_turret.goToFacing(m_targeting.getTurretAngle(), true);
   }
 
   // Called once the command ends or is interrupted.

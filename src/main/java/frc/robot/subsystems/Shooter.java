@@ -4,21 +4,22 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
-import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.commands.turret.TurretTargetResolver;
+import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
+import frc.robot.util.ThisRobotTable;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -32,12 +33,20 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private CargoSource[] m_sources;
+  private Sensors m_sensors;
   private Hood m_hood;
   private Turret m_turret;
   private Drive m_drive;
-  private Sensors m_sensors;
-  private Navigation m_nav;
-  private Boolean m_active = false;
+  private ThisRobotTable m_ros_interface;
+  private DoubleSupplier m_shotProbabilitySupplier;
+
+  private static enum ActiveMode {
+    DEACTIVATED,
+    ACTIVE_PERMISSIVE,
+    ACTIVE_RESTRICTIVE
+  }
+
+  private ActiveMode m_active = ActiveMode.DEACTIVATED;
   private Timer m_cargoWaitTimer = new Timer();
   private boolean m_cargoWaiting = false;
   private boolean m_sourcesHadCargoLastCheck = false;
@@ -46,10 +55,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(68.5, 1950),
-      new ValueInterpolator.ValuePair(85, 2000),
-      new ValueInterpolator.ValuePair(106.5, 2050),
-      new ValueInterpolator.ValuePair(120, 2200));
+      new ValueInterpolator.ValuePair(64, 2200),
+      new ValueInterpolator.ValuePair(79, 2200),
+      new ValueInterpolator.ValuePair(93, 2100),
+      new ValueInterpolator.ValuePair(114, 2200),
+      new ValueInterpolator.ValuePair(142, 2375),
+      new ValueInterpolator.ValuePair(160, 2375));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
@@ -60,13 +71,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(166, 3100));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(116, 2300),
-      new ValueInterpolator.ValuePair(131, 2400),
-      new ValueInterpolator.ValuePair(150.5, 2550),
-      new ValueInterpolator.ValuePair(171, 2850),
-      new ValueInterpolator.ValuePair(203.5, 3250),
-      new ValueInterpolator.ValuePair(241, 3600),
-      new ValueInterpolator.ValuePair(278.5, 4350));
+      new ValueInterpolator.ValuePair(128, 2400),
+      new ValueInterpolator.ValuePair(160, 2550),
+      new ValueInterpolator.ValuePair(186, 2750),
+      new ValueInterpolator.ValuePair(212, 3300),
+      new ValueInterpolator.ValuePair(228, 3750),
+      new ValueInterpolator.ValuePair(248, 4000),
+      new ValueInterpolator.ValuePair(276, 4150),
+      new ValueInterpolator.ValuePair(314, 4300),
+      new ValueInterpolator.ValuePair(314, 4300));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
@@ -79,15 +92,19 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       5000.0);
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.5);
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
+  private DoublePreferenceConstant p_shooterSpinLimit = new DoublePreferenceConstant("Shooter Spin Limit", 90.);
+  private DoublePreferenceConstant p_shooterAccelerationLimit = new DoublePreferenceConstant("Shooter Acceleration Limit", 4.);
+  private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
 
   /** Creates a new Shooter. */
-  public Shooter(Hood hood, Drive drive, Turret turret, CargoSource[] sources, Sensors sensors, Navigation nav) {
+  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
+    m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
     m_sources = sources;
-    m_sensors = sensors;
-    m_nav = nav;
+    m_ros_interface = ros_interface;
+    m_shotProbabilitySupplier = () -> 1.;
 
     configureFlywheel();
 
@@ -119,13 +136,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
-  public void setFlywheelSpeedAuto() {
+  public void setFlywheelSpeedAuto(double target_dist) {
     if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
     } else if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance()));
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
     }
   }
 
@@ -137,10 +154,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
   }
 
-  private double calcSpeedFromDistance() {
-    Pair<Double, Double> target = TurretTargetResolver.getTurretTarget(m_nav, Navigation.CENTER_WAYPOINT_NAME,
-        m_sensors.limelight, m_turret);
-    double target_dist = Units.metersToInches(target.getFirst());
+  private double calcSpeedFromDistance(double target_dist) {
     if (target_dist > 0.0) {
       if (m_hood.isDown()) {
         return hoodDownInterpolator.getInterpolatedValue(target_dist);
@@ -162,12 +176,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return Math.abs(convertMotorTicksToRPM(m_flywheel.getClosedLoopError())) < p_flywheelPID.getTolerance().getValue();
   }
 
-  public void activate() {
-    m_active = true;
+  public void activatePermissive() {
+    m_active = ActiveMode.ACTIVE_PERMISSIVE;
+  }
+
+  public void activateRestrictive() {
+    m_active = ActiveMode.ACTIVE_RESTRICTIVE;
   }
 
   public void deactivate() {
-    m_active = false;
+    m_active = ActiveMode.DEACTIVATED;
   }
 
   private double convertMotorTicksToRPM(double motorVelocity) {
@@ -198,6 +216,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         m_cargoWaitTimer.start();
       } else if (m_cargoWaitTimer.get() > p_shooterReady.getValue()) {
         ready = true;
+      } else {
       }
     } else {
       ready = true;
@@ -215,16 +234,28 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // m_limelight.onTarget()
     // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
     // boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
-    boolean wantsCargo = (m_active && isFlywheelReady() && onTarget());
+    boolean isFlywheelReady = isFlywheelReady();
+    boolean onTarget = onTarget();
+    boolean turretOnTarget = m_turret.onTarget();
+    boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) <= p_shooterSpinLimit.getValue();
+    boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
+    boolean hoodNotMoving = !m_hood.isMoving();
+    boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
+    boolean wantsCargo = (m_active == ActiveMode.ACTIVE_RESTRICTIVE && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning && driveNotAccelerating && hoodNotMoving & highShotProbability)
+                          || (m_active == ActiveMode.ACTIVE_PERMISSIVE && isFlywheelReady && onTarget);
 
-    if (m_active && !wantsCargo) {
+    if (m_active != ActiveMode.DEACTIVATED && !wantsCargo) {
       System.out.println("***Shot blocked***");
-      System.out.println("isFlywheelReasdy:" + isFlywheelReady());
-      System.out.println("onTarget:" + onTarget());
-      System.out.println("hoodMoving:" + !m_hood.isMoving());
+      System.out.println("isFlywheelReasdy:" + isFlywheelReady);
+      System.out.println("onTarget:" + onTarget);
+      System.out.println("Turret onTarget:" + turretOnTarget);
+      System.out.println("driveNotSpinning:" + driveNotSpinning);
+      System.out.println("driveNotAcclerating:" + driveNotAccelerating);
+      System.out.println("highShotProbability:" + highShotProbability);
+      System.out.println("hoodNotMoving:" + hoodNotMoving);
     }
 
-    if (m_active && wantsCargo) {
+    if (m_active != ActiveMode.DEACTIVATED && wantsCargo) {
       System.out.println("!!!SHOOT!!!");
     }
 
@@ -233,17 +264,31 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Shooter Flywheel Velocity",
-        convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity()));
-    // SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
-    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance());
-    // SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
-    SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
-
-    if (m_active && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
+    double flyWheelSpeed = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
+    if (m_active != ActiveMode.DEACTIVATED && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
       m_lastCargoEnteredShooter = RobotController.getFPGATime();
+
+      // Tell ROS we shot something
+      m_ros_interface.signalShot(m_turret.getFacing(), 0.0, flyWheelSpeed);
     }
 
-    m_drive.unlockDrive();
+    if (RobotController.getFPGATime() - m_lastCargoEnteredShooter < p_cargoInShooter.getValue() * 1_000_000) {
+      m_drive.unlockDrive();
+    } else {
+      m_drive.unlockDrive();
+    }
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+    
+    SmartDashboard.putNumber("Shooter Flywheel Velocity",
+      flyWheelSpeed);
+    SmartDashboard.putNumber("Shooter Flywheel Commanded Velocity",
+        convertMotorTicksToRPM(m_flywheel.getClosedLoopTarget()));
+    SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
+    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
+    SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }
 }

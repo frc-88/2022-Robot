@@ -227,7 +227,7 @@ public class Transmission {
      * @param universalCurrentLimit A theoretical current limit that will apply even whjen decellerating
      */
     public double getCurrentLimitedVoltage(double targetVelocity, double currentSensorVelocity,
-            double currentLimit, double universalCurrentLimit) {
+            double currentLimit) {
 
         // Determine the target voltage to get the requested velocity
         double targetMotorVelocity = convertOutputVelocityToInput(targetVelocity);
@@ -250,22 +250,12 @@ public class Transmission {
         // current limit
         double maxWindingsVoltage = (currentLimit / getMotorQuantity())
                  * getMotor().getWindingsResistance();
-        
-        // Do the same, but for the universal current limit
-        double universalMaxWindingsVoltage = (universalCurrentLimit / getMotorQuantity())
-                 * getMotor().getWindingsResistance();
 
         // If we are deccelerating, use the universal current draw
         if (targetVoltage == 0 
                 || (Math.signum(targetVoltage) == Math.signum(currentBackEMF) 
                     && Math.abs(targetVoltage) < Math.abs(currentBackEMF))) {
 
-            // Determine the voltage to command
-            // if (targetVoltage > 0) {
-            //     return Math.max(targetVoltage, currentBackEMF - universalMaxWindingsVoltage);
-            // }  else {
-            //     return Math.min(targetVoltage, currentBackEMF + universalMaxWindingsVoltage);
-            // }
             return targetVoltage;
 
         }
@@ -276,14 +266,8 @@ public class Transmission {
         // current draw. See if that will be too much
         if (Math.signum(targetVoltage) != Math.signum(currentBackEMF)
                 && getCurrentDraw(Math.signum(targetVoltage) * 0.01, 
-                    currentSensorVelocity) > Math.min(currentLimit, universalCurrentLimit)) {
-
-            // Determine the voltage to command
-            // if (currentBackEMF > 0) {
-            //     return Math.max(0, currentBackEMF - universalMaxWindingsVoltage);
-            // }  else {
-            //     return Math.min(0, currentBackEMF + universalMaxWindingsVoltage);
-            // }
+                    currentSensorVelocity) > currentLimit) {
+                        
             return 0;
         }
         

@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 import frc.robot.util.sensors.NavX;
@@ -49,6 +50,9 @@ public class Sensors extends SubsystemBase {
   private DoublePreferenceConstant p_colorRedThreshold = new DoublePreferenceConstant("Color Red Threshold", 0.0);
   private DoublePreferenceConstant p_colorBlueThreshold = new DoublePreferenceConstant("Color Blue Threshold", 0.0);
 
+  private DoublePreferenceConstant p_cameraTiltLevelAngle = new DoublePreferenceConstant("Camera tilt level angle", Constants.CAMERA_TILT_LEVEL_ANGLE);
+  private DoublePreferenceConstant p_cameraTiltDownCommand = new DoublePreferenceConstant("Camera tilt down command", Constants.CAMERA_TILT_DOWN_COMMAND);
+
   // First value is measurement time in minutes second is storage pressure in PSI
   private Queue<Pair<Double, Double>> m_storagePressureMeasurements = new LinkedList<Pair<Double, Double>>();
 
@@ -57,13 +61,14 @@ public class Sensors extends SubsystemBase {
   private boolean checkedWorkingPressure = false;
   private double currentWorkingVoltage = 0;
 
+  private boolean m_compressorEnabled = true;
+
   /**
    * Creates a new Sensors subsystem
    */
   public Sensors() {
     CameraServer.startAutomaticCapture();
     setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
-    limelight.ledOff();
 
     SmartDashboard.putBoolean("Virtual Coast Button", false);
   }
@@ -130,11 +135,11 @@ public class Sensors extends SubsystemBase {
   }
 
   public double convertServoCommandToAngle(double servoCommand) {
-    return -(servoCommand - Constants.CAMERA_TILT_DOWN_COMMAND) - Constants.CAMERA_TILT_LEVEL_ANGLE;
+    return -(servoCommand - p_cameraTiltDownCommand.getValue()) - p_cameraTiltLevelAngle.getValue();
   }
 
   public double convertAngleToServoCommand(double angleDegrees) {
-    return -(angleDegrees + Constants.CAMERA_TILT_LEVEL_ANGLE) + Constants.CAMERA_TILT_DOWN_COMMAND;
+    return -(angleDegrees + p_cameraTiltLevelAngle.getValue()) + p_cameraTiltDownCommand.getValue();
   }
 
   public boolean isCargoOurs() {
@@ -156,17 +161,31 @@ public class Sensors extends SubsystemBase {
     return foundOurs;
   }
 
-  @Override
-  public void periodic() {
-    // checkedStoragePressure = false;
-    // checkedWorkingPressure = false;
-    // getStoragePressure();
-    // getWorkingPressure();
+  public void firstPeriodic() {
 
     if (DriverStation.isEnabled()) {
       SmartDashboard.putBoolean("Virtual Coast Button", false);
     }
     SmartDashboard.putBoolean("Coast Button", isCoastButtonPressed());
+    limelight.periodic();
+
+    if (m_compressorEnabled && DriverStation.isAutonomous()) {
+      m_compressorEnabled = false;
+      m_pneumaticHub.disableCompressor();
+    } else if (!m_compressorEnabled && DriverStation.isTeleop()) {
+      m_compressorEnabled = true;
+      m_pneumaticHub.enableCompressorDigital();
+    }
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
+    checkedStoragePressure = false;
+    checkedWorkingPressure = false;
+    getStoragePressure();
+    getWorkingPressure();
+
     // NavX data
     SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
     SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
@@ -174,9 +193,9 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("NavX Roll", navx.getRoll());
 
     // Limelight calculations
-    SmartDashboard.putNumber("Limelight Distance", limelight.calcDistanceToTarget());
-    SmartDashboard.putNumber("Limelight Angle", limelight.calcLimelightAngle());
-    SmartDashboard.putNumber("Limelight Turret Offset", limelight.calcTurretOffset());
+    SmartDashboard.putNumber("Limelight Distance", limelight.getTargetDistance());
+    SmartDashboard.putNumber("Limelight Angle", limelight.getCalibrationAngle());
+    SmartDashboard.putNumber("Limelight Turret Offset", limelight.getTurretOffset());
     SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
     SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
 
@@ -248,7 +267,5 @@ public class Sensors extends SubsystemBase {
     // SmartDashboard.putBoolean("Leak Warning", leakRatePercentage > Constants.LEAK_WARNING);
     // SmartDashboard.putBoolean("Storage Pressure Sensor Disconnected", !this.isStoragePressureSensorConnected());
     // SmartDashboard.putBoolean("Working Pressure Sensor Disconnected", !this.isWorkingPressureSensorConnected());
-
-    // SmartDashboard.putNumber("NavX Roll", navx.getRoll());
   }
 }

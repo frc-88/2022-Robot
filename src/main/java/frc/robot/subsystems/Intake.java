@@ -14,25 +14,27 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.motorcontrol.PWMTalonFX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
+import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.sensors.SharpIR;
 
 public class Intake extends SubsystemBase implements CargoSource {
 
-  private final WPI_TalonFX m_roller;
+  private final PWMTalonFX m_roller;
   private final WPI_TalonFX m_arm;
   private final SharpIR m_IR;
-
-  private boolean m_isCalibrated = false;
 
   private DoublePreferenceConstant rollerIntakeSpeed;
   private DoublePreferenceConstant rolleroutgestSpeed;
   private DoublePreferenceConstant armCurrentControlTarget;
+  private DoublePreferenceConstant armCurrentControlFastTarget;
 
   private DoublePreferenceConstant continuousCurrentLimit;
   private DoublePreferenceConstant triggerCurrentLimit;
@@ -55,8 +57,12 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   private static final double ARM_RATIO = 360. / (5. * 5. * (40./32.) * (44./18.) * 2048.); // Motor ticks to actual degrees
 
-  public static final double ARM_STOWED = 120;
-  public static final double ARM_DEPLOYED = 0;
+  private static final double ARM_STARTUP_POSITION = 100.;
+
+  public boolean m_armStowCalibrated = false;
+  public double m_armStowed = 120;
+  public boolean m_armDeployCalibrated = false;
+  public double m_armDeployed = 0;
 
   private static final double ARM_SETPOINT_TOLERANCE = 5;
 
@@ -73,11 +79,12 @@ public class Intake extends SubsystemBase implements CargoSource {
 
   /** Creates a new Intake. */
   public Intake() {
-    m_roller = new WPI_TalonFX(Constants.INTAKE_ROLLER_ID, "1");
+    m_roller = new PWMTalonFX(Constants.INTAKE_ROLLER_ID);
     m_arm = new WPI_TalonFX(Constants.INTAKE_ARM_ID, "1");
     m_IR = new SharpIR(Constants.INTAKE_IR_ID);
 
     armCurrentControlTarget = new DoublePreferenceConstant("Intake Arm Current Control Target", 8);
+    armCurrentControlFastTarget = new DoublePreferenceConstant("Intake Arm Current Control Fast Target", 30);
     rollerIntakeSpeed = new DoublePreferenceConstant("Intake Roller Intake Speed", 0.5);
     rolleroutgestSpeed = new DoublePreferenceConstant("Intake Roller Outgest Speed", -0.5);
 
@@ -100,8 +107,6 @@ public class Intake extends SubsystemBase implements CargoSource {
     armMotionMagicPID.addChangeHandler((Double unused) -> configMotionMagic());
     armCurrentPID.addChangeHandler((Double unused) -> configCurrentControl());
     armCurrentControlMaxPercent.addChangeHandler((Double unused) -> configCurrentControl());
-
-    m_roller.configFactoryDefault();
     m_arm.configFactoryDefault();
 
     m_arm.setInverted(InvertType.InvertMotorOutput);
@@ -111,10 +116,11 @@ public class Intake extends SubsystemBase implements CargoSource {
     configCurrentControl();
     
     m_arm.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
-    m_arm.configForwardSoftLimitThreshold(convertArmPositionToMotor(ARM_STOWED));
-    m_arm.configForwardSoftLimitEnable(true);
-    m_arm.configReverseSoftLimitThreshold(convertArmPositionToMotor(ARM_DEPLOYED));
-    m_arm.configReverseSoftLimitEnable(true);
+    m_arm.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
+    m_arm.configForwardSoftLimitThreshold(convertArmPositionToMotor(m_armStowed));
+    m_arm.configForwardSoftLimitEnable(false);
+    m_arm.configReverseSoftLimitThreshold(convertArmPositionToMotor(m_armDeployed));
+    m_arm.configReverseSoftLimitEnable(false);
     m_arm.configNeutralDeadband(0);
   }
 
@@ -161,7 +167,10 @@ public class Intake extends SubsystemBase implements CargoSource {
 
 
   public double getArmPosition() {
-    return convertMotorPositionToArm(m_arm.getSelectedSensorPosition());
+    if (NumberCache.hasValue("Intake Arm Position")) {
+      return NumberCache.getValue("Intake Arm Position");
+    }
+    return NumberCache.pushValue("Intake Arm Position", convertMotorPositionToArm(m_arm.getSelectedSensorPosition()));
   }
 
   public double getArmVelocity() {
@@ -179,11 +188,14 @@ public class Intake extends SubsystemBase implements CargoSource {
     return m_arm.isRevLimitSwitchClosed() > 0;
   }
 
+  public boolean isStowLimitTriggered() {
+    return m_arm.isFwdLimitSwitchClosed() > 0;
+  }
 
   public void deploy() {
     switch(m_state) {
       case STARTUP:
-        m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_STOWED));
+        m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_STARTUP_POSITION));
 
         // Intentional fall-through
       
@@ -192,16 +204,17 @@ public class Intake extends SubsystemBase implements CargoSource {
       case STOWED:
       case STOWED_CALIBRATING:
         enableLimits();
-        setArmMotionMagic(ARM_DEPLOYED);
+        setArmCurrentControl(-armCurrentControlFastTarget.getValue());
 
-        if (getArmPosition() < ARM_DEPLOYED + ARM_SETPOINT_TOLERANCE || isDeployLimitTriggered()) {
-          if (m_isCalibrated) {
-            m_state = State.DEPLOYED;
-          } else {
-            m_calibrationStartValue = getArmPosition();
-            m_calibrationCollectsDone = 0;
-            m_state = State.DEPLOYED_CALIBRATING;
-          }
+        if (/*getArmPosition() < m_armDeployed + ARM_SETPOINT_TOLERANCE || */isDeployLimitTriggered()) {
+          // if (m_armDeployCalibrated) {
+          //   m_state = State.DEPLOYED;
+          // } else {
+          //   m_calibrationStartValue = getArmPosition();
+          //   m_calibrationCollectsDone = 0;
+          //   m_state = State.DEPLOYED_CALIBRATING;
+          // }
+          m_state = State.DEPLOYED;
         } else {
           m_state = State.DEPLOYING;
         }
@@ -209,20 +222,23 @@ public class Intake extends SubsystemBase implements CargoSource {
         break;
 
       case DEPLOYED_CALIBRATING:
-        if (checkCalibration(-1)) {
-          m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_DEPLOYED));
+        // if (checkCalibration()) {
+        //   m_armDeployed = getArmPosition();
+        //   m_arm.configReverseSoftLimitThreshold(convertArmPositionToMotor(m_armDeployed));
 
-          m_isCalibrated = true;
-          m_state = State.DEPLOYED;
-        } else {
-          m_state = State.DEPLOYED_CALIBRATING;
-        }
+        //   m_armDeployCalibrated = true;
+        //   m_state = State.DEPLOYED;
+        // } else {
+        //   m_state = State.DEPLOYED_CALIBRATING;
+        // }
+
+        m_state = State.DEPLOYED;
 
         // Intentional Fall-through
 
       case DEPLOYED:
         disableLimits();
-        setArmCurrentControl(-1);
+        setArmCurrentControl(-armCurrentControlTarget.getValue());
 
         break;
     }
@@ -231,7 +247,7 @@ public class Intake extends SubsystemBase implements CargoSource {
   public void stow() {
     switch(m_state) {
       case STARTUP:
-        m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_STOWED));
+        // m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_STARTUP_POSITION));
 
         // Intentional fall-through
       
@@ -240,16 +256,17 @@ public class Intake extends SubsystemBase implements CargoSource {
       case DEPLOYED:
       case DEPLOYED_CALIBRATING:
         enableLimits();
-        setArmMotionMagic(ARM_STOWED - 10);
+        setArmCurrentControl(armCurrentControlFastTarget.getValue());
 
-        if (getArmPosition() > ARM_STOWED - ARM_SETPOINT_TOLERANCE) {
-          if (m_isCalibrated) {
-            m_state = State.STOWED;
-          } else {
-            m_calibrationStartValue = getArmPosition();
-            m_calibrationCollectsDone = 0;
-            m_state = State.STOWED_CALIBRATING;
-          }
+        if (/*getArmPosition() > m_armStowed - ARM_SETPOINT_TOLERANCE || */isStowLimitTriggered()) {
+          // if (m_armStowCalibrated) {
+          //   m_state = State.STOWED;
+          // } else {
+          //   m_calibrationStartValue = getArmPosition();
+          //   m_calibrationCollectsDone = 0;
+          //   m_state = State.STOWED_CALIBRATING;
+          // }
+          m_state = State.STOWED;
         } else {
           m_state = State.STOWING;
         }
@@ -257,20 +274,22 @@ public class Intake extends SubsystemBase implements CargoSource {
         break;
 
       case STOWED_CALIBRATING:
-        if (checkCalibration(1)) {
-          m_arm.setSelectedSensorPosition(convertArmPositionToMotor(ARM_STOWED));
+        // if (checkCalibration()) {
+        //   m_armStowed = getArmPosition();
+        //   m_arm.configForwardSoftLimitThreshold(convertArmPositionToMotor(m_armStowed));
 
-          m_isCalibrated = true;
-          m_state = State.STOWED;
-        } else {
-          m_state = State.STOWED_CALIBRATING;
-        }
+        //   m_armStowCalibrated = true;
+        //   m_state = State.STOWED;
+        // } else {
+        //   m_state = State.STOWED_CALIBRATING;
+        // }
+        m_state = State.STOWED;
 
         // Intentional Fall-through
 
       case STOWED:
         disableLimits();
-        setArmCurrentControl(1);
+        setArmCurrentControl(armCurrentControlTarget.getValue());
 
         break;
     }
@@ -281,14 +300,14 @@ public class Intake extends SubsystemBase implements CargoSource {
     m_arm.set(TalonFXControlMode.MotionMagic, convertArmPositionToMotor(position), DemandType.ArbitraryFeedForward, p_intakeArbitraryF.getValue() * Math.cos(Math.toRadians(position + 16)));
   }
 
-  private void setArmCurrentControl(int direction) {
+  private void setArmCurrentControl(double current) {
     m_arm.selectProfileSlot(CURRENT_CONTROL_PID_SLOT, 0);
-    m_arm.set(TalonFXControlMode.Current, armCurrentControlTarget.getValue() * direction);
+    m_arm.set(TalonFXControlMode.Current, current);
   }
 
-  private boolean checkCalibration(int movementDirection) {
+  private boolean checkCalibration() {
     double currentPosition = getArmPosition();
-    if (Math.abs(currentPosition + (m_calibrationStartValue * movementDirection)) < CALIBRATION_TOLERANCE) {
+    if (Math.abs(currentPosition - m_calibrationStartValue) < CALIBRATION_TOLERANCE) {
       m_calibrationCollectsDone++;
     } else {
       m_calibrationCollectsDone = 0;
@@ -300,7 +319,7 @@ public class Intake extends SubsystemBase implements CargoSource {
 
 
   public void rollerIntake() {
-    m_roller.set(TalonFXControlMode.PercentOutput, rollerIntakeSpeed.getValue());
+    m_roller.set(rollerIntakeSpeed.getValue());
   }
 
   public void rollerStop() {
@@ -308,22 +327,31 @@ public class Intake extends SubsystemBase implements CargoSource {
   }
 
   public void rollerOutgest() {
-    m_roller.set(TalonFXControlMode.PercentOutput, rolleroutgestSpeed.getValue());
+    m_roller.set(rolleroutgestSpeed.getValue());
   }
-  
 
   @Override
   public void periodic() {
+    SmartDashboard.putBoolean("Intake Roller Alive", m_roller.isAlive());
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
     SmartDashboard.putNumber("Intake Arm Position", getArmPosition());
-    // SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
-    // SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
-    // SmartDashboard.putBoolean("Intake Arm Calibrated", m_isCalibrated);
+    SmartDashboard.putNumber("Intake Arm Velocity", getArmVelocity());
+    SmartDashboard.putNumber("Intake Arm Current", m_arm.getSupplyCurrent());
+    SmartDashboard.putBoolean("Intake Arm Deploy Calibrated", m_armDeployCalibrated);
+    SmartDashboard.putBoolean("Intake Arm Stow Calibrated", m_armStowCalibrated);
     SmartDashboard.putBoolean("Intake Arm Deploy Limit", isDeployLimitTriggered());
+    SmartDashboard.putBoolean("Intake Arm Stow Limit", isStowLimitTriggered());
+    SmartDashboard.putNumber("Intake Arm Stowed Position", m_armStowed);
+    SmartDashboard.putNumber("Intake Arm Deployed Position", m_armDeployed);
 
-    // SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
+    SmartDashboard.putNumber("Intake Roller Current", m_arm.getSupplyCurrent());
 
-    // SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
-    // SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
+    SmartDashboard.putBoolean("Intake Has Cargo", hasCargo());
+    SmartDashboard.putNumber("Intake Sensor Distance", m_IR.getDistance());
 
     SmartDashboard.putString("Intake State", m_state.toString());
   }

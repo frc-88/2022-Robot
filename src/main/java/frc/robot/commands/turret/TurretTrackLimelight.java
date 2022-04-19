@@ -34,6 +34,7 @@ public class TurretTrackLimelight extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    boolean spinCompensation = false;
     if (m_turret.isTracking()) {
       m_limelight.ledOn();
 
@@ -44,8 +45,8 @@ public class TurretTrackLimelight extends CommandBase {
       } else if (m_limelight.hasTarget()) {
         // if we have a target, track it
         m_lostCount = 0;
-        // TODO handle laggy data from the limelight
-        m_target = m_turret.getFacing() - m_limelight.calcTurretOffset();
+        m_target = m_turret.getFacing() - m_limelight.getTurretOffset();
+        spinCompensation = true;
       } else if (++m_lostCount > (p_resetTime.getValue() * 50)) {
         // if we don't have a target for too long, go to zero
         m_target = m_turret.getDefaultFacing();
@@ -57,7 +58,7 @@ public class TurretTrackLimelight extends CommandBase {
     }
 
     SmartDashboard.putNumber("Turret:Track Target", m_target);    
-    m_turret.goToFacing(m_target);
+    m_turret.goToFacing(m_target, spinCompensation);
   }
 
   // Called once the command ends or is interrupted.

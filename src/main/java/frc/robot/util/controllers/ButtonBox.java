@@ -3,6 +3,7 @@ package frc.robot.util.controllers;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.util.ThisRobotTable;
 
 public class ButtonBox extends Joystick {
 
@@ -65,7 +66,8 @@ public class ButtonBox extends Joystick {
     public Button midBarSwitch = new JoystickButton(this, MID_BAR);
     public Button lowBarSwitch = new Button(() -> !(traversalBarSwitch.get() || highBarSwitch.get() || midBarSwitch.get()));
     public Button rosDisableSwitch = new JoystickButton(this, AUX_4);
-    public Button defaultTurretSwitch = new JoystickButton(this, AUX_3);
+    public Button autoShootSwitch = new JoystickButton(this, AUX_3);
+    public Button defaultTurretButton = new JoystickButton(this, AUX_1);
     public Button cancelClimb = new JoystickButton(this, AUX_2);
 
 	public boolean isIntakeButtonPressed() {
@@ -137,8 +139,12 @@ public class ButtonBox extends Joystick {
         return rosDisableSwitch.get();
     }
 
-    public boolean isDefaultTurretSwitchOn() {
-        return defaultTurretSwitch.get();
+    public boolean isAutoShootSwitchOn() {
+        return autoShootSwitch.get();
+    }
+
+    public boolean isDefaultTurretButtonPressed() {
+        return defaultTurretButton.get();
     }
 
     public boolean isCancelClimbPressed() {

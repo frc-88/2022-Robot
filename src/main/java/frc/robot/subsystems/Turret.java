@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
@@ -20,6 +21,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
@@ -32,6 +35,8 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 public class Turret extends SubsystemBase {
   private TalonFX m_turret = new TalonFX(Constants.TURRET_MOTOR_ID, "1");
   private CANCoder m_cancoder = new CANCoder(Constants.TURRET_CANCODER_ID, "1");
+
+  private Sensors m_sensors;
 
   // Preferences
   private DoublePreferenceConstant p_zeroPosition = new DoublePreferenceConstant("Turret Zero", 0.0);
@@ -51,9 +56,13 @@ public class Turret extends SubsystemBase {
   private double m_circumnavigationTarget;
 
   private double m_defaultFacing = 0.;
+  private boolean m_hasTarget = true;
+  private double m_target = 0;
 
   /** Creates a new Turret. */
-  public Turret() {
+  public Turret(Sensors sensors) {
+    m_sensors = sensors;
+
     configureFalcon();
     configureCANCoder();
 
@@ -140,18 +149,23 @@ public class Turret extends SubsystemBase {
   }
 
   public void goToFacing(double target) {
-    if (m_circumnavigating) {
+    goToFacing(target, false);
+  }
+
+  public void goToFacing(double target, boolean spinCompensation) {
+    m_target = target;
+    if (m_circumnavigating && !isFacingSafe(target)) {
       // if we are circumnavigating, ignore the input and keep doing that until we get there
-      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget), false);
       m_circumnavigating = Math.abs(m_circumnavigationTarget - getFacing()) > 5.0;
     } else if (isFacingSafe(target)) {
       // otherwise go to the input target if it is safe.
-      goToPosition(turretFacingToEncoderPosition(target));
+      goToPosition(turretFacingToEncoderPosition(target), spinCompensation);
     } else if (isFacingSafe(m_circumnavigationTarget = calcCircumnavigationTarget(target))) {
       // but if the target isn't safe, and our circumnavigation target is, start circumnavigating
       m_circumnavigating = true;
       // TODO? - adjust config here if different PID needed for targeting vs. circumnavigating
-      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget));
+      goToPosition(turretFacingToEncoderPosition(m_circumnavigationTarget), false);
     } else {
       System.out.println("Turret unsafe target: " + target);
       // target is unsafe and circumnavigation target is unsafe, ignore it
@@ -168,6 +182,10 @@ public class Turret extends SubsystemBase {
 
   public double getDefaultFacing() {
     return m_defaultFacing;
+  }
+
+  public boolean onTarget() {
+    return m_tracking && (Math.abs(getFacing() - m_target) < 10. && Math.abs(turretEncoderPositionToFacing(m_turret.getSelectedSensorVelocity()) * 10.) < 90.);
   }
 
   private double calcCircumnavigationTarget(double origin) {
@@ -216,11 +234,18 @@ public class Turret extends SubsystemBase {
   }
 
   private double getPosition() {
-    return m_turret.getSelectedSensorPosition();
+    if (NumberCache.hasValue("Turret Position")) {
+      return NumberCache.getValue("Turret Position");
+    }
+    return NumberCache.pushValue("Turret Position", m_turret.getSelectedSensorPosition());
   }
 
-  private void goToPosition(double position) {
-    m_turret.set(TalonFXControlMode.MotionMagic, position);
+  private void goToPosition(double position, boolean spinCompensation) {
+    if (spinCompensation) {
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
+    } else {
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 0);
+    }
   }
 
   private boolean isPositionSafe(double position) {
@@ -231,8 +256,8 @@ public class Turret extends SubsystemBase {
   private double cancoderPostionToFalconPosition(double position) {
     double normalPosition = (position - p_zeroPosition.getValue());
 
-    if (normalPosition > 180) { normalPosition -= 360; }
-    if (normalPosition < -180) { normalPosition += 360; }
+    // if (normalPosition > 180) { normalPosition -= 360; }
+    // if (normalPosition < -180) { normalPosition += 360; }
 
     return turretFacingToEncoderPosition(normalPosition *
     (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
@@ -248,14 +273,21 @@ public class Turret extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    // SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
-    // SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
+    SmartDashboard.putNumber("Turret:CANCoder Absolute", m_cancoder.getAbsolutePosition());
+    SmartDashboard.putNumber("Turret:CANCoder Position", m_cancoder.getPosition());
     SmartDashboard.putNumber("Turret:CANCoder Turret Facing",  turretEncoderPositionToFacing(cancoderPostionToFalconPosition(m_cancoder.getAbsolutePosition())));
-    // SmartDashboard.putNumber("Turret:Position", getPosition());
+    SmartDashboard.putNumber("Turret:Position", getPosition());
     SmartDashboard.putNumber("Turret:Facing", getFacing());
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
-    // SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+    SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+  }
+
+  public void setHasTarget(boolean hasTarget) {
+    m_hasTarget = true;
   }
 }

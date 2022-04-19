@@ -19,18 +19,25 @@ public class ClimberStateMachineExecutor extends CommandBase {
   private final ClimberStateMachine m_stateMachine;
   private final boolean m_cancelIfRolled;
   private final BooleanSupplier m_cancelButton;
+  private final BooleanSupplier m_pauseButton;
 
   private final double ROLL_THRESHOLD = 10;
   private final int ROLL_DURATION = 25;
   private int m_rollCount;
   private boolean m_rolled;
+  private boolean m_wasPaused;
 
-  public ClimberStateMachineExecutor(Climber climber, Sensors sensors, ClimberStateMachine stateMachine, boolean cancelIfRolled, BooleanSupplier cancelButton) {
+  public ClimberStateMachineExecutor(Climber climber, Sensors sensors, ClimberStateMachine stateMachine) {
+    this(climber, sensors, stateMachine, false, () -> false, () -> false);
+  }
+
+  public ClimberStateMachineExecutor(Climber climber, Sensors sensors, ClimberStateMachine stateMachine, boolean cancelIfRolled, BooleanSupplier cancelButton, BooleanSupplier pauseButton) {
     m_climber = climber;
     m_sensors = sensors;
     m_stateMachine = stateMachine;
     m_cancelIfRolled = cancelIfRolled;
     m_cancelButton = cancelButton;
+    m_pauseButton = pauseButton;
     addRequirements(climber);
   }
 
@@ -39,6 +46,7 @@ public class ClimberStateMachineExecutor extends CommandBase {
     m_stateMachine.reset();
     m_rollCount = 0;
     m_rolled = false;
+    m_wasPaused = false;
   }
 
   @Override
@@ -53,14 +61,16 @@ public class ClimberStateMachineExecutor extends CommandBase {
       m_rolled = true;
     }
  
-    if (m_rolled) { 
+    if (m_rolled || m_pauseButton.getAsBoolean()) { 
       m_climber.setInnerMotionMagic(m_climber.getAverageInnerPivotAngle(), m_climber.getAverageInnerTelescopeHeight());
       m_climber.setOuterMotionMagic(m_climber.getAverageOuterPivotAngle(), m_climber.getAverageOuterTelescopeHeight());
+      m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);  // tilt camera to look down at the intake
       return;
     }
 
     m_sensors.setCameraTilterAngle(Constants.CAMERA_TILT_UP_ANGLE);  // tilt camera to look up at the bars
-    m_stateMachine.run(m_climber);
+    m_stateMachine.run(m_climber, m_wasPaused);
+    m_wasPaused = m_pauseButton.getAsBoolean();
   }
 
   @Override

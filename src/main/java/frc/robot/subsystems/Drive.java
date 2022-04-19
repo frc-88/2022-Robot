@@ -30,12 +30,15 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+import frc.robot.util.NumberCache;
 import frc.robot.util.SyncPIDController;
 import frc.robot.util.drive.DriveConfiguration;
 import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.drive.Shifter;
 import frc.robot.util.drive.TJDriveModule;
 import frc.robot.util.drive.Shifter.Gear;
+import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 import frc.robot.util.transmission.CTREMagEncoder;
@@ -66,8 +69,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DifferentialDriveKinematics m_kinematics;
   private DifferentialDriveOdometry m_odometry;
   private Pose2d m_pose;
+  private ChassisSpeeds m_velocities;
   private Pose2d m_traj_reset_pose;
   private Pose2d m_traj_offset;
+  private Double m_previousLeftPosition, m_previousRightPosition;
 
   private PIDPreferenceConstants velPIDConstants;
   private DoublePreferenceConstant downshiftSpeed;
@@ -81,7 +86,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   private DoublePreferenceConstant leftHighEfficiency;
   private DoublePreferenceConstant rightHighEfficiency;
   private DoublePreferenceConstant maxCurrent;
-  private DoublePreferenceConstant universalCurrentLimit;
+  private BooleanPreferenceConstant odometryTipCompensation;
 
   // Constants for negative inertia
   private static final double LARGE_TURN_RATE_THRESHOLD = 0.65;
@@ -98,9 +103,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   // Acceleration limiting
   private DoublePreferenceConstant accelLimit;
+  private DoublePreferenceConstant accelLimitMolasses;
+  private DoublePreferenceConstant accelSpinLimitMolasses;
 
   // Locking
   private boolean m_locked = false;
+  private boolean m_molassesMode = false;
+
+  private boolean m_inBrake = true;
 
   public Drive(Sensors sensors) {
     m_sensors = sensors;
@@ -119,8 +129,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     leftHighEfficiency = new DoublePreferenceConstant("Drive Left High Efficiency", Constants.DRIVE_LEFT_HIGH_EFFICIENCY);
     rightHighEfficiency = new DoublePreferenceConstant("Drive Right High Efficiency", Constants.DRIVE_RIGHT_HIGH_EFFICIENCY);
     maxCurrent = new DoublePreferenceConstant("Drive Max Current", Constants.DRIVE_CURRENT_LIMIT);
-    universalCurrentLimit = new DoublePreferenceConstant("Universal Current Limit", 600);
+    odometryTipCompensation = new BooleanPreferenceConstant("Odometry Tip Compensation", true);
     accelLimit = new DoublePreferenceConstant("Drive Accel Limit", 1);
+    accelLimitMolasses = new DoublePreferenceConstant("Drive Accel Limit Molasses", 1.5);
+    accelSpinLimitMolasses = new DoublePreferenceConstant("Drive Accel Spin Limit Molasses", 1.5);
 
     m_leftTransmission = new ShiftingTransmission(new Falcon500(), Constants.NUM_DRIVE_MOTORS_PER_SIDE,
         new CTREMagEncoder(), Constants.LOW_DRIVE_RATIO, Constants.HIGH_DRIVE_RATIO, Constants.DRIVE_SENSOR_RATIO,
@@ -180,6 +192,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     // center of the field along the short end, facing forward.
     m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
     m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), m_pose);
+    m_velocities = new ChassisSpeeds(0.0, 0.0, 0.0);
   
     resetTrajectoryPose(new Pose2d());
   }
@@ -199,27 +212,23 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       rightVelocity = getRightSpeed();
     }
 
+    double currentLimit = maxCurrent.getValue();
+
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
     double rightExpectedCurrent = m_rightDrive.getExpectedCurrentDraw(rightVelocity);
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
-    double leftUniversalCurrentLimit;
-    double rightUniversalCurrentLimit;
-    if (totalExpectedCurrent == 0) {
-      leftCurrentLimit =  maxCurrent.getValue() / 2.;
-      rightCurrentLimit = maxCurrent.getValue() / 2.;
-      leftUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
-      rightUniversalCurrentLimit = universalCurrentLimit.getValue() / 2.;
+    if (totalExpectedCurrent < 10) {
+      leftCurrentLimit =  currentLimit / 2.;
+      rightCurrentLimit = currentLimit / 2.;
     } else {
-      leftCurrentLimit = maxCurrent.getValue() * leftExpectedCurrent / totalExpectedCurrent;
-      rightCurrentLimit = maxCurrent.getValue() * rightExpectedCurrent / totalExpectedCurrent;
-      leftUniversalCurrentLimit = universalCurrentLimit.getValue() * leftExpectedCurrent / totalExpectedCurrent;
-      rightUniversalCurrentLimit = universalCurrentLimit.getValue() * rightExpectedCurrent / totalExpectedCurrent;
+      leftCurrentLimit = currentLimit * leftExpectedCurrent / totalExpectedCurrent;
+      rightCurrentLimit = currentLimit * rightExpectedCurrent / totalExpectedCurrent;
     }
 
-    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit, leftUniversalCurrentLimit);
-    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit, rightUniversalCurrentLimit);
+    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
+    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
     
     m_leftCommandedSpeed = leftVelocity;
     m_rightCommandedSpeed = rightVelocity;
@@ -242,7 +251,12 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
 
-    speed = limitAcceleration(speed);
+    if (m_molassesMode) {
+      speed = limitAcceleration(speed, getStraightSpeed(), accelLimitMolasses.getValue());
+      turn = limitAcceleration(turn, (getLeftSpeed() - getRightSpeed()) / 2, accelSpinLimitMolasses.getValue());
+    } else {
+      speed = limitAcceleration(speed, getStraightSpeed(), accelLimit.getValue());
+    }
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
@@ -267,17 +281,24 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     }
   }
 
-  public double limitAcceleration(double speed) {
-    double currentSpeed = getStraightSpeed();
+  public void enableMolassesMode() {
+    m_molassesMode = true;
+  }
+
+  public void disableMolassesMode() {
+    m_molassesMode = false;
+  }
+
+  public double limitAcceleration(double speed, double currentSpeed, double limit) {
     if (speed - currentSpeed > 0) {
-        double vel = currentSpeed + accelLimit.getValue();
+        double vel = currentSpeed + limit;
       if (speed < vel) {
         return speed;
       } else {
         return vel;
       }
     } else {
-      double vel = getStraightSpeed() - accelLimit.getValue();;
+      double vel = currentSpeed - limit;
       if (speed > vel) {
         return speed;
       } else {
@@ -327,31 +348,63 @@ public class Drive extends SubsystemBase implements ChassisInterface {
   }
 
   public double getLeftPosition() {
-    return m_leftDrive.getScaledSensorPosition();
+    if (Objects.nonNull(m_previousLeftPosition) && shouldIgnoreEncoders()) {
+      m_leftDrive.setScaledSensorPosition(m_previousLeftPosition);
+    } else {
+      m_previousLeftPosition = m_leftDrive.getScaledSensorPosition();
+    }
+    return m_previousLeftPosition;
   }
 
   public double getRightPosition() {
-    return m_rightDrive.getScaledSensorPosition();
+    if (Objects.nonNull(m_previousRightPosition) && shouldIgnoreEncoders()) {
+      m_rightDrive.setScaledSensorPosition(m_previousRightPosition);
+    } else {
+      m_previousRightPosition = m_rightDrive.getScaledSensorPosition();
+    }
+    return m_previousRightPosition;
   }
 
   public double getLeftSpeed() {
-    return m_leftDrive.getScaledSensorVelocity();
+    if (NumberCache.hasValue("Drive Left Speed")) {
+      return NumberCache.getValue("Drive Left Speed");
+    }
+
+    return NumberCache.pushValue("Drive Left Speed", getRawLeftSpeed());
+  }
+
+  private double getRawLeftSpeed() {
+    return NumberCache.pushValue("Drive Left Speed", m_leftDrive.getScaledSensorVelocity());
   }
 
   public double getRightSpeed() {
-    return m_rightDrive.getScaledSensorVelocity();
+    if (NumberCache.hasValue("Drive Right Speed")) {
+      return NumberCache.getValue("Drive Right Speed");
+    }
+
+    return NumberCache.pushValue("Drive Right Speed", getRawRightSpeed());
+  }
+
+  private double getRawRightSpeed() {
+    return NumberCache.pushValue("Drive Right Speed", m_rightDrive.getScaledSensorVelocity());
   }
 
   public double getStraightSpeed() {
     return (getLeftSpeed() + getRightSpeed()) / 2;
   }
 
+  public double getAccelerationEstimate() {
+    return Math.abs(getLeftSpeed() - m_leftCommandedSpeed) + Math.abs(getRightSpeed() - m_rightCommandedSpeed);
+  }
+
   public void setBrakeMode() {
+    m_inBrake = true;
     m_leftDrive.brakeAll();
     m_rightDrive.brakeAll();
   }
 
   public void setCoastMode() {
+    m_inBrake = false;
     m_leftDrive.coastAll();
     m_rightDrive.coastAll();
   }
@@ -372,8 +425,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     return m_pose;
   }
 
-  public ChassisSpeeds getCurrentChassisSpeeds() {
-    return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(Units.feetToMeters(getLeftSpeed()), Units.feetToMeters(getRightSpeed())));
+  private ChassisSpeeds getComputeChassisSpeeds() {
+    if (shouldIgnoreEncoders()) {
+      return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(0, 0));
+    }
+    return m_kinematics.toChassisSpeeds(new DifferentialDriveWheelSpeeds(Units.feetToMeters(getRawLeftSpeed()), Units.feetToMeters(getRawRightSpeed())));
   }
 
   public DifferentialDriveWheelSpeeds wheelSpeedsFromChassisSpeeds(ChassisSpeeds speeds) {
@@ -433,6 +489,10 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     m_rightDrive.setSelectedSensorPosition(0);
   }
 
+  private boolean shouldIgnoreEncoders() {
+    return odometryTipCompensation.getValue() && (Math.abs(m_sensors.navx.getPitch()) > 15 || Math.abs(m_sensors.navx.getRoll()) > 15);
+  }
+
   public void resetOdometry() {
     resetOdometry(new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d()), new Rotation2d());
   }
@@ -448,6 +508,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   public void updateOdometry() {
     Pose2d odom_pose = m_odometry.update(Rotation2d.fromDegrees(-m_sensors.navx.getYaw()), Units.feetToMeters(getLeftPosition()), Units.feetToMeters(getRightPosition()));
+    m_velocities = getComputeChassisSpeeds();
     if (m_traj_reset_pose == null || m_traj_offset == null) {
       m_pose = odom_pose;
     } else {
@@ -462,41 +523,11 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public void periodic() {
-    if (SmartDashboard.getBoolean("Zero Drive", false)) {
-      zeroDrive();
-      resetOdometry();
-      SmartDashboard.putBoolean("Zero Drive", false);
-    }
-    
-    updateOdometry();
-    m_field.setRobotPose(getCurrentPose());
+    // updateOdometry();  // moved to ThisRobotTable::update
 
-    // SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
-    // SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
-    SmartDashboard.putNumber("L Drive Speed", m_leftDrive.getScaledSensorVelocity());
-    SmartDashboard.putNumber("R Drive Speed", m_rightDrive.getScaledSensorVelocity());
-    // SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
-    // SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
-    // SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
-    // SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
-    // SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
-    // SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
-    SmartDashboard.putString("L Drive Gear", getLeftGear().toString());
-    SmartDashboard.putString("R Drive Gear", getRightGear().toString());
-    // SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
-    // SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
-
-    SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
-    SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));
-    SmartDashboard.putNumber("Pose Rotation", m_pose.getRotation().getDegrees());
-    ChassisSpeeds speeds = getCurrentChassisSpeeds();
-    SmartDashboard.putNumber("Linear Velocity X", Units.metersToFeet(speeds.vxMetersPerSecond));
-    SmartDashboard.putNumber("Linear Velocity Y", Units.metersToFeet(speeds.vyMetersPerSecond));
-    SmartDashboard.putNumber("Angular Velocity", Units.metersToFeet(speeds.omegaRadiansPerSecond));
-
-    if (DriverStation.isEnabled()) {
+    if (DriverStation.isEnabled() && !m_inBrake) {
       this.setBrakeMode();
-    } else {
+    } else if (DriverStation.isDisabled() && m_inBrake) {
       this.setCoastMode();
     }
 
@@ -506,6 +537,41 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     if (m_rightDrive.hasResetOccurred()) {
       m_rightDrive.setStatusFrames();
     }
+
+    if (!RobotContainer.isPublishingEnabled()) {
+      return;
+    }
+
+    if (SmartDashboard.getBoolean("Zero Drive", false)) {
+      zeroDrive();
+      resetOdometry();
+      SmartDashboard.putBoolean("Zero Drive", false);
+    }
+    
+    m_field.setRobotPose(getCurrentPose());
+
+    SmartDashboard.putNumber("L Drive Current", m_leftDrive.getTotalCurrent());
+    SmartDashboard.putNumber("R Drive Current", m_rightDrive.getTotalCurrent());
+    SmartDashboard.putNumber("L Drive Speed", m_leftDrive.getScaledSensorVelocity());
+    SmartDashboard.putNumber("R Drive Speed", m_rightDrive.getScaledSensorVelocity());
+    SmartDashboard.putNumber("L Drive Position", m_leftDrive.getScaledSensorPosition());
+    SmartDashboard.putNumber("R Drive Position", m_rightDrive.getScaledSensorPosition());
+    SmartDashboard.putNumber("L Drive Command Speed", m_leftCommandedSpeed);
+    SmartDashboard.putNumber("R Drive Command Speed", m_rightCommandedSpeed);
+    SmartDashboard.putNumber("L Drive Voltage", m_leftDrive.getMotorOutputVoltage());
+    SmartDashboard.putNumber("R Drive Voltage", m_rightDrive.getMotorOutputVoltage());
+    SmartDashboard.putString("L Drive Gear", getLeftGear().toString());
+    SmartDashboard.putString("R Drive Gear", getRightGear().toString());
+    SmartDashboard.putNumber("Straight Speed", this.getStraightSpeed());
+    SmartDashboard.putNumber("Max Drive Speed", m_maxSpeed);
+
+    SmartDashboard.putNumber("Pose X", Units.metersToFeet(m_pose.getX()));
+    SmartDashboard.putNumber("Pose Y", Units.metersToFeet(m_pose.getY()));
+    SmartDashboard.putNumber("Pose Rotation", m_pose.getRotation().getDegrees());
+    ChassisSpeeds speeds = getComputeChassisSpeeds();
+    SmartDashboard.putNumber("Linear Velocity X", Units.metersToFeet(speeds.vxMetersPerSecond));
+    SmartDashboard.putNumber("Linear Velocity Y", Units.metersToFeet(speeds.vyMetersPerSecond));
+    SmartDashboard.putNumber("Angular Velocity", Units.metersToFeet(speeds.omegaRadiansPerSecond));
   }
 
   // ROS tunnel interfaces
@@ -544,7 +610,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
   @Override
   public ChassisSpeeds getChassisVelocity() {
-    return getCurrentChassisSpeeds();
+    return m_velocities;
   }
 
   @Override

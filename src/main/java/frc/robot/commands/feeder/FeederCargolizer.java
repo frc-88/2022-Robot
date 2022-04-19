@@ -13,7 +13,7 @@ public class FeederCargolizer extends CommandBase {
   private Feeder m_feeder;
   private CargoSource m_source;
   private CargoTarget m_target;
-  private boolean m_sawOne, m_cargoComing;
+  private boolean m_cargoComing;
   private int m_waitingCount;
 
   /** Creates a new FeederCargolizer. */
@@ -28,7 +28,6 @@ public class FeederCargolizer extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_sawOne = false;
     m_cargoComing = false;
   }
 
@@ -36,26 +35,29 @@ public class FeederCargolizer extends CommandBase {
   @Override
   public void execute() {
     if (m_feeder.hasCargo()) {
-      m_sawOne = true;
       m_cargoComing = false;
       if (m_target.wantsCargo()) {
-        m_feeder.run();
+        m_feeder.forceForwards();
       } else {
-        m_feeder.stop();
+        m_feeder.runUntilBallFound();;
       }
     } else if (m_source.hasCargo()) {
       m_cargoComing = true;
       m_waitingCount = 0;
-      m_feeder.run();
-    } else if (m_cargoComing && m_waitingCount++<25) {
-      m_feeder.run();
+      if (m_target.wantsCargo()) {
+        m_feeder.forceForwards();
+      } else {
+        m_feeder.runUntilBallFound();
+      }
+    } else if (m_cargoComing && m_waitingCount++<50) {
+      if (m_target.wantsCargo()) {
+        m_feeder.forceForwards();
+      } else {
+        m_feeder.runUntilBallFound();
+      }
     } else {
       m_cargoComing = false;
-      if (m_sawOne) {
-        m_feeder.idle();
-      } else {
-        m_feeder.stop();
-      }
+      m_feeder.stop();
     }
   }
 

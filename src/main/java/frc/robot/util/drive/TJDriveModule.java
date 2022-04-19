@@ -102,6 +102,13 @@ public class TJDriveModule extends WPI_TalonFX {
     }
 
     /**
+     * Sets the position of the sensor on the master, scaled to the output units of the transmission.
+     */
+    public void setScaledSensorPosition(double position) {
+        this.setSelectedSensorPosition(m_transmission.convertOutputPositionToSensor(position));
+    }
+
+    /**
      * Get the velocity being read by the sensor on the master, scaled to the
      * output units of the transmission.
      */
@@ -135,9 +142,9 @@ public class TJDriveModule extends WPI_TalonFX {
      * @param currentLimit The maximum current, in amps, that we want the sum
      *                     of all the motors to draw
      */
-    public void setVelocityCurrentLimited(double targetVelocity, double currentLimit, double universalCurrentLimit) {
+    public void setVelocityCurrentLimited(double targetVelocity, double currentLimit) {
         double percentOut = m_transmission.getCurrentLimitedVoltage(
-            targetVelocity, this.getSelectedSensorVelocity(), currentLimit, universalCurrentLimit) / 12.;
+            targetVelocity, this.getSelectedSensorVelocity(), currentLimit) / 12.;
         this.set(ControlMode.PercentOutput, Math.max(-1., Math.min(1., percentOut)));
     }
 

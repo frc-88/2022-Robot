@@ -4,9 +4,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -16,15 +16,18 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
+import frc.robot.commands.test.CollectLimelightRectification;
+import frc.robot.commands.turret.HoodTrackCombo;
+import frc.robot.commands.turret.ShooterTrackCombo;
 import frc.robot.commands.turret.TurretCalibrate;
 import frc.robot.commands.turret.TurretLock;
 import frc.robot.commands.turret.TurretMotionMagicJoystick;
 import frc.robot.commands.turret.TurretRawJoystick;
 import frc.robot.commands.turret.TurretTrackLimelight;
-import frc.robot.commands.turret.TurretTrackWithGlobalPose;
 import frc.robot.commands.turret.TurretTrackCombo;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -36,8 +39,10 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Targeting;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
+import frc.robot.util.NumberCache;
 import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
@@ -50,8 +55,12 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
-import frc.robot.commands.autos.AutoGoToPose;
-import frc.robot.commands.autos.Autonomous;
+import frc.robot.commands.autos.DriveToCargo;
+import frc.robot.commands.autos.DriveToWaypoint;
+import frc.robot.commands.autos.DriveToWaypointWithHeading;
+import frc.robot.commands.autos.DriveWithWaypointsPlan;
+import frc.robot.commands.autos.PassthroughRosCommand;
+import frc.robot.commands.autos.SetGlobalPoseToLimelight;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
@@ -59,8 +68,9 @@ import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
-import frc.robot.commands.drive.DriveDistanceMeters;
+import frc.robot.commands.drive.DriveDegrees;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.PreferenceConstants;
 
 public class RobotContainer {
   /////////////////////////////////////////////////////////////////////////////
@@ -70,15 +80,21 @@ public class RobotContainer {
   private final Drive m_drive = new Drive(m_sensors);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final Intake m_intake = new Intake();
-  private final Turret m_turret = new Turret();
-  private final Feeder m_centralizer = new Feeder("Centralizer",Constants.FEEDER_CENTRALIZER_MOTOR_ID, Constants.FEEDER_CENTRALIZER_BEAMBREAK, new DoublePreferenceConstant("Centralizer:In", -0.3), new DoublePreferenceConstant("Centralizer:Out", -0.3), new DoublePreferenceConstant("Centralizer:Idle", 0.0));
-  private final Feeder m_chamber = new Feeder("Chamber",Constants.FEEDER_CHAMBER_MOTOR_ID, Constants.FEEDER_CHAMBER_BEAMBREAK, new DoublePreferenceConstant("Chamber:In", 0.2), new DoublePreferenceConstant("Chamber:Out", 0.6), new DoublePreferenceConstant("Chamber:Idle", -0.1));
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(m_drive, Constants.COPROCESSOR_ADDRESS, Constants.COPROCESSOR_PORT, Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
-    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
+  private final Turret m_turret = new Turret(m_sensors);
+  private final Hood m_hood = new Hood(m_sensors);
+  private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true, Constants.FEEDER_CENTRALIZER_BLOCKER_ID);
+  private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
+  private final ThisRobotTable m_ros_interface = new ThisRobotTable(
+    m_drive,
+    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
+    Constants.COPROCESSOR_PORT,
+    Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
+    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
   );
-  private final Navigation m_nav = new Navigation(m_drive, m_ros_interface);
-  private final Hood m_hood = new Hood(m_sensors, m_turret, m_nav);
-  private final Shooter m_shooter = new Shooter(m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_sensors, m_nav);
+  private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_ros_interface);
+  private final Navigation m_nav = new Navigation(m_ros_interface);
+
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
@@ -89,6 +105,8 @@ public class RobotContainer {
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
   private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
+
+  private boolean m_hasConfiguredDashboardButtons = false;
 
   /////////////////////////////////////////////////////////////////////////////
   //                               COMMANDS                                  //
@@ -123,8 +141,8 @@ public class RobotContainer {
         m_intake.deploy();
         m_intake.rollerOutgest();
       }, m_intake),
-      new RunCommand(m_chamber::reverse, m_chamber),
-      new RunCommand(m_centralizer::reverse, m_centralizer));
+      new RunCommand(m_chamber::forceReverse, m_chamber),
+      new RunCommand(m_centralizer::forceReverse, m_centralizer));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
@@ -138,14 +156,14 @@ public class RobotContainer {
   //            SHOOTING             //
   /////////////////////////////////////
 
-  private CommandBase m_startFlywheel = new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter);
+  private CommandBase m_startFlywheel = new ShooterTrackCombo(m_shooter, m_targeting);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
   private CommandBase m_flywheelFenderShot = new RunCommand(m_shooter::setFlywheelFenderShot, m_shooter);
 
   private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_hood);
   private CommandBase m_hoodMid = new RunCommand(m_hood::midHood, m_hood);
   private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_hood);
-  private CommandBase m_hoodAuto = new RunCommand(m_hood::hoodAuto, m_hood);
+  private CommandBase m_hoodAuto = new HoodTrackCombo(m_hood, m_targeting);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -168,156 +186,185 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
-  private CommandBase m_autoTwoBallSimple = 
+  private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
+    // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
+    new HoodTrackCombo(m_hood, m_targeting),
     new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.5, 0.5),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretLock(m_turret)
-      )
+      // new DriveDistanceMeters(m_drive, 1.5, 5.0),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+      new WaitCommand(0.5),
+      new ShootAll(m_shooter),
+      new DriveDegrees(m_drive, 170.0, 120.0),
+      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
     )
   );
 
-  private CommandBase m_autoThreeBall = 
+  private CommandBase m_autoPursuitOnly = 
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+    new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+  );
+
+  private CommandBase m_autoTwoBallSpicy = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
     new InstantCommand(m_turret::startTracking),
     new InstantCommand(m_sensors.limelight::ledOn),
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
     new SequentialCommandGroup(
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.0, 0.5),
+          new InstantCommand(() -> m_targeting.setModeToLimelight()),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
           new WaitCommand(0.5),
-          new ShootAll(m_shooter)
+          new ShootAll(m_shooter).withTimeout(4.0),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+          new InstantCommand(m_turret::stopTracking),
+          new InstantCommand(m_sensors.limelight::ledOff),
+          new ShootAll(m_shooter).withTimeout(2.0),
+          new InstantCommand(m_turret::startTracking),
+          new InstantCommand(m_sensors.limelight::ledOn),
+          new DriveDegrees(m_drive, -120.0, -120.0),
+          new InstantCommand(() -> m_targeting.setModeToDefault())
         ),
-        new TurretLock(m_turret),
-        new RunCommand(m_hood::lowerHood, m_hood),
-        new RunCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterAutoSpeed.getValue());}, m_shooter)    
+        new RunCommand(m_hood::raiseHood, m_hood)
       ),
-      new ParallelDeadlineGroup(
+      new ParallelCommandGroup(
+        new HoodTrackCombo(m_hood, m_targeting),
         new SequentialCommandGroup(
-          new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)    
+          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
+          new InstantCommand(m_shooter::activatePermissive)
+        )
       )
     )
   );
 
   private CommandBase m_autoFiveBall = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, Autonomous.getTeamColorName() + "_start_1"),
-    new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new DriveDistanceMeters(m_drive, 1.0, 0.5),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter)
-        ),
-        new TurretLock(m_turret),
-        new RunCommand(m_hood::lowerHood, m_hood),
-        new RunCommand(() -> {m_shooter.setFlywheelSpeed(p_shooterAutoSpeed.getValue());}, m_shooter)    
-      ),
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_turret.setDefaultFacing(90)),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter),
-          new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-          new AutoGoToPose(m_drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal X", 5.5).getValue()), 
-              Units.feetToMeters(new DoublePreferenceConstant("Auto Terminal Y", 5.5).getValue()), 
-              Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto Terminal Rotation", -133.75).getValue())), false),
-          new WaitCommand(new DoublePreferenceConstant("Auto Terminal Delay", 3.0).getValue()),
-          new ShootAll(m_shooter)
-        //
-        // Go to shooting spot, with view of hub, drive in reverse
-        // new AutoGoToPose(drive, new Pose2d(Units.feetToMeters(new DoublePreferenceConstant("Auto End X", 8.5).getValue()), 
-        //     Units.feetToMeters(new DoublePreferenceConstant("Auto End Y", 12.0).getValue()), 
-        //     Rotation2d.fromDegrees(new DoublePreferenceConstant("Auto End Rotation", 0.0).getValue())), true),
-        // new WaitCommand(0.5),
-        // new ShootAll(m_shooter)
-        ),
-        new TurretTrackLimelight(m_turret, m_sensors.limelight),
-        new RunCommand(m_hood::hoodAuto, m_hood),
-        new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter)
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(m_sensors.limelight::ledOn),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new InstantCommand(() -> m_targeting.setModeToLimelight()),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+      new SequentialCommandGroup(
+        new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
+        new WaitCommand(0.5),
+        new ShootAll(m_shooter).withTimeout(3.0),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
+        new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
+        new ShootAll(m_shooter).withTimeout(3.0),
+        new InstantCommand(m_targeting::disableDefault),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour_blue.wpilib.json"), false),
+        new WaitCommand(.5),
+        // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
+        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+          DriverStation.getAlliance() == Alliance.Red ? "legfive.wpilib.json" : "legfive_blue.wpilib.json"), true),
+        new InstantCommand(m_shooter::activatePermissive)
       )
-    )
-  );
+    );
 
+  public static  String getTeamColorName() {
+    if (DriverStation.getAlliance() == Alliance.Red) {
+      return "red";
+    }
+    else {
+      return "blue";
+    }
+  }
+  
   /////////////////////////////////////////////////////////////////////////////
   //                                 SETUP                                   //
   /////////////////////////////////////////////////////////////////////////////
 
   public RobotContainer(Robot robot) {
+    SmartDashboard.putBoolean("Publishing Enabled", false);
+    LiveWindow.disableAllTelemetry();
+
     configurePeriodics(robot);
     configureButtonBox();
     configureDefaultCommands();
-    configureDashboardCommands();
   }
 
   private void configurePeriodics(Robot robot) {
     robot.addPeriodic(m_ros_interface::update, Constants.COPROCESSOR_PERIODIC_UPDATE_DELAY, Constants.COPROCESSOR_PERIODIC_UPDATE_OFFSET);
     robot.addPeriodic(m_ros_interface::updateSlow, Constants.COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY, Constants.COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET);
+
+    robot.addPeriodic(PreferenceConstants::update, 1);
+    robot.addPeriodic(
+      () -> {
+        if (isPublishingEnabled() && !m_hasConfiguredDashboardButtons) {
+          configureDashboardCommands();
+          m_hasConfiguredDashboardButtons = true;
+        }
+      }, 5);
+  }
+
+  public static boolean isPublishingEnabled() {
+    if (NumberCache.hasValue("Publishing Enabled")) {
+      return NumberCache.getValue("Publishing Enabled") > 0;
+    }
+
+    return NumberCache.pushValue("Publishing Enabled", SmartDashboard.getBoolean("Publishing Enabled", false) ? 1 : -1) > 0;
   }
   
   public void disabledPeriodic() {
-    if (m_buttonBox.isROSDisableSwitchOn()) {
-      m_ros_interface.stopComms();
-    }
-
-    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood);
-      m_autoCommandName = "2 Cargo";
-    }
-
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Simple")) {
-      m_autoCommand = m_autoTwoBallSimple;
-      m_autoCommandName = "2 Cargo Simple";
-    }
-
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
-      m_autoCommand = new WaitCommand(1.0);
-      m_autoCommandName = "Wait 1";
-    }
-
-    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
-      m_autoCommand = m_autoThreeBall;
-      m_autoCommandName = "3 Cargo";
-    }
-
-    if (m_buttonBox.isCentralizerDownButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
+    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
       m_autoCommand = m_autoFiveBall;
       m_autoCommandName = "5 Cargo";
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
+
+    }
+
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
+      m_autoCommand = m_autoTwoBallSpicy;
+      m_autoCommandName = "2 Cargo Spicy";
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+    }
+
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+      m_autoCommand = m_autoTwoBall;
+      m_autoCommandName = "2 Cargo";
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+    }
+
+    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
+      m_autoCommand = new WaitCommand(1.0);
+      m_autoCommandName = "Wait 1";
+      new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
+    }
+
+    if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {
+      m_autoCommand = m_autoPursuitOnly;
+      m_autoCommandName = "Pursuit Only";
+    }
+
+    if (m_buttonBox.isCentralizerDownButtonPressed()) {
+      m_sensors.limelight.ledOn();
+    } else {
+      m_sensors.limelight.ledOff();
     }
 
     SmartDashboard.putString("Auto", m_autoCommandName);
   }
 
   public void teleopInit() {
-    m_shooter.deactivate();
+    if (m_buttonBox.isAutoShootSwitchOn()) {
+      m_shooter.activateRestrictive();
+    } else {
+      m_shooter.deactivate();
+    }
     
     if (m_buttonBox.isTrackTurretSwitchOn()) {
       m_turret.startTracking();
@@ -327,49 +374,110 @@ public class RobotContainer {
     } else {
       m_turret.stopTracking();
       m_flywheelFenderShot.schedule();
-      m_hoodDown.schedule();
+      m_hoodUp.schedule();
     }
 
-    if (m_buttonBox.isDefaultTurretSwitchOn()) {
-      m_turret.setDefaultFacing(180.);
+    if (m_driverController.getMolassesMode()) {
+      m_drive.enableMolassesMode();
     } else {
-      m_turret.setDefaultFacing(0.);
+      m_drive.disableMolassesMode();
     }
+
+    m_turret.setDefaultFacing(0.);
+    m_targeting.disableDefault();
+    m_ros_interface.enableCargoMarauding();
+    // m_ros_interface.disableCargoMarauding();
+  }
+
+  public void robotFirstPeriodic() {
+    if (!m_nav.isConnected() || m_buttonBox.isROSDisableSwitchOn() || DriverStation.isAutonomous()) {
+      m_targeting.setModeToLimelight();
+    } else if (!DriverStation.isAutonomous()) {
+      m_targeting.setModeToDefault();
+    }
+
+    m_sensors.firstPeriodic();
+    m_targeting.firstPeriodic();
   }
 
   private void configureButtonBox() {
+    Button molassesButton = new Button(m_driverController::getMolassesMode);
+    molassesButton.whenPressed(new InstantCommand(m_drive::enableMolassesMode));
+    molassesButton.whenReleased(new InstantCommand(m_drive::disableMolassesMode));
+
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
 
-    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::run, m_centralizer));
-    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::reverse, m_centralizer));
-    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::run, m_chamber));
-    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::reverse, m_chamber));
+    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::forceForwards, m_centralizer));
+    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::forceReverse, m_centralizer));
+    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::forceForwards, m_chamber));
+    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::forceReverse, m_chamber));
 
-    m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activate));
-    m_buttonBox.shootButton.whenReleased(new InstantCommand(m_shooter::deactivate));
+    m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    m_buttonBox.shootButton.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activateRestrictive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isAutoShootSwitchOn));
+    m_buttonBox.autoShootSwitch.whenPressed(new InstantCommand(m_shooter::activateRestrictive));
+    m_buttonBox.autoShootSwitch.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
+
+
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenPressed(m_startFlywheel);
     m_buttonBox.turretTrackSwitch.whenPressed(m_hoodAuto);
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(m_flywheelFenderShot);
-    m_buttonBox.turretTrackSwitch.whenReleased(m_hoodDown);
-    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
+    m_buttonBox.turretTrackSwitch.whenReleased(m_hoodUp);
+    
+    // m_buttonBox.rosDisableSwitch.whenPressed(m_arcadeDrive);
+    // m_buttonBox.rosDisableSwitch.whenReleased(new PassthroughRosCommand(m_drive, m_ros_interface));
+    
+    m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_targeting::setModeToLimelight) {
       @Override
       public boolean runsWhenDisabled() {
         return true;
       }
     });
-    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_ros_interface::startComms) {
-      @Override
-      public boolean runsWhenDisabled() {
-        return true;
-      }
-    });
-    m_buttonBox.defaultTurretSwitch.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
-    m_buttonBox.defaultTurretSwitch.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
 
-    m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false));
+    m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_targeting::setModeToDefault) {
+      @Override
+      public boolean runsWhenDisabled() {
+        return true;
+      }
+    });
+
+    // Enable cargo marauding
+    m_buttonBox.climbDirectionSwitch.whenPressed(
+      new InstantCommand(m_ros_interface::enableCargoMarauding) {
+        @Override
+        public boolean runsWhenDisabled() {
+          return true;
+        }
+      }
+    );
+    // Disable cargo marauding
+    m_buttonBox.climbDirectionSwitch.whenReleased(
+      new InstantCommand(m_ros_interface::disableCargoMarauding) {
+        @Override
+        public boolean runsWhenDisabled() {
+          return true;
+        }
+      }
+    );
+
+    // m_buttonBox.rosDisableSwitch.whenPressed(new InstantCommand(m_ros_interface::stopComms) {
+    //   @Override
+    //   public boolean runsWhenDisabled() {
+    //     return true;
+    //   }
+    // });
+    // m_buttonBox.rosDisableSwitch.whenReleased(new InstantCommand(m_ros_interface::startComms) {
+    //   @Override
+    //   public boolean runsWhenDisabled() {
+    //     return true;
+    //   }
+    // });
+    m_buttonBox.defaultTurretButton.whenPressed(new InstantCommand(() -> m_turret.setDefaultFacing(180.)));
+    m_buttonBox.defaultTurretButton.whenReleased(new InstantCommand(() -> m_turret.setDefaultFacing(0.)));
+
+    m_buttonBox.stowClimberButton.whenPressed(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW));
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
@@ -378,11 +486,11 @@ public class RobotContainer {
       new SequentialCommandGroup(
         new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false), 
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID), 
           new ConditionalCommand(
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false),
-            () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE),
+            () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
           ),
           () -> m_buttonBox.getClimbBar() == ClimbBar.LOW || m_buttonBox.getClimbBar() == ClimbBar.MID
         )
@@ -396,13 +504,13 @@ public class RobotContainer {
       new SequentialCommandGroup(
         new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false), 
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW), 
           new ConditionalCommand(
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID),
             new ConditionalCommand(
-              new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS, false, () -> false),
-              new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE, false, () -> false),
-              () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
+              new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS),
+              new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE),
+              () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
             ),
             () -> m_buttonBox.getClimbBar() == ClimbBar.MID
           ),
@@ -417,20 +525,12 @@ public class RobotContainer {
       new SequentialCommandGroup(
         new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
-          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false, () -> false), 
+          new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW), 
           new ConditionalCommand(
-            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false),
+            new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID),
             new ConditionalCommand(
-              new ConditionalCommand(
-                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
-                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE, true, m_buttonBox::isCancelClimbPressed),
-                () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
-              ),
-              new ConditionalCommand(
-                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_FORWARDS, true, m_buttonBox::isCancelClimbPressed),
-                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_REVERSE, true, m_buttonBox::isCancelClimbPressed),
-                () -> m_buttonBox.getClimbDirection() == ClimbDirection.FORWARDS
-              ),
+                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS, true, () -> false, m_buttonBox::isCancelClimbPressed),
+                new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_REVERSE, true, m_buttonBox::isCancelClimbPressed, () -> false),
               () -> m_buttonBox.getClimbBar() == ClimbBar.HIGH
             ),
             () -> m_buttonBox.getClimbBar() == ClimbBar.MID
@@ -446,18 +546,13 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
 
     // Autonomous testing
-    SmartDashboard.putData("Auto Two Ball Simple", Autonomous.generateTwoBallSimple(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    SmartDashboard.putData("Auto Two Ball", Autonomous.generateTwoBall(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
-    // SmartDashboard.putData("Auto Two Ball ROS", Autonomous.generateTwoBallROS(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood, m_ros_interface));
-    SmartDashboard.putData("Auto Three Ball", m_autoThreeBall);
-    // SmartDashboard.putData("Auto Four Ball No Stop", Autonomous.generateFourBallNoStop(m_drive, m_nav, m_sensors, m_shooter, m_turret, m_intake, m_hood));
+    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
     SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Two Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateTwoBallTrajectory(), true));
-    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateFiveBallTrajectory(), true));
+    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
@@ -466,14 +561,14 @@ public class RobotContainer {
 
     // Centralizer and Chamber commmands
     SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
-    SmartDashboard.putData("Centralizer:Run", new RunCommand(m_centralizer::run, m_centralizer));
-    SmartDashboard.putData("Centralizer:Reverse", new RunCommand(m_centralizer::reverse, m_centralizer));
+    SmartDashboard.putData("Centralizer:Run", new RunCommand(m_centralizer::forceForwards, m_centralizer));
+    SmartDashboard.putData("Centralizer:Reverse", new RunCommand(m_centralizer::forceReverse, m_centralizer));
     SmartDashboard.putData("Centralizer:Stop", new RunCommand(m_centralizer::stop, m_centralizer));
     SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
     
     SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
-    SmartDashboard.putData("Chamber:Run", new RunCommand(m_chamber::run, m_chamber));
-    SmartDashboard.putData("Chamber:Reverse", new RunCommand(m_chamber::reverse, m_chamber));
+    SmartDashboard.putData("Chamber:Run", new RunCommand(m_chamber::forceForwards, m_chamber));
+    SmartDashboard.putData("Chamber:Reverse", new RunCommand(m_chamber::forceReverse, m_chamber));
     SmartDashboard.putData("Chamber:Stop", new RunCommand(m_chamber::stop, m_chamber));
     SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
 
@@ -509,7 +604,8 @@ public class RobotContainer {
     SmartDashboard.putData("Shooter:Flywheel:RunSpeed", new InstantCommand(() -> {m_shooter.setFlywheelSpeed(new DoublePreferenceConstant("Shooter Test Speed", 0.0).getValue());}, m_shooter));
     SmartDashboard.putData("Shooter:Flywheel:RunAuto", m_startFlywheel);
     SmartDashboard.putData("Shooter:Flywheel:StopSpeed", m_stopFlywheel);
-    SmartDashboard.putData("Shooter:Activate", new InstantCommand(m_shooter::activate, m_shooter));
+    SmartDashboard.putData("Shooter:ActivatePermissive", new InstantCommand(m_shooter::activatePermissive, m_shooter));
+    SmartDashboard.putData("Shooter:ActivateRestrictive", new InstantCommand(m_shooter::activateRestrictive, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 
     SmartDashboard.putData("Hood:Raise", m_hoodUp);
@@ -519,6 +615,8 @@ public class RobotContainer {
     SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
     SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
     SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
+
+    SmartDashboard.putData("Rectify Limelight", new CollectLimelightRectification(m_sensors.limelight, m_ros_interface));
 
     // Limelight
     SmartDashboard.putData("Limelight On", new LimelightToggle(m_sensors.limelight, true));
@@ -530,20 +628,16 @@ public class RobotContainer {
     SmartDashboard.putData(m_climberTestMotionMagic);
     SmartDashboard.putData(m_climberMotionMagicJoystick);
 
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW, false, () -> false).withName("Climber M Stow"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID, false, () -> false).withName("Climber M Prep Low Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS, false, () -> false).withName("Climber M Prep High Traversal Forwards"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE, false, () -> false).withName("Climber M Prep High Traversal Reverse"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW, false, () -> false).withName("Climber M Raise Low"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID, false, () -> false).withName("Climber M Raise Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS, false, () -> false).withName("Climber M Raise High Traversal Forwards"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE, false, () -> false).withName("Climber M Raise High Traversal Reverse"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW, false, () -> false).withName("Climber M Climb Low"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID, false, () -> false).withName("Climber M Climb Mid"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_FORWARDS ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High Forwards"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_HIGH_REVERSE ,true, m_buttonBox.cancelClimb).withName("Climber M Climb High Reverse"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_FORWARDS, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal Forwards"));
-    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_TRAVERSAL_REVERSE, true, m_buttonBox.cancelClimb).withName("Climber M Climb Traversal Reverse"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_STOW).withName("Climber M Stow"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID).withName("Climber M Prep Low Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_FORWARDS).withName("Climber M Prep High Traversal Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_HIGH_TRAVERSAL_REVERSE).withName("Climber M Prep High Traversal Reverse"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW).withName("Climber M Raise Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_MID).withName("Climber M Raise Mid"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_FORWARDS).withName("Climber M Raise High Traversal Forwards"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_HIGH_TRAVERSAL_REVERSE).withName("Climber M Raise High Traversal Reverse"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW).withName("Climber M Climb Low"));
+    SmartDashboard.putData(new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_MID).withName("Climber M Climb Mid"));
   }
 
   private void configureDefaultCommands() {
@@ -552,10 +646,12 @@ public class RobotContainer {
     m_centralizer.setDefaultCommand(m_centralizerCargolizer);
     m_chamber.setDefaultCommand(m_chamberCargolizer);
 
-    m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
-    m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
-    m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
-    // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_nav, m_sensors.limelight));
+    // m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
+    m_hood.setDefaultCommand(new HoodTrackCombo(m_hood, m_targeting));
+    // m_shooter.setDefaultCommand(new RunCommand(m_shooter::setFlywheelSpeedAuto, m_shooter));
+    m_shooter.setDefaultCommand(new ShooterTrackCombo(m_shooter, m_targeting));
+    // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
+    m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_targeting));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

@@ -32,7 +32,7 @@ public class FeederPassthru extends CommandBase {
   @Override
   public void execute() {
     if (m_target.wantsCargo() && m_source.hasCargo()) {
-      m_feeder.run();
+      m_feeder.forceForwards();
     } else {
       m_feeder.stop();
     }
