@@ -76,17 +76,12 @@ public class ThisRobotTable extends CoprocessorTable {
 
     private NetworkTable targetConfigTable;
     private NetworkTableEntry targetConfigEntryShotCorrection;
-    private NetworkTableEntry targetConfigEntryShotProbability;
+    private NetworkTableEntry targetConfigEntryStationaryShotProbability;
+    private NetworkTableEntry targetConfigEntryMovingShotProbability;
     private NetworkTableEntry targetConfigEntryLimelightFineTuning;
     private NetworkTableEntry targetConfigEntryCargoMarauding;
     private NetworkTableEntry targetConfigEntryResetToLimelight;
     private NetworkTableEntry targetConfigEntryUpdate;
-
-    private boolean default_enable_shot_correction = true;
-    private boolean default_enable_shot_probability = false;
-    private boolean default_enable_limelight_fine_tuning = false;
-    private boolean default_enable_marauding = true;
-    private boolean default_enable_reset_to_limelight = true;
 
     public ThisRobotTable(
         ChassisInterface chassis, String address, int port, double updateInterval,
@@ -134,7 +129,8 @@ public class ThisRobotTable extends CoprocessorTable {
 
         targetConfigTable = rootTable.getSubTable("target_config");
         targetConfigEntryShotCorrection = targetConfigTable.getEntry("enable_shot_correction");
-        targetConfigEntryShotProbability = targetConfigTable.getEntry("enable_shot_probability");
+        targetConfigEntryStationaryShotProbability = targetConfigTable.getEntry("enable_stationary_shot_probability");
+        targetConfigEntryMovingShotProbability = targetConfigTable.getEntry("enable_moving_shot_probability");
         targetConfigEntryLimelightFineTuning = targetConfigTable.getEntry("enable_limelight_fine_tuning");
         targetConfigEntryCargoMarauding = targetConfigTable.getEntry("enable_marauding");
         targetConfigEntryResetToLimelight = targetConfigTable.getEntry("enable_reset_to_limelight");
@@ -331,24 +327,26 @@ public class ThisRobotTable extends CoprocessorTable {
         return barTimer.isActive();
     }
 
-    public void setTargetConfig(boolean enable_shot_correction, boolean enable_shot_probability, boolean enable_limelight_fine_tuning, boolean enable_marauding, boolean enable_reset_to_limelight)
+    public void setTargetConfig(int enable_shot_correction, int enable_stationary_shot_probability, int enable_moving_shot_probability, int enable_limelight_fine_tuning, int enable_marauding, int enable_reset_to_limelight)
     {
-        targetConfigEntryShotCorrection.setBoolean(enable_shot_correction);
-        targetConfigEntryShotProbability.setBoolean(enable_shot_probability);
-        targetConfigEntryLimelightFineTuning.setBoolean(enable_limelight_fine_tuning);
-        targetConfigEntryCargoMarauding.setBoolean(enable_marauding);
-        targetConfigEntryResetToLimelight.setBoolean(enable_reset_to_limelight);
+        targetConfigEntryShotCorrection.setDouble((double)enable_shot_correction);
+        targetConfigEntryStationaryShotProbability.setDouble((double)enable_stationary_shot_probability);
+        targetConfigEntryMovingShotProbability.setDouble((double)enable_moving_shot_probability);
+        targetConfigEntryLimelightFineTuning.setDouble((double)enable_limelight_fine_tuning);
+        targetConfigEntryCargoMarauding.setDouble((double)enable_marauding);
+        targetConfigEntryResetToLimelight.setDouble((double)enable_reset_to_limelight);
         targetConfigEntryUpdate.setDouble(getTime());
     }
 
     public void setEnableCargoMarauding(boolean enable_marauding)
     {
         setTargetConfig(
-            default_enable_shot_correction, 
-            default_enable_shot_probability, 
-            default_enable_limelight_fine_tuning, 
-            enable_marauding, 
-            default_enable_reset_to_limelight
+            -1, 
+            -1, 
+            -1, 
+            -1, 
+            enable_marauding ? 1 : 0, 
+            -1
         );
     }
 
