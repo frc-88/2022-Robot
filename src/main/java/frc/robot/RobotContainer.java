@@ -256,22 +256,32 @@ public class RobotContainer {
       new InstantCommand(() -> m_targeting.setModeToLimelight()),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
-        new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
-        new WaitCommand(0.5),
-        new ShootAll(m_shooter).withTimeout(3.0),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
-        new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
-        new ShootAll(m_shooter).withTimeout(3.0),
         new InstantCommand(m_targeting::disableDefault),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour_blue.wpilib.json"), false),
-        new WaitCommand(.5),
-        // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legfive.wpilib.json" : "legfive_blue.wpilib.json"), true),
-        new InstantCommand(m_shooter::activatePermissive)
+        new ParallelDeadlineGroup(
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone_intakeup.wpilib.json"), true),
+            new ShootAll(m_shooter).withTimeout(3.0)
+          ),
+          new SequentialCommandGroup(
+            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake).withTimeout(1.0),
+            new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake)
+          )
+        ),
+        new ParallelCommandGroup(
+          new SequentialCommandGroup(
+            new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake).withTimeout(1.0),
+            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake)
+          ),
+          new SequentialCommandGroup(
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo_intakeup.wpilib.json"), true),
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree_intakeup.wpilib.json"), false),
+            new ShootAll(m_shooter).withTimeout(2.0),
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfour_intakeup.wpilib.json" ), false),
+            new WaitCommand(.5),
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legfive_intakeup.wpilib.json"), true),
+            new InstantCommand(m_shooter::activatePermissive)
+          )
+        )
       )
     );
 
