@@ -215,6 +215,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return hasCargo;
   }
 
+  public boolean cargoChambered() {
+    return m_sources[0].hasCargo();
+  }
+
+  public boolean cargoCentralized() {
+    return m_sources[1].hasCargo();
+  }
+
   @Override
   public boolean wantsCargo() {
     // Permissive checks
