@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -186,6 +187,63 @@ public class RobotContainer {
   private CommandBase m_autoCommand = new WaitCommand(15);
   private String m_autoCommandName = "Wait 1";
 
+  private DoublePreferenceConstant p_oneBallDelay = new DoublePreferenceConstant("One Ball Delay", 0.25);
+  private Timer m_oneBallTimer = new Timer();
+  
+  private CommandBase m_autoOneBallLeft =
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+        new SequentialCommandGroup(
+          new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
+          new WaitCommand(0.5),
+          new ShootAll(m_shooter).withTimeout(3.0)
+        )
+      ),
+      new ParallelCommandGroup(
+        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+        new SequentialCommandGroup(
+          new InstantCommand(() -> m_targeting.enableDefault(80, 180)),
+          new WaitCommand(1),
+          new ShootAll(m_shooter).withTimeout(3.0)
+        )
+      )
+    )
+  );
+
+  private CommandBase m_autoOneBallRight =
+  new ParallelCommandGroup(
+    new TiltCameraDown(m_sensors),
+    new InstantCommand(m_turret::startTracking),
+    new InstantCommand(m_sensors.limelight::ledOn),
+    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+    new SequentialCommandGroup(
+      new ParallelCommandGroup(
+        new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+        new SequentialCommandGroup(
+          new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
+          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
+          new WaitCommand(0.5),
+          new ShootAll(m_shooter).withTimeout(3.0)
+        )
+      ),
+      new ParallelCommandGroup(
+        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+        new SequentialCommandGroup(
+          new InstantCommand(() -> m_targeting.enableDefault(80, -135)),
+          new WaitCommand(1),
+          new ShootAll(m_shooter).withTimeout(3.0)
+        )
+      )
+    )
+  );
+
   private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
     new TiltCameraDown(m_sensors),
@@ -254,7 +312,6 @@ public class RobotContainer {
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
       new InstantCommand(() -> m_targeting.setModeToLimelight()),
-      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
         new InstantCommand(m_targeting::disableDefault),
         new ParallelDeadlineGroup(
@@ -353,6 +410,18 @@ public class RobotContainer {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
       new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
+    }
+
+    if (m_buttonBox.isDefaultTurretButtonPressed() && !m_autoCommandName.equals("1 Ball Left")) {
+      m_autoCommand = m_autoOneBallLeft;
+      m_autoCommandName = "1 Ball Left";
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_3").schedule();
+    }
+
+    if (m_buttonBox.isCancelClimbPressed() && !m_autoCommandName.equals("1 Ball Left")) {
+      m_autoCommand = m_autoOneBallRight;
+      m_autoCommandName = "1 Ball Right";
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_4").schedule();
     }
 
     if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {

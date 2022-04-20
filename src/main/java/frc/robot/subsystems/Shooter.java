@@ -60,11 +60,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(64, 2200),
-      new ValueInterpolator.ValuePair(79, 2200),
+      new ValueInterpolator.ValuePair(77, 2050),
+      new ValueInterpolator.ValuePair(99, 2150),
       new ValueInterpolator.ValuePair(93, 2100),
       new ValueInterpolator.ValuePair(114, 2200),
-      new ValueInterpolator.ValuePair(142, 2375),
+      new ValueInterpolator.ValuePair(122, 2375),
       new ValueInterpolator.ValuePair(160, 2375));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
@@ -76,13 +76,13 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(166, 3100));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(128, 2400),
-      new ValueInterpolator.ValuePair(160, 2550),
-      new ValueInterpolator.ValuePair(186, 2750),
-      new ValueInterpolator.ValuePair(212, 3300),
-      new ValueInterpolator.ValuePair(228, 3750),
-      new ValueInterpolator.ValuePair(248, 4000),
-      new ValueInterpolator.ValuePair(276, 4150),
+      new ValueInterpolator.ValuePair(125, 2375),
+      new ValueInterpolator.ValuePair(146, 2450),
+      new ValueInterpolator.ValuePair(184, 2700),
+      new ValueInterpolator.ValuePair(213, 3125),
+      new ValueInterpolator.ValuePair(240, 3475),
+      new ValueInterpolator.ValuePair(272, 4000),
+      new ValueInterpolator.ValuePair(298, 4550),
       new ValueInterpolator.ValuePair(314, 4300),
       new ValueInterpolator.ValuePair(314, 4300));
 
@@ -116,6 +116,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_restrictiveCheckTimer.start();
 
     configureFlywheel();
+    m_flywheel.enableVoltageCompensation(true);
 
     p_flywheelPID.addChangeHandler((Double unused) -> configureFlywheel());
   }
