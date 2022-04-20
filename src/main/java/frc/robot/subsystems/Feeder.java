@@ -38,6 +38,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   private DoublePreferenceConstant p_feederMaxVelocityForcing;
   private DoublePreferenceConstant p_feederMaxAcceleration;
   private PIDPreferenceConstants p_feederPID;
+  private PIDPreferenceConstants p_feederPIDVelocity;
   private DoublePreferenceConstant p_feederTargetPosition;
   private DoublePreferenceConstant p_blockerDown;
   private DoublePreferenceConstant p_blockerUp;
@@ -54,6 +55,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     p_feederMaxVelocityForcing = new DoublePreferenceConstant(feederName + " Max Velocity Forcing", 1700);
     p_feederMaxAcceleration = new DoublePreferenceConstant(feederName + " Max Acceleration", 50000);
     p_feederPID = new PIDPreferenceConstants(feederName, 0, 0, 0, 0, 0, 0, 0);
+    p_feederPIDVelocity = new PIDPreferenceConstants(feederName + " Velocity", 0, 0, 0, 0, 0, 0, 0);
     p_feederTargetPosition = new DoublePreferenceConstant(feederName + " Target Position", 100);
     p_loseCargoCount = new IntPreferenceConstant(feederName + " Lose Cargo Count", 15);
 
@@ -68,6 +70,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
 
     p_feederMaxAcceleration.addChangeHandler((Double unused) -> configPID());
     p_feederPID.addChangeHandler((Double unused) -> configPID());
+    p_feederPIDVelocity.addChangeHandler((Double unused) -> configPID());
 
     if (blockerId >= 0) {
       m_blockerServo = new Servo(blockerId);
@@ -85,6 +88,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
   }
 
   private void configPID() {
+    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityFinding.getValue());
     m_feederMotor.configMotionAcceleration(p_feederMaxAcceleration.getValue());
     m_feederMotor.config_kP(0, p_feederPID.getKP().getValue());
     m_feederMotor.config_kI(0, p_feederPID.getKI().getValue());
@@ -92,6 +96,13 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     m_feederMotor.config_kF(0, p_feederPID.getKF().getValue());
     m_feederMotor.config_IntegralZone(0, p_feederPID.getIZone().getValue());
     m_feederMotor.configMaxIntegralAccumulator(0, p_feederPID.getIMax().getValue());
+
+    m_feederMotor.config_kP(1, p_feederPIDVelocity.getKP().getValue());
+    m_feederMotor.config_kI(1, p_feederPIDVelocity.getKI().getValue());
+    m_feederMotor.config_kD(1, p_feederPIDVelocity.getKD().getValue());
+    m_feederMotor.config_kF(1, p_feederPIDVelocity.getKF().getValue());
+    m_feederMotor.config_IntegralZone(1, p_feederPIDVelocity.getIZone().getValue());
+    m_feederMotor.configMaxIntegralAccumulator(1, p_feederPIDVelocity.getIMax().getValue());
   }
 
   public void runUntilBallFound() {
@@ -112,7 +123,7 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
       m_foundCargo = false;
     }
 
-    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityFinding.getValue());
+    m_feederMotor.selectProfileSlot(0, 0);
     m_feederMotor.set(TalonFXControlMode.MotionMagic, p_feederTargetPosition.getValue());
   }
 
@@ -124,12 +135,9 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     }
 
     m_feederMotor.configClearPositionOnLimitR(false, 0);
-    if (m_feederMotor.getSelectedSensorPosition() > -5_000) {
-      m_feederMotor.setSelectedSensorPosition(-5_000_000);
-    }
 
-    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityForcing.getValue());
-    m_feederMotor.set(TalonFXControlMode.MotionMagic, 5_000_000);
+    m_feederMotor.selectProfileSlot(1, 0);
+    m_feederMotor.set(TalonFXControlMode.Velocity, p_feederMaxVelocityForcing.getValue());
   }
 
   public void forceReverse() {
@@ -140,12 +148,9 @@ public class Feeder extends SubsystemBase implements CargoSource, CargoTarget {
     }
 
     m_feederMotor.configClearPositionOnLimitR(false, 0);
-    if (m_feederMotor.getSelectedSensorPosition() < 5_000) {
-      m_feederMotor.setSelectedSensorPosition(5_000_000);
-    }
 
-    m_feederMotor.configMotionCruiseVelocity(p_feederMaxVelocityForcing.getValue());
-    m_feederMotor.set(TalonFXControlMode.MotionMagic, -5_000_000);
+    m_feederMotor.selectProfileSlot(1, 0);
+    m_feederMotor.set(TalonFXControlMode.Velocity, -p_feederMaxVelocityForcing.getValue());
   }
 
   public void stop() {
