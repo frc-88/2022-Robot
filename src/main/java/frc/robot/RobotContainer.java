@@ -94,7 +94,7 @@ public class RobotContainer {
   private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_ros_interface);
   private final Navigation m_nav = new Navigation(m_ros_interface);
 
-  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive);
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive, m_shooter);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //

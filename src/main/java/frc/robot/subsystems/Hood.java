@@ -215,7 +215,9 @@ public class Hood extends SubsystemBase {
     }
   }
 
-  
+  public String getHoodState() {
+    return m_hoodState.toString();
+  }
 
   public boolean isUp() {
     return m_hoodState == HoodState.RAISED;
