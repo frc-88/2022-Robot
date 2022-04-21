@@ -247,62 +247,62 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
     boolean wantsCargo = (m_active == ActiveMode.ACTIVE_PERMISSIVE && permissiveChecks) || (m_active == ActiveMode.ACTIVE_RESTRICTIVE && restrictiveChecks);
 
-    if (m_active == ActiveMode.ACTIVE_PERMISSIVE && !wantsCargo) {
-      String printString = "@Permissive Blocked: ";
+    // if (m_active == ActiveMode.ACTIVE_PERMISSIVE && !wantsCargo) {
+    //   String printString = "@Permissive Blocked: ";
 
-      if (!flywheelOnTarget) {
-        printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
-      }
+    //   if (!flywheelOnTarget) {
+    //     printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
+    //   }
 
-      if (!turretOnTarget) {
-        printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
-      }
+    //   if (!turretOnTarget) {
+    //     printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
+    //   }
 
-      System.out.println(printString);
-    } else if (m_active == ActiveMode.ACTIVE_RESTRICTIVE && !wantsCargo) {
-      String printString = "@Restrictive Blocked: ";
+    //   // System.out.println(printString);
+    // } else if (m_active == ActiveMode.ACTIVE_RESTRICTIVE && !wantsCargo) {
+    //   String printString = "@Restrictive Blocked: ";
 
-      if (!flywheelOnTarget) {
-        printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
-      }
+    //   if (!flywheelOnTarget) {
+    //     printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
+    //   }
 
-      if (!turretTracking) {
-        printString += "<Turret is not tracking> ";
-      } else if (!turretOnTarget) {
-        printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
-      }
+    //   if (!turretTracking) {
+    //     printString += "<Turret is not tracking> ";
+    //   } else if (!turretOnTarget) {
+    //     printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
+    //   }
 
-      if (!driveNotSpinning) {
-        printString += "<Yaw Rate is " + m_sensors.navx.getYawRate() + "> ";
-      }
+    //   if (!driveNotSpinning) {
+    //     printString += "<Yaw Rate is " + m_sensors.navx.getYawRate() + "> ";
+    //   }
 
-      if (!driveNotAccelerating) {
-        printString += "<Acceleration estimate is " + m_drive.getAccelerationEstimate() + "> ";
-      }
+    //   if (!driveNotAccelerating) {
+    //     printString += "<Acceleration estimate is " + m_drive.getAccelerationEstimate() + "> ";
+    //   }
 
-      if (!hoodNotMoving) {
-        printString += "<Hood state is " + m_hood.getHoodState() + "> ";
-      }
+    //   if (!hoodNotMoving) {
+    //     printString += "<Hood state is " + m_hood.getHoodState() + "> ";
+    //   }
 
-      if (!highShotProbability) {
-        printString += "<Shot probability is " + m_shotProbabilitySupplier.getAsDouble() + "> ";
-      }
+    //   if (!highShotProbability) {
+    //     printString += "<Shot probability is " + m_shotProbabilitySupplier.getAsDouble() + "> ";
+    //   }
 
-      if (untimedChecks) {
-        printString += "<Only " + m_restrictiveCheckTimer.get() + " has elapsed> ";
-      }
+    //   if (untimedChecks) {
+    //     printString += "<Only " + m_restrictiveCheckTimer.get() + " has elapsed> ";
+    //   }
 
-      System.out.println(printString);
-    } else if (m_active != ActiveMode.DEACTIVATED && wantsCargo && !m_wantedCargo) {
-      double flywheelVelocity = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
-      m_ros_interface.signalShot(m_turret.getFacing(), m_rosDistance, flywheelVelocity);
+    //   // System.out.println(printString);
+    // } else if (m_active != ActiveMode.DEACTIVATED && wantsCargo && !m_wantedCargo) {
+    //   double flywheelVelocity = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
+    //   m_ros_interface.signalShot(m_turret.getFacing(), m_rosDistance, flywheelVelocity);
 
-      System.out.println("@Shot: <Mode is " + m_active.toString() + "> " 
-                       + "<Distance is " + m_limelightDistance + " from limelight and " + m_rosDistance + " from ROS, flywheel speed is " + flywheelVelocity + "> " 
-                       + "<Angle is " + m_limelightAngle + " from limelight and " + m_rosAngle + " from ROS, turret angle is" + m_turret.getFacing() + "> " 
-                       + "<Drive speed is " + m_drive.getStraightSpeed() + " with an acceleration estimate of " + m_drive.getAccelerationEstimate() + " and a yaw rate of " + m_sensors.navx.getYawRate() + "> " 
-                       + "<Shot probability is " + m_ros_interface.getShooterProbability() + ">");
-    }
+    //   // System.out.println("@Shot: <Mode is " + m_active.toString() + "> " 
+    //   //                  + "<Distance is " + m_limelightDistance + " from limelight and " + m_rosDistance + " from ROS, flywheel speed is " + flywheelVelocity + "> " 
+    //   //                  + "<Angle is " + m_limelightAngle + " from limelight and " + m_rosAngle + " from ROS, turret angle is" + m_turret.getFacing() + "> " 
+    //   //                  + "<Drive speed is " + m_drive.getStraightSpeed() + " with an acceleration estimate of " + m_drive.getAccelerationEstimate() + " and a yaw rate of " + m_sensors.navx.getYawRate() + "> " 
+    //   //                  + "<Shot probability is " + m_ros_interface.getShooterProbability() + ">");
+    // }
 
     m_wantedCargo = wantsCargo;
     return wantsCargo;

@@ -12,7 +12,7 @@ public class FrskyDriverController extends FrskyController implements DriverCont
     @Override
     public double getThrottle() {
         double ret = DriveUtils.deadbandExponential(getLeftStickY(), Constants.DRIVE_SPEED_EXP_FRSKY, Constants.FRSKY_DEADBAND);
-        System.out.println("getThrottle(): " + ret);
+        // System.out.println("getThrottle(): " + ret);
         return ret;
     }
 
@@ -24,7 +24,7 @@ public class FrskyDriverController extends FrskyController implements DriverCont
             DriveUtils.deadbandExponential(
                 getRightStickX(), Constants.DRIVE_SPEED_EXP_FRSKY, Constants.FRSKY_DEADBAND),
             cheesyDriveMinTurn, cheesyDriveMaxTurn);
-            System.out.println("getTurn(): " + ret);
+            // System.out.println("getTurn(): " + ret);
         return ret;
     }
 

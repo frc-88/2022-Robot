@@ -283,6 +283,7 @@ public class RobotContainer {
       new ParallelDeadlineGroup(
         new SequentialCommandGroup(
           new InstantCommand(() -> m_targeting.setModeToLimelight()),
+          new WaitCommand(0.5),
           new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
           new WaitCommand(0.5),
           new ShootAll(m_shooter).withTimeout(4.0),
@@ -316,12 +317,13 @@ public class RobotContainer {
       new InstantCommand(() -> m_targeting.setModeToLimelight()),
       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
-        new InstantCommand(() -> m_targeting.disableDefault()),
-        // new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
+        // new InstantCommand(() -> m_targeting.disableDefault()),
+        new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
         new WaitCommand(0.5),
         new ShootAll(m_shooter).withTimeout(3.0),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
         // new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
+        new InstantCommand(m_targeting::disableDefault),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
         new ShootAll(m_shooter).withTimeout(3.0),
