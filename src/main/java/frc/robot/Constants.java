@@ -127,7 +127,7 @@ public final class Constants {
 	public static final double CAMERA_TILT_LEVEL_ANGLE = 55;
 	
 	public static final double CAMERA_TILT_UP_ANGLE = -70;
-	public static final double CAMERA_TILT_DOWN_ANGLE = 18;
+	public static final double CAMERA_TILT_DOWN_ANGLE = 10;
 
 	// Controllers
 	public static final int DRIVER_CONTROLLER_ID = 0;

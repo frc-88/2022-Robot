@@ -47,6 +47,6 @@ public class ShootAll extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_count > (m_ballCentralized ? 40 : 15);
+    return m_count > (m_ballCentralized ? 40 : 20);
   }
 }

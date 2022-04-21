@@ -333,6 +333,8 @@ public class SyncPIDController {
 
         if (!enableIZone || Math.abs(error) < iZone) {
             m_accum += error;
+        } else {
+            m_accum = 0;
         }
 
         if (enableIMax) {

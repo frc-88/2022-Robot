@@ -123,7 +123,7 @@ public class RobotContainer {
             if (m_driverController.getForceLowGear()) {
               m_drive.shiftToLow();
             } else {
-              m_drive.autoshift(m_driverController.getThrottle());
+              m_drive.autoshift();
             }
           }, 
           () -> m_driverController.getForceLowGear() ? Constants.MAX_SPEED_LOW : Constants.MAX_SPEED_HIGH);
@@ -211,7 +211,8 @@ public class RobotContainer {
         new SequentialCommandGroup(
           new InstantCommand(() -> m_targeting.enableDefault(80, 180)),
           new WaitCommand(1),
-          new ShootAll(m_shooter).withTimeout(3.0)
+          new ShootAll(m_shooter).withTimeout(3.0),
+          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
         )
       )
     )
@@ -238,7 +239,8 @@ public class RobotContainer {
         new SequentialCommandGroup(
           new InstantCommand(() -> m_targeting.enableDefault(80, -135)),
           new WaitCommand(1),
-          new ShootAll(m_shooter).withTimeout(3.0)
+          new ShootAll(m_shooter).withTimeout(3.0),
+          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
         )
       )
     )
@@ -258,7 +260,7 @@ public class RobotContainer {
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
-      new DriveDegrees(m_drive, 170.0, 120.0),
+      new DriveDegrees(m_drive, 150.0, 180.0),
       new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
     )
   );
@@ -312,22 +314,24 @@ public class RobotContainer {
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
       new InstantCommand(() -> m_targeting.setModeToLimelight()),
+      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
       new SequentialCommandGroup(
-        new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
+        new InstantCommand(() -> m_targeting.disableDefault()),
+        // new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
         new WaitCommand(0.5),
         new ShootAll(m_shooter).withTimeout(3.0),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
-        new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
+        // new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
         new ShootAll(m_shooter).withTimeout(3.0),
         new InstantCommand(m_targeting::disableDefault),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour_blue.wpilib.json"), false),
-        new WaitCommand(.5),
+          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour.wpilib.json"), false),
+        new WaitCommand(0.3),
         // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legfive.wpilib.json" : "legfive_blue.wpilib.json"), true),
+          DriverStation.getAlliance() == Alliance.Red ? "legsix.wpilib.json" : "legsix.wpilib.json"), true),
         new InstantCommand(m_shooter::activatePermissive)
       )
     );
@@ -405,13 +409,13 @@ public class RobotContainer {
     if (m_buttonBox.isDefaultTurretButtonPressed() && !m_autoCommandName.equals("1 Ball Left")) {
       m_autoCommand = m_autoOneBallLeft;
       m_autoCommandName = "1 Ball Left";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_3").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1L").schedule();
     }
 
     if (m_buttonBox.isCancelClimbPressed() && !m_autoCommandName.equals("1 Ball Left")) {
       m_autoCommand = m_autoOneBallRight;
       m_autoCommandName = "1 Ball Right";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_4").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1R").schedule();
     }
 
     if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {

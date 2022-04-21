@@ -224,7 +224,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
-    if (totalExpectedCurrent < 10) {
+    if (totalExpectedCurrent < currentLimit / 2.) {
       leftCurrentLimit =  currentLimit / 2.;
       rightCurrentLimit = currentLimit / 2.;
     } else {
@@ -312,9 +312,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     }
   }
 
-  public void autoshift(double commandedValue) {
-    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter, getLeftSpeed());
-    autoshiftSide(commandedValue, getRightGear(), m_rightShifter, getRightSpeed());
+  public void autoshift() {
+    autoshiftSide(m_leftCommandedSpeed, getLeftGear(), m_leftShifter, getLeftSpeed());
+    autoshiftSide(m_rightCommandedSpeed, getRightGear(), m_rightShifter, getRightSpeed());
   }
 
   public void autoshiftSide(double commandValue, Gear currentGear, Shifter shifter, double currentSpeed) {
@@ -592,7 +592,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
     double vx_fps = vx * Constants.METERS_TO_FEET;
     double turn_fps = angularVelocity * Constants.WHEEL_BASE_WIDTH / 2.0;
-    autoshift(0);  // 0 for aggresive shifting
+    autoshift();
     updateCurrentGear();
     basicDriveLimited(vx_fps - turn_fps, vx_fps + turn_fps);
   }
