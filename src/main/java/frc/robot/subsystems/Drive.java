@@ -217,6 +217,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       rightVelocity = getRightSpeed();
     }
 
+    System.out.println("basicDriveLimited() locked: " + leftVelocity + ", " + rightVelocity);
+
     double currentLimit = maxCurrent.getValue();
 
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
@@ -231,6 +233,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       leftCurrentLimit = currentLimit * leftExpectedCurrent / totalExpectedCurrent;
       rightCurrentLimit = currentLimit * rightExpectedCurrent / totalExpectedCurrent;
     }
+
+    System.out.println("basicDriveLimited() limits: " + leftCurrentLimit + ", " + rightCurrentLimit);
 
     m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
     m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
@@ -249,12 +253,16 @@ public class Drive extends SubsystemBase implements ChassisInterface {
    *                 1 (clockwise)
    */
   public void arcadeDrive(double speed, double turn) {
+    System.out.println("acradeDrive() start: " + speed + ", " + turn);
     // Apply negative intertia
     turn = negativeInertia(speed, turn);
+    System.out.println("acradeDrive() negIner: " + speed + ", " + turn);
 
     // Convert to feet per second
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
+
+    System.out.println("acradeDrive() scaled: " + speed + ", " + turn);
 
     if (m_molassesMode) {
       speed = limitAcceleration(speed, getStraightSpeed(), accelLimitMolasses.getValue());
@@ -262,10 +270,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     } else {
       speed = limitAcceleration(speed, getStraightSpeed(), accelLimit.getValue());
     }
+
+    System.out.println("acradeDrive() limited: " + speed + ", " + turn);
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
     double rightSpeed = (speed - turn);
+
+    System.out.println("acradeDrive() end: " + leftSpeed + ", " + rightSpeed);
 
     // Apply values
     basicDriveLimited(leftSpeed, rightSpeed);
