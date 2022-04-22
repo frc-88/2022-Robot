@@ -60,29 +60,29 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(77, 2050),
-      new ValueInterpolator.ValuePair(99, 2150),
-      new ValueInterpolator.ValuePair(93, 2100),
-      new ValueInterpolator.ValuePair(114, 2200),
-      new ValueInterpolator.ValuePair(122, 2375),
-      new ValueInterpolator.ValuePair(160, 2375));
+      new ValueInterpolator.ValuePair(77, 2200),
+      new ValueInterpolator.ValuePair(93, 2250),
+      new ValueInterpolator.ValuePair(99, 2300),
+      new ValueInterpolator.ValuePair(114, 2375),
+      new ValueInterpolator.ValuePair(122, 2450),
+      new ValueInterpolator.ValuePair(160, 2450));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
       new ValueInterpolator.ValuePair(102, 2200),
-      new ValueInterpolator.ValuePair(117, 2250),
-      new ValueInterpolator.ValuePair(134, 2375),
-      new ValueInterpolator.ValuePair(152, 2800),
-      new ValueInterpolator.ValuePair(166, 3100));
+      new ValueInterpolator.ValuePair(117, 2300),
+      new ValueInterpolator.ValuePair(134, 2425),
+      new ValueInterpolator.ValuePair(152, 2850),
+      new ValueInterpolator.ValuePair(166, 3150));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(125, 2400),
-      new ValueInterpolator.ValuePair(146, 2475),
-      new ValueInterpolator.ValuePair(184, 2700),
-      new ValueInterpolator.ValuePair(213, 3125),
-      new ValueInterpolator.ValuePair(240, 3475),
-      new ValueInterpolator.ValuePair(272, 4000),
-      new ValueInterpolator.ValuePair(298, 4550));
+      new ValueInterpolator.ValuePair(125, 2425),
+      new ValueInterpolator.ValuePair(146, 2625),
+      new ValueInterpolator.ValuePair(184, 2975),
+      new ValueInterpolator.ValuePair(213, 3400),
+      new ValueInterpolator.ValuePair(240, 3625),
+      new ValueInterpolator.ValuePair(272, 4100),
+      new ValueInterpolator.ValuePair(298, 4675));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
@@ -114,7 +114,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_restrictiveCheckTimer.start();
 
     configureFlywheel();
-    m_flywheel.enableVoltageCompensation(true);
 
     p_flywheelPID.addChangeHandler((Double unused) -> configureFlywheel());
   }
@@ -293,16 +292,17 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     //   }
 
     //   // System.out.println(printString);
-    // } else if (m_active != ActiveMode.DEACTIVATED && wantsCargo && !m_wantedCargo) {
-    //   double flywheelVelocity = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
-    //   m_ros_interface.signalShot(m_turret.getFacing(), m_rosDistance, flywheelVelocity);
+    // } else 
+    if (m_active != ActiveMode.DEACTIVATED && wantsCargo && !m_wantedCargo) {
+      double flywheelVelocity = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
+      m_ros_interface.signalShot(m_turret.getFacing(), m_rosDistance, flywheelVelocity);
 
-    //   // System.out.println("@Shot: <Mode is " + m_active.toString() + "> " 
-    //   //                  + "<Distance is " + m_limelightDistance + " from limelight and " + m_rosDistance + " from ROS, flywheel speed is " + flywheelVelocity + "> " 
-    //   //                  + "<Angle is " + m_limelightAngle + " from limelight and " + m_rosAngle + " from ROS, turret angle is" + m_turret.getFacing() + "> " 
-    //   //                  + "<Drive speed is " + m_drive.getStraightSpeed() + " with an acceleration estimate of " + m_drive.getAccelerationEstimate() + " and a yaw rate of " + m_sensors.navx.getYawRate() + "> " 
-    //   //                  + "<Shot probability is " + m_ros_interface.getShooterProbability() + ">");
-    // }
+      // System.out.println("@Shot: <Mode is " + m_active.toString() + "> " 
+      //                  + "<Distance is " + m_limelightDistance + " from limelight and " + m_rosDistance + " from ROS, flywheel speed is " + flywheelVelocity + "> " 
+      //                  + "<Angle is " + m_limelightAngle + " from limelight and " + m_rosAngle + " from ROS, turret angle is" + m_turret.getFacing() + "> " 
+      //                  + "<Drive speed is " + m_drive.getStraightSpeed() + " with an acceleration estimate of " + m_drive.getAccelerationEstimate() + " and a yaw rate of " + m_sensors.navx.getYawRate() + "> " 
+      //                  + "<Shot probability is " + m_ros_interface.getShooterProbability() + ">");
+    }
 
     m_wantedCargo = wantsCargo;
     return wantsCargo;

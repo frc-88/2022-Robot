@@ -226,7 +226,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
-    if (totalExpectedCurrent < currentLimit / 2.) {
+    if (totalExpectedCurrent == 0) {
       leftCurrentLimit =  currentLimit / 2.;
       rightCurrentLimit = currentLimit / 2.;
     } else {
@@ -236,8 +236,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
     // System.out.println("basicDriveLimited() limits: " + leftCurrentLimit + ", " + rightCurrentLimit);
 
-    m_leftDrive.setVelocityCurrentLimited(leftVelocity, 250);
-    m_rightDrive.setVelocityCurrentLimited(rightVelocity, 250);
+    m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
+    m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
     
     m_leftCommandedSpeed = leftVelocity;
     m_rightCommandedSpeed = rightVelocity;
