@@ -49,37 +49,40 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private ActiveMode m_active = ActiveMode.DEACTIVATED;
   private Timer m_cargoWaitTimer = new Timer();
   private boolean m_cargoWaiting = false;
-  private boolean m_sourcesHadCargoLastCheck = false;
-  private long m_lastCargoEnteredShooter = 0;
+  private boolean m_wantedCargo = false;
+  private Timer m_restrictiveCheckTimer = new Timer();
+
+  private double m_limelightDistance = 0;
+  private double m_limelightAngle = 0;
+  private double m_rosDistance = 0;
+  private double m_rosAngle = 0;
 
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(64, 2200),
-      new ValueInterpolator.ValuePair(79, 2200),
-      new ValueInterpolator.ValuePair(93, 2100),
-      new ValueInterpolator.ValuePair(114, 2200),
-      new ValueInterpolator.ValuePair(142, 2375),
-      new ValueInterpolator.ValuePair(160, 2375));
+      new ValueInterpolator.ValuePair(77, 2200),
+      new ValueInterpolator.ValuePair(93, 2250),
+      new ValueInterpolator.ValuePair(99, 2300),
+      new ValueInterpolator.ValuePair(114, 2375),
+      new ValueInterpolator.ValuePair(122, 2450),
+      new ValueInterpolator.ValuePair(160, 2450));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
       new ValueInterpolator.ValuePair(102, 2200),
-      new ValueInterpolator.ValuePair(117, 2250),
-      new ValueInterpolator.ValuePair(134, 2375),
-      new ValueInterpolator.ValuePair(152, 2800),
-      new ValueInterpolator.ValuePair(166, 3100));
+      new ValueInterpolator.ValuePair(117, 2300),
+      new ValueInterpolator.ValuePair(134, 2425),
+      new ValueInterpolator.ValuePair(152, 2850),
+      new ValueInterpolator.ValuePair(166, 3150));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(128, 2400),
-      new ValueInterpolator.ValuePair(160, 2550),
-      new ValueInterpolator.ValuePair(186, 2750),
-      new ValueInterpolator.ValuePair(212, 3300),
-      new ValueInterpolator.ValuePair(228, 3750),
-      new ValueInterpolator.ValuePair(248, 4000),
-      new ValueInterpolator.ValuePair(276, 4150),
-      new ValueInterpolator.ValuePair(314, 4300),
-      new ValueInterpolator.ValuePair(314, 4300));
+      new ValueInterpolator.ValuePair(125, 2425),
+      new ValueInterpolator.ValuePair(146, 2625),
+      new ValueInterpolator.ValuePair(184, 2975),
+      new ValueInterpolator.ValuePair(213, 3400),
+      new ValueInterpolator.ValuePair(240, 3625),
+      new ValueInterpolator.ValuePair(272, 4100),
+      new ValueInterpolator.ValuePair(298, 4675));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
@@ -95,6 +98,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterSpinLimit = new DoublePreferenceConstant("Shooter Spin Limit", 90.);
   private DoublePreferenceConstant p_shooterAccelerationLimit = new DoublePreferenceConstant("Shooter Acceleration Limit", 4.);
   private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
+  private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
 
   /** Creates a new Shooter. */
   public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
@@ -105,6 +109,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_sources = sources;
     m_ros_interface = ros_interface;
     m_shotProbabilitySupplier = () -> 1.;
+
+    m_restrictiveCheckTimer.reset();
+    m_restrictiveCheckTimer.start();
 
     configureFlywheel();
 
@@ -206,89 +213,124 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     return hasCargo;
   }
 
-  private boolean isFlywheelReady() {
-    boolean ready = false;
+  public boolean cargoChambered() {
+    return m_sources[0].hasCargo();
+  }
 
-    if (m_sources[0].hasCargo()) {
-      if (!m_cargoWaiting) {
-        m_cargoWaiting = true;
-        m_cargoWaitTimer.reset();
-        m_cargoWaitTimer.start();
-      } else if (m_cargoWaitTimer.get() > p_shooterReady.getValue()) {
-        ready = true;
-      } else {
-      }
-    } else {
-      ready = true;
-      m_cargoWaiting = false;
-    }
-
-    return ready;
+  public boolean cargoCentralized() {
+    return m_sources[1].hasCargo();
   }
 
   @Override
   public boolean wantsCargo() {
-    // TODO combine some or all of these conditions and return that
-    // m_active - shooter button pushed
-    // onTarget()
-    // m_limelight.onTarget()
-    // m_hoodState == HoodState.LOWERED || m_hoodState == HoodState.RAISED
-    // boolean wantsCargo = (m_active && isFlywheelReady() && onTarget() && !m_hood.isMoving());
-    boolean isFlywheelReady = isFlywheelReady();
-    boolean onTarget = onTarget();
+    // Permissive checks
+    boolean flywheelOnTarget = onTarget();
     boolean turretOnTarget = m_turret.onTarget();
+    boolean permissiveChecks = flywheelOnTarget && turretOnTarget;
+
+    // Restrictive checks
+    boolean turretTracking = m_turret.isTracking();
+    boolean turretNotMoving = m_turret.notMoving();
     boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) <= p_shooterSpinLimit.getValue();
     boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
     boolean hoodNotMoving = !m_hood.isMoving();
     boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
-    boolean wantsCargo = (m_active == ActiveMode.ACTIVE_RESTRICTIVE && isFlywheelReady && onTarget && turretOnTarget && driveNotSpinning && driveNotAccelerating && hoodNotMoving & highShotProbability)
-                          || (m_active == ActiveMode.ACTIVE_PERMISSIVE && isFlywheelReady && onTarget);
+    boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && hoodNotMoving && highShotProbability;
+    boolean restrictiveChecks = false;
+    if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+      restrictiveChecks = true;
+    } else if (!untimedChecks) {
+      m_restrictiveCheckTimer.reset();
+    }
+    
 
-    if (m_active != ActiveMode.DEACTIVATED && !wantsCargo) {
-      System.out.println("***Shot blocked***");
-      System.out.println("isFlywheelReasdy:" + isFlywheelReady);
-      System.out.println("onTarget:" + onTarget);
-      System.out.println("Turret onTarget:" + turretOnTarget);
-      System.out.println("driveNotSpinning:" + driveNotSpinning);
-      System.out.println("driveNotAcclerating:" + driveNotAccelerating);
-      System.out.println("highShotProbability:" + highShotProbability);
-      System.out.println("hoodNotMoving:" + hoodNotMoving);
+    boolean wantsCargo = (m_active == ActiveMode.ACTIVE_PERMISSIVE && permissiveChecks) || (m_active == ActiveMode.ACTIVE_RESTRICTIVE && restrictiveChecks);
+
+    // if (m_active == ActiveMode.ACTIVE_PERMISSIVE && !wantsCargo) {
+    //   String printString = "@Permissive Blocked: ";
+
+    //   if (!flywheelOnTarget) {
+    //     printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
+    //   }
+
+    //   if (!turretOnTarget) {
+    //     printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
+    //   }
+
+    //   // System.out.println(printString);
+    // } else if (m_active == ActiveMode.ACTIVE_RESTRICTIVE && !wantsCargo) {
+    //   String printString = "@Restrictive Blocked: ";
+
+    //   if (!flywheelOnTarget) {
+    //     printString += "<Flywheel error is " + convertMotorTicksToRPM(m_flywheel.getClosedLoopError()) + "> ";
+    //   }
+
+    //   if (!turretTracking) {
+    //     printString += "<Turret is not tracking> ";
+    //   } else if (!turretOnTarget) {
+    //     printString += "<Turret target is " + m_turret.getTarget() + " but facing is " + m_turret.getFacing() + "> ";
+    //   }
+
+    //   if (!driveNotSpinning) {
+    //     printString += "<Yaw Rate is " + m_sensors.navx.getYawRate() + "> ";
+    //   }
+
+    //   if (!driveNotAccelerating) {
+    //     printString += "<Acceleration estimate is " + m_drive.getAccelerationEstimate() + "> ";
+    //   }
+
+    //   if (!hoodNotMoving) {
+    //     printString += "<Hood state is " + m_hood.getHoodState() + "> ";
+    //   }
+
+    //   if (!highShotProbability) {
+    //     printString += "<Shot probability is " + m_shotProbabilitySupplier.getAsDouble() + "> ";
+    //   }
+
+    //   if (untimedChecks) {
+    //     printString += "<Only " + m_restrictiveCheckTimer.get() + " has elapsed> ";
+    //   }
+
+    //   // System.out.println(printString);
+    // } else 
+    if (m_active != ActiveMode.DEACTIVATED && wantsCargo && !m_wantedCargo) {
+      double flywheelVelocity = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
+      m_ros_interface.signalShot(m_turret.getFacing(), m_rosDistance, flywheelVelocity);
+
+      // System.out.println("@Shot: <Mode is " + m_active.toString() + "> " 
+      //                  + "<Distance is " + m_limelightDistance + " from limelight and " + m_rosDistance + " from ROS, flywheel speed is " + flywheelVelocity + "> " 
+      //                  + "<Angle is " + m_limelightAngle + " from limelight and " + m_rosAngle + " from ROS, turret angle is" + m_turret.getFacing() + "> " 
+      //                  + "<Drive speed is " + m_drive.getStraightSpeed() + " with an acceleration estimate of " + m_drive.getAccelerationEstimate() + " and a yaw rate of " + m_sensors.navx.getYawRate() + "> " 
+      //                  + "<Shot probability is " + m_ros_interface.getShooterProbability() + ">");
     }
 
-    if (m_active != ActiveMode.DEACTIVATED && wantsCargo) {
-      System.out.println("!!!SHOOT!!!");
-    }
-
+    m_wantedCargo = wantsCargo;
     return wantsCargo;
+  }
+
+  public void registerLimelightTarget(double distance, double angle) {
+    m_limelightDistance = distance;
+    m_limelightAngle = angle;
+  }
+  
+  public void registerROSTarget(double distance, double angle) {
+    m_rosDistance = distance;
+    m_rosAngle = angle;
   }
 
   @Override
   public void periodic() {
-    double flyWheelSpeed = convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity());
-    if (m_active != ActiveMode.DEACTIVATED && !sourcesHaveCargo() && m_sourcesHadCargoLastCheck) {
-      m_lastCargoEnteredShooter = RobotController.getFPGATime();
-
-      // Tell ROS we shot something
-      m_ros_interface.signalShot(m_turret.getFacing(), 0.0, flyWheelSpeed);
-    }
-
-    if (RobotController.getFPGATime() - m_lastCargoEnteredShooter < p_cargoInShooter.getValue() * 1_000_000) {
-      m_drive.unlockDrive();
-    } else {
-      m_drive.unlockDrive();
-    }
 
     if (!RobotContainer.isPublishingEnabled()) {
       return;
     }
     
-    SmartDashboard.putNumber("Shooter Flywheel Velocity",
-      flyWheelSpeed);
+    SmartDashboard.putNumber("Shooter Flywheel Velocity", convertMotorTicksToRPM(m_flywheel.getSelectedSensorVelocity())
+        );
     SmartDashboard.putNumber("Shooter Flywheel Commanded Velocity",
         convertMotorTicksToRPM(m_flywheel.getClosedLoopTarget()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
     // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
-    SmartDashboard.putBoolean("isFlywheelReady", isFlywheelReady());
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }
 }

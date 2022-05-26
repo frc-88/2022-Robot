@@ -21,6 +21,11 @@ import frc.robot.util.NumberCache;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
+/**
+ * Shots from the hangar,
+ * from against the fender and
+ * everywhere between
+ */
 public class Hood extends SubsystemBase {
   private TalonFX m_hood = new TalonFX(Constants.HOOD_ID, "1");
   private Sensors m_sensors;
@@ -96,9 +101,9 @@ public class Hood extends SubsystemBase {
   public void hoodAuto(double target_dist) {
     double upDistance = p_hoodUpDistance.getValue();
     if (target_dist > 0.0) {
-      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < upDistance - 2) {
+      if (!(m_hoodState == HoodState.LOWERING || m_hoodState == HoodState.LOWERED) && target_dist < upDistance - 1.5) {
         lowerHood();
-      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > upDistance + 2) {
+      } else if (!(m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) && target_dist > upDistance + 1.5) {
         raiseHood();
       } else if (m_hoodState == HoodState.RAISING || m_hoodState == HoodState.RAISED) {
         raiseHood();
@@ -210,7 +215,9 @@ public class Hood extends SubsystemBase {
     }
   }
 
-  
+  public String getHoodState() {
+    return m_hoodState.toString();
+  }
 
   public boolean isUp() {
     return m_hoodState == HoodState.RAISED;

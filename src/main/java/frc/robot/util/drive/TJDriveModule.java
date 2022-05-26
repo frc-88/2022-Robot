@@ -157,7 +157,7 @@ public class TJDriveModule extends WPI_TalonFX {
     }
 
     public void setStatusFrames() {
-        this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
+        // this.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1, 20);
     }
 
 }

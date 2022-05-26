@@ -23,6 +23,7 @@ public class Targeting extends SubsystemBase {
   private final Hood m_hood;
   private final ThisRobotTable m_ros_interface;
   private final Drive m_drive;
+  private final Shooter m_shooter;
 
   private double m_target_angle = 0.0;
   private double m_target_dist = 0.0;
@@ -45,12 +46,13 @@ public class Targeting extends SubsystemBase {
   private double m_defaultAngle = 0;
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive) {
+  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive, Shooter shooter) {
     m_limelight = limelight;
     m_turret = turret;
     m_hood = hood;
     m_ros_interface = ros_interface;
     m_drive = drive;
+    m_shooter = shooter;
   }
 
   private static final double LIMELIGHT_WAYPOINT_AGREEMENT_ANGLE_DEGREES = 27.0;
@@ -84,6 +86,8 @@ public class Targeting extends SubsystemBase {
     SmartDashboard.putNumber("Limelight Target Angle", angle);
     SmartDashboard.putNumber("Limelight Target Distance", distance);
 
+    m_shooter.registerLimelightTarget(distance, angle);
+
     return new Pair<Double, Double>(distance, angle);
   }
 
@@ -92,11 +96,16 @@ public class Targeting extends SubsystemBase {
       double baseTargetAngle = Math.toDegrees(m_ros_interface.getShooterAngle());
       double adder = DriveUtils.mod(baseTargetAngle + 180., 360) - DriveUtils.mod(m_turret.getFacing() + 180., 360);
       double finalAngle = m_turret.getFacing() + adder;
+
+      m_shooter.registerROSTarget(Units.metersToInches(m_ros_interface.getShooterDistance()), finalAngle);
+
       return new Pair<Double, Double>(
         Units.metersToInches(m_ros_interface.getShooterDistance()),
         finalAngle);
     }
     else {
+      m_shooter.registerROSTarget(0, 0);
+
       return new Pair<Double, Double>(Double.NaN, Double.NaN);
     }
   }

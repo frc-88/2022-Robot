@@ -6,13 +6,13 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Shooter;
-import frc.robot.util.CargoSource;
 
 public class ShootAll extends CommandBase {
   /** Creates a new ShootAll. */
   private Shooter m_shooter;
   private Integer m_count;
   private boolean m_ballSeen;
+  private boolean m_ballCentralized;
 
   public ShootAll(Shooter shooter) {
     m_shooter = shooter;
@@ -29,13 +29,12 @@ public class ShootAll extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (!m_shooter.sourcesHaveCargo() && m_ballSeen) {
+    if (!m_shooter.cargoChambered() && m_ballSeen) {
       m_count++;
-    } else {
-      if (m_shooter.sourcesHaveCargo()) {
+    } else if (m_shooter.cargoChambered()) {
         m_ballSeen = true;
         m_count = 0;
-      }
+        m_ballCentralized = m_shooter.cargoCentralized();
     }
   }
 
@@ -48,6 +47,6 @@ public class ShootAll extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_count > 25;
+    return m_count > (m_ballCentralized ? 40 : 20);
   }
 }

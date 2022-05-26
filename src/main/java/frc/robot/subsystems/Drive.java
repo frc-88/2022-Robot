@@ -47,6 +47,11 @@ import frc.robot.util.transmission.ShiftingTransmission;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.VelocityCommand;
 
+/**
+ * Current control on.
+ * Autshiftnig enabled.
+ * Ramsete Tracking.
+ */
 public class Drive extends SubsystemBase implements ChassisInterface {
   
   private final Sensors m_sensors;
@@ -212,6 +217,8 @@ public class Drive extends SubsystemBase implements ChassisInterface {
       rightVelocity = getRightSpeed();
     }
 
+    // System.out.println("basicDriveLimited() locked: " + leftVelocity + ", " + rightVelocity);
+
     double currentLimit = maxCurrent.getValue();
 
     double leftExpectedCurrent = m_leftDrive.getExpectedCurrentDraw(leftVelocity);
@@ -219,13 +226,15 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     double totalExpectedCurrent = leftExpectedCurrent + rightExpectedCurrent;
     double leftCurrentLimit;
     double rightCurrentLimit;
-    if (totalExpectedCurrent < 10) {
+    if (totalExpectedCurrent == 0) {
       leftCurrentLimit =  currentLimit / 2.;
       rightCurrentLimit = currentLimit / 2.;
     } else {
       leftCurrentLimit = currentLimit * leftExpectedCurrent / totalExpectedCurrent;
       rightCurrentLimit = currentLimit * rightExpectedCurrent / totalExpectedCurrent;
     }
+
+    // System.out.println("basicDriveLimited() limits: " + leftCurrentLimit + ", " + rightCurrentLimit);
 
     m_leftDrive.setVelocityCurrentLimited(leftVelocity, leftCurrentLimit);
     m_rightDrive.setVelocityCurrentLimited(rightVelocity, rightCurrentLimit);
@@ -244,12 +253,16 @@ public class Drive extends SubsystemBase implements ChassisInterface {
    *                 1 (clockwise)
    */
   public void arcadeDrive(double speed, double turn) {
+    // System.out.println("acradeDrive() start: " + speed + ", " + turn);
     // Apply negative intertia
     turn = negativeInertia(speed, turn);
+    // System.out.println("acradeDrive() negIner: " + speed + ", " + turn);
 
     // Convert to feet per second
     speed *= m_maxSpeed;
     turn *= m_maxSpeed;
+
+    // System.out.println("acradeDrive() scaled: " + speed + ", " + turn);
 
     if (m_molassesMode) {
       speed = limitAcceleration(speed, getStraightSpeed(), accelLimitMolasses.getValue());
@@ -257,10 +270,14 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     } else {
       speed = limitAcceleration(speed, getStraightSpeed(), accelLimit.getValue());
     }
+
+    // System.out.println("acradeDrive() limited: " + speed + ", " + turn);
     
     // Calculate left and right speed
     double leftSpeed = (speed + turn);
     double rightSpeed = (speed - turn);
+
+    // System.out.println("acradeDrive() end: " + leftSpeed + ", " + rightSpeed);
 
     // Apply values
     basicDriveLimited(leftSpeed, rightSpeed);
@@ -307,9 +324,9 @@ public class Drive extends SubsystemBase implements ChassisInterface {
     }
   }
 
-  public void autoshift(double commandedValue) {
-    autoshiftSide(commandedValue, getLeftGear(), m_leftShifter, getLeftSpeed());
-    autoshiftSide(commandedValue, getRightGear(), m_rightShifter, getRightSpeed());
+  public void autoshift() {
+    autoshiftSide(m_leftCommandedSpeed, getLeftGear(), m_leftShifter, getLeftSpeed());
+    autoshiftSide(m_rightCommandedSpeed, getRightGear(), m_rightShifter, getRightSpeed());
   }
 
   public void autoshiftSide(double commandValue, Gear currentGear, Shifter shifter, double currentSpeed) {
@@ -587,7 +604,7 @@ public class Drive extends SubsystemBase implements ChassisInterface {
 
     double vx_fps = vx * Constants.METERS_TO_FEET;
     double turn_fps = angularVelocity * Constants.WHEEL_BASE_WIDTH / 2.0;
-    autoshift(0);  // 0 for aggresive shifting
+    autoshift();
     updateCurrentGear();
     basicDriveLimited(vx_fps - turn_fps, vx_fps + turn_fps);
   }

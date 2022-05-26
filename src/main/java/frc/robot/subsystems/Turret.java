@@ -185,7 +185,15 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean onTarget() {
-    return m_tracking && (Math.abs(getFacing() - m_target) < 10. && Math.abs(turretEncoderPositionToFacing(m_turret.getSelectedSensorVelocity()) * 10.) < 90.);
+    return !m_tracking || Math.abs(getFacing() - m_target) < 10.;
+  }
+
+  public boolean notMoving() {
+    return Math.abs(turretEncoderPositionToFacing(m_turret.getSelectedSensorVelocity()) * 10.) < 45.;
+  }
+
+  public double getTarget() {
+    return m_target;
   }
 
   private double calcCircumnavigationTarget(double origin) {

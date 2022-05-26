@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,6 +11,11 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.climber.ClimberArm;
 
+/**
+ * Outers onto mid.
+ * Pull up to high and beyond!
+ * Triple traversal?
+ */
 public class Climber extends SubsystemBase {
     
     private final BooleanSupplier coastButton;
