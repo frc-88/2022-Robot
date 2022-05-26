@@ -338,6 +338,38 @@ public class RobotContainer {
       )
     );
 
+    private CommandBase m_autoTwoBallMysterySpice = 
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(m_sensors.limelight::ledOn),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+          new SequentialCommandGroup(
+            new InstantCommand(() -> m_targeting.setModeToLimelight()),
+            new WaitCommand(0.5),
+            new ShootAll(m_shooter).withTimeout(4.0),
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mystery_one.wpilib.json"), true),
+            new WaitCommand(0.5),
+            // shoot one
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mystery_two.wpilib.json"), false),
+            new WaitCommand(0.5)
+          ),
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake)
+        ),
+        new ParallelDeadlineGroup(
+          new WaitCommand(2.0),
+          new ParallelCommandGroup(
+            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerOutgest();}, m_intake),
+            new RunCommand(m_chamber::stop, m_chamber),
+            new RunCommand(m_centralizer::forceReverse, m_centralizer)
+          )
+        )
+      )
+    );
+
+
   public static  String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
       return "red";
@@ -396,9 +428,9 @@ public class RobotContainer {
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Mystery Spice")) {
       m_autoCommand = m_autoTwoBall;
-      m_autoCommandName = "2 Cargo";
+      m_autoCommandName = "Mystery Spice";
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
