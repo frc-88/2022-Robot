@@ -34,7 +34,7 @@ public class FrskyDriverController extends FrskyController implements DriverCont
     }
 
     @Override
-    public boolean getMolassesMode() {
+    public boolean getShooterMode() {
         return isTopLeftSwitchOn();
     }
     

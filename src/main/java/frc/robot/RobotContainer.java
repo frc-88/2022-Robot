@@ -435,7 +435,10 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    if (m_buttonBox.isAutoShootSwitchOn()) {
+    
+    if (m_driverController.getShooterMode()) {
+      m_shooter.activatePermissive();
+    } else if (m_buttonBox.isAutoShootSwitchOn()) {
       m_shooter.activateRestrictive();
     } else {
       m_shooter.deactivate();
@@ -450,12 +453,6 @@ public class RobotContainer {
       m_turret.stopTracking();
       m_flywheelFenderShot.schedule();
       m_hoodUp.schedule();
-    }
-
-    if (m_driverController.getMolassesMode()) {
-      m_drive.enableMolassesMode();
-    } else {
-      m_drive.disableMolassesMode();
     }
 
     m_turret.setDefaultFacing(0.);
@@ -476,9 +473,9 @@ public class RobotContainer {
   }
 
   private void configureButtonBox() {
-    Button molassesButton = new Button(m_driverController::getMolassesMode);
-    molassesButton.whenPressed(new InstantCommand(m_drive::enableMolassesMode));
-    molassesButton.whenReleased(new InstantCommand(m_drive::disableMolassesMode));
+    Button shooterButton = new Button(m_driverController::getShooterMode);
+    shooterButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    shooterButton.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activateRestrictive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isAutoShootSwitchOn));
 
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
