@@ -330,6 +330,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putNumber("Shooter Flywheel Commanded Velocity",
         convertMotorTicksToRPM(m_flywheel.getClosedLoopTarget()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    SmartDashboard.putNumber("Shooter Flywheel Error", m_flywheel.getClosedLoopError());
     // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }
