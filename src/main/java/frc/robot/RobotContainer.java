@@ -352,14 +352,36 @@ public class RobotContainer {
             new ShootAll(m_shooter).withTimeout(4.0),
             new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mysteryspice.wpilib.json"), true)
           ),
-          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake)
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new FeederCargolizer(m_centralizer, m_intake, m_chamber)
         ),
         new WaitCommand(0.5),
         new ParallelDeadlineGroup(
-          new WaitCommand(5.0),
+          new WaitCommand(4.0),
           new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
-          new RunCommand(m_centralizer::forceReverse, m_centralizer),
-          new RunCommand(m_shooter::activatePermissive)
+          new SequentialCommandGroup(
+            new WaitCommand(0.5),
+            new RunCommand(m_centralizer::forceReverse, m_centralizer)
+          ),
+          new SequentialCommandGroup(
+            new WaitCommand(0.75),
+            new RunCommand(m_shooter::activatePermissive)
+          )
+        ),
+        new WaitCommand(0.5),
+        new ParallelDeadlineGroup(
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("extraspicy.wpilib.json"), true),
+            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+            new FeederCargolizer(m_centralizer, m_intake, m_chamber)  
+          ),
+        new ParallelDeadlineGroup(
+          new WaitCommand(4.0),
+          new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+          new SequentialCommandGroup(
+            new WaitCommand(0.5),
+            new RunCommand(m_chamber::forceReverse, m_chamber),
+            new RunCommand(m_centralizer::forceReverse, m_centralizer)
+          )
         )
       )
     );
@@ -424,7 +446,7 @@ public class RobotContainer {
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Mystery Spice")) {
-      m_autoCommand = m_autoTwoBall;
+      m_autoCommand = m_autoTwoBallMysterySpice;
       m_autoCommandName = "Mystery Spice";
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
