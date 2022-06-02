@@ -359,8 +359,7 @@ public class RobotContainer {
           new WaitCommand(5.0),
           new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
           new RunCommand(m_centralizer::forceReverse, m_centralizer),
-          new RunCommand(m_shooter::activatePermissive),
-          new RunCommand(m_chamber::forceForwards, m_chamber)
+          new RunCommand(m_shooter::activatePermissive)
         )
       )
     );
