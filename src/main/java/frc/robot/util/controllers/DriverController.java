@@ -8,6 +8,6 @@ public interface DriverController {
 
     public boolean getForceLowGear();
 
-    public boolean getMolassesMode();
+    public boolean getShooterMode();
 
 }

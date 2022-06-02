@@ -77,8 +77,9 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(125, 2425),
-      new ValueInterpolator.ValuePair(146, 2625),
-      new ValueInterpolator.ValuePair(184, 2975),
+      new ValueInterpolator.ValuePair(146, 2600),
+      new ValueInterpolator.ValuePair(160, 2680),
+      new ValueInterpolator.ValuePair(184, 2950),
       new ValueInterpolator.ValuePair(213, 3400),
       new ValueInterpolator.ValuePair(240, 3625),
       new ValueInterpolator.ValuePair(272, 4100),
@@ -330,6 +331,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putNumber("Shooter Flywheel Commanded Velocity",
         convertMotorTicksToRPM(m_flywheel.getClosedLoopTarget()));
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
+    SmartDashboard.putNumber("Shooter Flywheel Error", m_flywheel.getClosedLoopError());
     // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
   }

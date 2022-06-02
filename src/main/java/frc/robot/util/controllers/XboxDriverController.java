@@ -30,7 +30,7 @@ public class XboxDriverController extends XboxController implements DriverContro
     }
 
     @Override
-    public boolean getMolassesMode() {
+    public boolean getShooterMode() {
         return getRightTrigger() > 0.5;
     }
     
