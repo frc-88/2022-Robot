@@ -344,27 +344,23 @@ public class RobotContainer {
       new InstantCommand(m_turret::startTracking),
       new InstantCommand(m_sensors.limelight::ledOn),
       new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new InstantCommand(() -> m_targeting.setModeToLimelight()),
       new SequentialCommandGroup(
+        new WaitCommand(0.5),
         new ParallelDeadlineGroup(
           new SequentialCommandGroup(
-            new InstantCommand(() -> m_targeting.setModeToLimelight()),
-            new WaitCommand(0.5),
             new ShootAll(m_shooter).withTimeout(4.0),
-            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mystery_one.wpilib.json"), true),
-            new WaitCommand(0.5),
-            // shoot one
-            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mystery_two.wpilib.json"), false),
-            new WaitCommand(0.5)
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mysteryspice.wpilib.json"), true)
           ),
           new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake)
         ),
+        new WaitCommand(0.5),
         new ParallelDeadlineGroup(
-          new WaitCommand(2.0),
-          new ParallelCommandGroup(
-            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerOutgest();}, m_intake),
-            new RunCommand(m_chamber::stop, m_chamber),
-            new RunCommand(m_centralizer::forceReverse, m_centralizer)
-          )
+          new WaitCommand(5.0),
+          new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+          new RunCommand(m_centralizer::forceReverse, m_centralizer),
+          new RunCommand(m_shooter::activatePermissive),
+          new RunCommand(m_chamber::forceForwards, m_chamber)
         )
       )
     );
