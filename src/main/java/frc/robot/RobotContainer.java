@@ -362,7 +362,10 @@ public class RobotContainer {
           new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
           new FeederCargolizer(m_chamber, m_centralizer, m_shooter),
           new SequentialCommandGroup(
-            new WaitCommand(0.5),
+            new ParallelDeadlineGroup(
+              new WaitCommand(0.5),
+              new RunCommand(m_centralizer::stop, m_centralizer)
+            ),
             new RunCommand(m_centralizer::forceReverse, m_centralizer)
           ),
           new SequentialCommandGroup(
@@ -370,6 +373,7 @@ public class RobotContainer {
             new RunCommand(m_shooter::activatePermissive)
           )
         ),
+        new InstantCommand(m_shooter::deactivate),
         new WaitCommand(0.5),
         new ParallelDeadlineGroup(
             new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("extraspicy.wpilib.json"), true),
@@ -381,9 +385,15 @@ public class RobotContainer {
           new WaitCommand(4.0),
           new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
           new SequentialCommandGroup(
-            new WaitCommand(0.5),
-            new RunCommand(m_chamber::forceReverse, m_chamber),
-            new RunCommand(m_centralizer::forceReverse, m_centralizer)
+            new ParallelDeadlineGroup(
+              new WaitCommand(0.5),
+              new RunCommand(m_chamber::stop, m_chamber),
+              new RunCommand(m_centralizer::stop, m_centralizer)
+            ),
+            new ParallelCommandGroup(
+              new RunCommand(m_chamber::forceReverse, m_chamber),
+              new RunCommand(m_centralizer::forceReverse, m_centralizer)
+            )
           )
         )
       )
