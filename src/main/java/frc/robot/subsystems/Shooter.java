@@ -61,11 +61,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(77, 2200),
-      new ValueInterpolator.ValuePair(93, 2250),
-      new ValueInterpolator.ValuePair(99, 2300),
-      new ValueInterpolator.ValuePair(114, 2375),
-      new ValueInterpolator.ValuePair(122, 2450),
-      new ValueInterpolator.ValuePair(160, 2450));
+      new ValueInterpolator.ValuePair(93, 2275),
+      new ValueInterpolator.ValuePair(99, 2375),
+      new ValueInterpolator.ValuePair(114, 2450),
+      new ValueInterpolator.ValuePair(122, 2500),
+      new ValueInterpolator.ValuePair(160, 2550));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
