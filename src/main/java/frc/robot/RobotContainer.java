@@ -259,7 +259,9 @@ public class RobotContainer {
       // new DriveDistanceMeters(m_drive, 1.5, 5.0),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
       new WaitCommand(0.5),
-      new ShootAll(m_shooter),
+      new ShootAll(m_shooter).withTimeout(4.0),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+      new ShootAll(m_shooter).withTimeout(3.0),
       new DriveDegrees(m_drive, 150.0, 180.0),
       new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
     )
