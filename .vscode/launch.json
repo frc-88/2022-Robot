@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch Main",
+      "request": "launch",
+      "mainClass": "frc.robot.Main",
+      "projectName": "2022-Robot"
+    },
+    {
+      "type": "java",
       "name": "Launch TrajectoryVisualizer",
       "request": "launch",
       "mainClass": "frc.robot.util.TrajectoryVisualizer",

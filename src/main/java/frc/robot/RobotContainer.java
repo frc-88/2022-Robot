@@ -454,9 +454,9 @@ public class RobotContainer {
 
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
-      m_autoCommand = m_autoTwoBallSpicy;
-      m_autoCommandName = "2 Cargo Spicy";
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+      m_autoCommand = m_autoTwoBall;
+      m_autoCommandName = "2 Cargo";
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 

@@ -60,12 +60,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private static final double FLYWHEEL_RATIO = 1;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(77, 2200),
-      new ValueInterpolator.ValuePair(93, 2275),
-      new ValueInterpolator.ValuePair(99, 2375),
-      new ValueInterpolator.ValuePair(114, 2450),
-      new ValueInterpolator.ValuePair(122, 2500),
-      new ValueInterpolator.ValuePair(160, 2550));
+      new ValueInterpolator.ValuePair(77, 2250),
+      new ValueInterpolator.ValuePair(93, 2325),
+      new ValueInterpolator.ValuePair(99, 2425),
+      new ValueInterpolator.ValuePair(114, 2500),
+      new ValueInterpolator.ValuePair(122, 2550),
+      new ValueInterpolator.ValuePair(160, 2600));
 
   private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(85.5, 2200),
@@ -76,14 +76,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
       new ValueInterpolator.ValuePair(166, 3150));
 
   private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(125, 2425),
-      new ValueInterpolator.ValuePair(146, 2600),
-      new ValueInterpolator.ValuePair(160, 2680),
-      new ValueInterpolator.ValuePair(184, 2950),
-      new ValueInterpolator.ValuePair(213, 3400),
-      new ValueInterpolator.ValuePair(240, 3625),
-      new ValueInterpolator.ValuePair(272, 4100),
-      new ValueInterpolator.ValuePair(298, 4675));
+      new ValueInterpolator.ValuePair(125, 2475),
+      new ValueInterpolator.ValuePair(146, 2650),
+      new ValueInterpolator.ValuePair(160, 2730),
+      new ValueInterpolator.ValuePair(184, 3000),
+      new ValueInterpolator.ValuePair(213, 3450),
+      new ValueInterpolator.ValuePair(240, 3675),
+      new ValueInterpolator.ValuePair(272, 4150),
+      new ValueInterpolator.ValuePair(298, 4725));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
@@ -100,6 +100,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterAccelerationLimit = new DoublePreferenceConstant("Shooter Acceleration Limit", 4.);
   private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
   private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
+
+  private DoublePreferenceConstant p_flywheelSpeedAlter = new DoublePreferenceConstant("Flywheel Speed Alteration", 0.);
 
   /** Creates a new Shooter. */
   public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
@@ -165,11 +167,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private double calcSpeedFromDistance(double target_dist) {
     if (target_dist > 0.0) {
       if (m_hood.isDown()) {
-        return hoodDownInterpolator.getInterpolatedValue(target_dist);
+        return hoodDownInterpolator.getInterpolatedValue(target_dist) + p_flywheelSpeedAlter.getValue();
       } else if (m_hood.isUp()) {
-        return hoodUpInterpolator.getInterpolatedValue(target_dist);
+        return hoodUpInterpolator.getInterpolatedValue(target_dist) + p_flywheelSpeedAlter.getValue();
       } else {
-        return hoodMidInterpolator.getInterpolatedValue(target_dist);
+        return hoodMidInterpolator.getInterpolatedValue(target_dist) + p_flywheelSpeedAlter.getValue();
       }
     } else {
       if (m_hood.isDown()) {
