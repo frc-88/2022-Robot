@@ -263,7 +263,8 @@ public class RobotContainer {
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
       new ShootAll(m_shooter).withTimeout(3.0),
       new DriveDegrees(m_drive, 150.0, 180.0),
-      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
+      new InstantCommand(m_shooter::activatePermissive)
     )
   );
 
