@@ -250,7 +250,7 @@ public class Turret extends SubsystemBase {
 
   private void goToPosition(double position, boolean spinCompensation) {
     if (spinCompensation) {
-      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.ahrs_navx.getRate())/1023.);
     } else {
       m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 0);
     }

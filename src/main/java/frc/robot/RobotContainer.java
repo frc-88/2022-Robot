@@ -33,7 +33,7 @@ import frc.robot.commands.turret.TurretTrackCombo;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Climber;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
@@ -78,7 +78,7 @@ public class RobotContainer {
   //                              SUBSYSTEMS                                 //
   /////////////////////////////////////////////////////////////////////////////
   private final Sensors m_sensors = new Sensors();
-  private final Drive m_drive = new Drive(m_sensors);
+  private final SwerveDrive m_drive = new SwerveDrive(m_sensors.ahrs_navx);
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret(m_sensors);
@@ -617,9 +617,6 @@ public class RobotContainer {
   }
 
   private void configureDashboardCommands() {
-    // Drive testing commands
-    SmartDashboard.putData("Drive Basic Tank", new TankDrive(m_drive, m_testController2::getLeftStickY, m_testController2::getRightStickY));
-
     // Autonomous testing
     SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
     SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);

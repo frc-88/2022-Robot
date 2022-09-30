@@ -8,7 +8,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
@@ -38,7 +38,7 @@ public class ThisRobotTable extends CoprocessorTable {
     private Turret turret;
     private Sensors sensors;
     private Hood hood;
-    private Drive drive;
+    private SwerveDrive drive;
 
     private NetworkTable hoodTable;
     private NetworkTableEntry hoodStateEntry;
@@ -98,7 +98,7 @@ public class ThisRobotTable extends CoprocessorTable {
         this.turret = turret;
         this.sensors = sensors;
         this.hood = hood;
-        this.drive = (Drive)chassis;
+        this.drive = (SwerveDrive)chassis;
 
         hoodTable = getRootTable().getSubTable("hood");
         hoodStateEntry = hoodTable.getEntry("state");
@@ -147,10 +147,10 @@ public class ThisRobotTable extends CoprocessorTable {
         super.update();
         
         sendImu(
-            Units.degreesToRadians(sensors.navx.getYaw()),
-            Units.degreesToRadians(sensors.navx.getYawRate()),
-            gsToMetersPerSecondSquared(sensors.navx.getAccelX()),
-            gsToMetersPerSecondSquared(sensors.navx.getAccelY())
+            Units.degreesToRadians(sensors.ahrs_navx.getYaw()),
+            Units.degreesToRadians(sensors.ahrs_navx.getRate()),
+            gsToMetersPerSecondSquared(sensors.ahrs_navx.getRawAccelX()),
+            gsToMetersPerSecondSquared(sensors.ahrs_navx.getRawAccelY())
         );
     }
 

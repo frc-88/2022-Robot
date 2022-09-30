@@ -22,7 +22,7 @@ public class Targeting extends SubsystemBase {
   private final Turret m_turret;
   private final Hood m_hood;
   private final ThisRobotTable m_ros_interface;
-  private final Drive m_drive;
+  private final SwerveDrive m_drive;
   private final Shooter m_shooter;
 
   private double m_target_angle = 0.0;
@@ -46,7 +46,7 @@ public class Targeting extends SubsystemBase {
   private double m_defaultAngle = 0;
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive, Shooter shooter) {
+  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, SwerveDrive drive, Shooter shooter) {
     m_limelight = limelight;
     m_turret = turret;
     m_hood = hood;

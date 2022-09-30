@@ -10,6 +10,7 @@ package frc.robot.subsystems;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.cameraserver.CameraServer;
@@ -20,6 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,7 +32,6 @@ import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
-import frc.robot.util.sensors.NavX;
 
 /**
  * we gather data
@@ -39,7 +40,7 @@ import frc.robot.util.sensors.NavX;
  */
 
 public class Sensors extends SubsystemBase {
-  public final NavX navx = new NavX();
+  public final AHRS ahrs_navx = new AHRS(SPI.Port.kMXP, (byte) 200); // NavX connected over MXP
   public final Limelight limelight = new Limelight();
   private final DigitalInput coastButton = new DigitalInput(Constants.SENSORS_COAST_BUTTON_ID);
 
@@ -187,10 +188,10 @@ public class Sensors extends SubsystemBase {
     getWorkingPressure();
 
     // NavX data
-    SmartDashboard.putNumber("NavX Yaw", navx.getYaw());
-    SmartDashboard.putNumber("NavX Yaw Rate", navx.getYawRate());
-    SmartDashboard.putNumber("NavX Pitch", navx.getPitch());
-    SmartDashboard.putNumber("NavX Roll", navx.getRoll());
+    SmartDashboard.putNumber("NavX Yaw", ahrs_navx.getYaw());
+    SmartDashboard.putNumber("NavX Yaw Rate", ahrs_navx.getRate());
+    SmartDashboard.putNumber("NavX Pitch", ahrs_navx.getPitch());
+    SmartDashboard.putNumber("NavX Roll", ahrs_navx.getRoll());
 
     // Limelight calculations
     SmartDashboard.putNumber("Limelight Distance", limelight.getTargetDistance());

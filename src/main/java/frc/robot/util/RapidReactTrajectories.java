@@ -30,7 +30,7 @@ public class RapidReactTrajectories
 
   public static TrajectoryConfig basicConfig() {
     TrajectoryConfig config;
-    DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.feetToMeters(Constants.WHEEL_BASE_WIDTH));
+    DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Constants.DRIVETRAIN_WHEELBASE_METERS);
     config = new TrajectoryConfig(Units.feetToMeters(Constants.MAX_TRAJ_VELOCITY), Units.feetToMeters(Constants.MAX_TRAJ_ACCELERATION));
     config.setKinematics(kinematics);
     config.setStartVelocity(0.0D);

@@ -17,64 +17,46 @@ import frc.robot.util.drive.Shifter;
  * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
+    ///////////////////////////////////////////////////////
+    // DRIVETRAIN
+    ///////////////////////////////////////////////////////
 
-	/********************************************************************
-	* 
-    *                ____       _          
-    *       --------/ __ \_____(_)   _____ 
-    *      --------/ / / / ___/ / | / / _ \
-    *     --------/ /_/ / /  / /| |/ /  __/
-    *    --------/_____/_/  /_/ |___/\___/ 
-	* 
-	*/
+    /**
+     * The left-to-right distance between the drivetrain wheels
+     *
+     * Should be measured from center to center.
+     */
+    public static final double DRIVETRAIN_TRACKWIDTH_METERS = 0.56515; // 22.25 inches
+    /**
+     * The front-to-back distance between the drivetrain wheels.
+     *
+     * Should be measured from center to center.
+     */
+    public static final double DRIVETRAIN_WHEELBASE_METERS = 0.57785; // 22.75 inches
 
-	// Drive CAN IDs
-	public static final int LEFT_MASTER_DRIVE_ID = 19;
-	public static final int LEFT_FOLLOWER_DRIVE_ID = 18;
-	public static final int RIGHT_MASTER_DRIVE_ID = 0;
-	public static final int RIGHT_FOLLOWER_DRIVE_ID = 1;
-	public static final int LEFT_DRIVE_ENCODER_ID = 0;
-	public static final int RIGHT_DRIVE_ENCODER_ID = 19;
+    public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1; 
+    public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 0; 
+    public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 0; 
+    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(199.1);
 
-	// Drive Configuration
-	public static final int NUM_DRIVE_MOTORS_PER_SIDE = 2;
-	public static final double WHEEL_DIAMETER = 5.84375;
-	public static final double LOW_GEAR_RATIO = 16.71;
-	public static final double HIGH_GEAR_RATIO = 7.73;
-	public static final double LOW_DRIVE_RATIO = (1./LOW_GEAR_RATIO) * (WHEEL_DIAMETER / 12.) * Math.PI;
-	public static final double HIGH_DRIVE_RATIO = (1./HIGH_GEAR_RATIO) * (WHEEL_DIAMETER / 12.) * Math.PI;
-	public static final double DRIVE_SENSOR_RATIO = (1. / ((WHEEL_DIAMETER / 12.) * Math.PI)) * 60./24.;
-	public static final double DRIVE_LOW_STATIC_FRICTION_VOLTAGE = 0.2;
-	public static final double DRIVE_HIGH_STATIC_FRICTION_VOLTAGE = 0.24;
-	public static final double DRIVE_LEFT_LOW_EFFICIENCY = 1.025;
-	public static final double DRIVE_LEFT_HIGH_EFFICIENCY = 1.03;
-	public static final double DRIVE_RIGHT_LOW_EFFICIENCY = 1.03;
-	public static final double DRIVE_RIGHT_HIGH_EFFICIENCY = 1.02;
-	public static final double MAX_SPEED_LOW = 8.8;
-	public static final double MAX_SPEED_HIGH = 16.5;
-	public static final double WHEEL_BASE_WIDTH = 26.25 / 12.; // feet
-	public static final double DRIVE_CURRENT_LIMIT = 300;
+    public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 18; 
+    public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 19; 
+    public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 18; 
+    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(172.6);
+
+    public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 8; 
+    public static final int BACK_LEFT_MODULE_STEER_MOTOR = 9; 
+    public static final int BACK_LEFT_MODULE_STEER_ENCODER = 8; 
+    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(52.4);
+
+    public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10; 
+    public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 11; 
+    public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 10;
+    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(242.7);
 	
-	public static final double METERS_TO_FEET = 3.28084;  // multiply your number by this value to convert to feet
-	public static final double FEET_TO_METERS = 0.3048;  // multiply your number by this value to convert to meters
-
 	public static final double MAX_TRAJ_VELOCITY = 6.0;
 	public static final double MAX_TRAJ_ACCELERATION = 4.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
-
-	public static final Shifter.ShifterParameters LEFT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 5, 4, 18, 120, 240, 150, 210);
-	public static final Shifter.ShifterParameters RIGHT_SHIFTER_CONSTANTS = new Shifter.ShifterParameters(PneumaticsModuleType.REVPH, 1, 3, 2, 1, 120, 240, 150, 210);
-
-	public static final int DRIVE_SPEED_EXP_XBOX = 2;
-	public static final int DRIVE_TURN_EXP_XBOX = 2;
-	public static final int DRIVE_SPEED_EXP_FRSKY = 2;
-	public static final int DRIVE_TURN_EXP_FRSKY = 2;
-	public static final double XBOX_DEADBAND = 0.12;
-	public static final double FRSKY_DEADBAND = 0.07;
-	public static final double CHEESY_DRIVE_MIN_TURN = 0.4;
-	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
-	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
-	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 
 	// Shooter & Hood
 	public static final int SHOOTER_FLYWHEEL_ID = 8;

@@ -36,7 +36,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Sensors m_sensors;
   private Hood m_hood;
   private Turret m_turret;
-  private Drive m_drive;
+  private SwerveDrive m_drive;
   private ThisRobotTable m_ros_interface;
   private DoubleSupplier m_shotProbabilitySupplier;
 
@@ -101,7 +101,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
+  public Shooter(Sensors sensors, Hood hood, SwerveDrive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
     m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;
@@ -231,7 +231,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // Restrictive checks
     boolean turretTracking = m_turret.isTracking();
     boolean turretNotMoving = m_turret.notMoving();
-    boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) <= p_shooterSpinLimit.getValue();
+    boolean driveNotSpinning = Math.abs(m_sensors.ahrs_navx.getRate()) <= p_shooterSpinLimit.getValue();
     boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
     boolean hoodNotMoving = !m_hood.isMoving();
     boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();

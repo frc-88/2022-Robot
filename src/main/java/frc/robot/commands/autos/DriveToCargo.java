@@ -8,7 +8,7 @@ import java.util.Objects;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Shooter;
@@ -20,7 +20,7 @@ import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class DriveToCargo extends CommandBase {
   private final Navigation m_nav;
-  private final Drive m_drive;
+  private final SwerveDrive m_drive;
   private final Shooter m_shooter;
   private final Sensors m_sensors;
   private final ThisRobotTable m_robot_table;
@@ -30,7 +30,7 @@ public class DriveToCargo extends CommandBase {
   private int m_numCargo = 1;
 
   /** Creates a new DriveToWaypoint. */
-  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, Drive drive, Shooter shooter, Sensors sensors, long is_finished_timeout, int numCargo) {
+  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, SwerveDrive drive, Shooter shooter, Sensors sensors, long is_finished_timeout, int numCargo) {
     m_nav = nav;
     m_drive = drive;
     m_sensors = sensors;
@@ -47,11 +47,11 @@ public class DriveToCargo extends CommandBase {
     addRequirements(nav);
     addRequirements(drive);
   }
-  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, Drive drive, Shooter shooter, Sensors sensors, int numCargo) {
+  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, SwerveDrive drive, Shooter shooter, Sensors sensors, int numCargo) {
     this(nav, robot_table, drive, shooter, sensors, 15_000_000, numCargo);
   }
 
-  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, Drive drive, Shooter shooter, Sensors sensors) {
+  public DriveToCargo(Navigation nav, ThisRobotTable robot_table, SwerveDrive drive, Shooter shooter, Sensors sensors) {
     this(nav, robot_table, drive, shooter, sensors, 15_000_000, 1);
   }
 
