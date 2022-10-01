@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -70,6 +71,7 @@ import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
 import frc.robot.commands.drive.ArcadeDrive;
 import frc.robot.commands.drive.DriveDegrees;
+import frc.robot.commands.drive.SwerveDriveCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PreferenceConstants;
 
@@ -106,6 +108,8 @@ public class RobotContainer {
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
   private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
+  private final SlewRateLimiter filterX = new SlewRateLimiter(2.0);
+  private final SlewRateLimiter filterY = new SlewRateLimiter(2.0);
 
   private boolean m_hasConfiguredDashboardButtons = false;
 
@@ -117,16 +121,23 @@ public class RobotContainer {
   //             DRIVE               //
   /////////////////////////////////////
 
-  private CommandBase m_arcadeDrive =
-      new ArcadeDrive(m_drive, m_driverController::getThrottle, m_driverController::getTurn,
-          () -> {
-            if (m_driverController.getForceLowGear()) {
-              m_drive.shiftToLow();
-            } else {
-              m_drive.autoshift();
-            }
-          }, 
-          () -> m_driverController.getForceLowGear() ? Constants.MAX_SPEED_LOW : Constants.MAX_SPEED_HIGH);
+  // Set up the default command for the drivetrain.
+  // The controls are for field-oriented driving:
+  // Left stick Y axis -> forward and backwards movement
+  // Left stick X axis -> left and right movement
+  // Right stick X axis -> rotation
+  private CommandBase m_fieldDrive =    
+    m_drive.setDefaultCommand(
+      new SwerveDriveCommand(
+        m_drive,
+        () -> -modifyAxis(filterY.calculate(m_driverController.getLeftStickY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+        () -> -modifyAxis(filterX.calculate(m_driverController.getLeftStickX())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+        () -> -modifyAxis(m_driverController.getRightStickX()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+        )
+      );
+    
+
+
 
 
   /////////////////////////////////////
