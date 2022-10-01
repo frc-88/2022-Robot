@@ -56,20 +56,19 @@ import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.AutoFollowTrajectory;
-import frc.robot.commands.autos.DriveToCargo;
-import frc.robot.commands.autos.DriveToWaypoint;
-import frc.robot.commands.autos.DriveToWaypointWithHeading;
-import frc.robot.commands.autos.DriveWithWaypointsPlan;
-import frc.robot.commands.autos.PassthroughRosCommand;
-import frc.robot.commands.autos.SetGlobalPoseToLimelight;
-import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
+// import frc.robot.commands.autos.DriveToCargo;
+// import frc.robot.commands.autos.DriveToWaypoint;
+// import frc.robot.commands.autos.DriveToWaypointWithHeading;
+// import frc.robot.commands.autos.DriveWithWaypointsPlan;
+// import frc.robot.commands.autos.PassthroughRosCommand;
+// import frc.robot.commands.autos.SetGlobalPoseToLimelight;
+// import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 import frc.robot.commands.cameratilter.TiltCameraDown;
 import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
-import frc.robot.commands.drive.ArcadeDrive;
-import frc.robot.commands.drive.DriveDegrees;
+// import frc.robot.commands.drive.DriveDegrees;
 import frc.robot.commands.drive.SwerveDriveCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PreferenceConstants;
@@ -125,15 +124,13 @@ public class RobotContainer {
   // Left stick Y axis -> forward and backwards movement
   // Left stick X axis -> left and right movement
   // Right stick X axis -> rotation
-  private CommandBase m_fieldDrive =    
-    m_drive.setDefaultCommand(
-      new SwerveDriveCommand(
-        m_drive,
-        () -> -modifyAxis(filterY.calculate(m_driverController.getLeftStickY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
-        () -> -modifyAxis(filterX.calculate(m_driverController.getLeftStickX())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
-        () -> -modifyAxis(m_driverController.getRightStickX()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
-        )
-      );
+  private CommandBase m_swerveDrive =    
+    new SwerveDriveCommand(
+      m_drive,
+      () -> -modifyAxis(filterY.calculate(((FrskyDriverController)m_driverController).getLeftStickY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> -modifyAxis(filterX.calculate(((FrskyDriverController)m_driverController).getLeftStickX())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> -modifyAxis(((FrskyDriverController)m_driverController).getRightStickX()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+    );
     
       private static double deadband(double value, double deadband) {
         if (Math.abs(value) > deadband) {
@@ -220,153 +217,153 @@ public class RobotContainer {
   private DoublePreferenceConstant p_oneBallDelay = new DoublePreferenceConstant("One Ball Delay", 0.25);
   private Timer m_oneBallTimer = new Timer();
   
-  private CommandBase m_autoOneBallLeft =
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-    new SequentialCommandGroup(
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
-        new SequentialCommandGroup(
-          new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter).withTimeout(3.0)
-        )
-      ),
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_targeting.enableDefault(80, 180)),
-          new WaitCommand(1),
-          new ShootAll(m_shooter).withTimeout(3.0),
-          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
-        )
-      )
-    )
-  );
+  // private CommandBase m_autoOneBallLeft =
+  // new ParallelCommandGroup(
+  //   new TiltCameraDown(m_sensors),
+  //   new InstantCommand(m_turret::startTracking),
+  //   new InstantCommand(m_sensors.limelight::ledOn),
+  //   new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+  //   new SequentialCommandGroup(
+  //     new ParallelCommandGroup(
+  //       new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+  //       new SequentialCommandGroup(
+  //         new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
+  //         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
+  //         new WaitCommand(0.5),
+  //         new ShootAll(m_shooter).withTimeout(3.0)
+  //       )
+  //     ),
+  //     new ParallelCommandGroup(
+  //       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //       new SequentialCommandGroup(
+  //         new InstantCommand(() -> m_targeting.enableDefault(80, 180)),
+  //         new WaitCommand(1),
+  //         new ShootAll(m_shooter).withTimeout(3.0),
+  //         new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+  //       )
+  //     )
+  //   )
+  // );
 
-  private CommandBase m_autoOneBallRight =
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-    new SequentialCommandGroup(
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
-        new SequentialCommandGroup(
-          new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter).withTimeout(3.0)
-        )
-      ),
-      new ParallelCommandGroup(
-        new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_targeting.enableDefault(80, -135)),
-          new WaitCommand(1),
-          new ShootAll(m_shooter).withTimeout(3.0),
-          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
-        )
-      )
-    )
-  );
+  // private CommandBase m_autoOneBallRight =
+  // new ParallelCommandGroup(
+  //   new TiltCameraDown(m_sensors),
+  //   new InstantCommand(m_turret::startTracking),
+  //   new InstantCommand(m_sensors.limelight::ledOn),
+  //   new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+  //   new SequentialCommandGroup(
+  //     new ParallelCommandGroup(
+  //       new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+  //       new SequentialCommandGroup(
+  //         new WaitUntilCommand(() -> m_oneBallTimer.hasElapsed(p_oneBallDelay.getValue())),
+  //         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("OneBall.wpilib.json"), true),
+  //         new WaitCommand(0.5),
+  //         new ShootAll(m_shooter).withTimeout(3.0)
+  //       )
+  //     ),
+  //     new ParallelCommandGroup(
+  //       new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //       new SequentialCommandGroup(
+  //         new InstantCommand(() -> m_targeting.enableDefault(80, -135)),
+  //         new WaitCommand(1),
+  //         new ShootAll(m_shooter).withTimeout(3.0),
+  //         new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+  //       )
+  //     )
+  //   )
+  // );
 
-  private CommandBase m_autoTwoBall = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
-    new HoodTrackCombo(m_hood, m_targeting),
-    new SequentialCommandGroup(
-      // new DriveDistanceMeters(m_drive, 1.5, 5.0),
-      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
-      new WaitCommand(0.5),
-      new ShootAll(m_shooter),
-      new DriveDegrees(m_drive, 150.0, 180.0),
-      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
-    )
-  );
+  // private CommandBase m_autoTwoBall = 
+  // new ParallelCommandGroup(
+  //   new TiltCameraDown(m_sensors),
+  //   new InstantCommand(m_turret::startTracking),
+  //   new InstantCommand(m_sensors.limelight::ledOn),
+  //   new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+  //   new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //   // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2"),
+  //   new HoodTrackCombo(m_hood, m_targeting),
+  //   new SequentialCommandGroup(
+  //     // new DriveDistanceMeters(m_drive, 1.5, 5.0),
+  //     new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+  //     new WaitCommand(0.5),
+  //     new ShootAll(m_shooter),
+  //     new DriveDegrees(m_drive, 150.0, 180.0),
+  //     new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+  //   )
+  // );
 
-  private CommandBase m_autoPursuitOnly = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
-  );
+  // private CommandBase m_autoPursuitOnly = 
+  // new ParallelCommandGroup(
+  //   new TiltCameraDown(m_sensors),
+  //   new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //   new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+  // );
 
-  private CommandBase m_autoTwoBallSpicy = 
-  new ParallelCommandGroup(
-    new TiltCameraDown(m_sensors),
-    new InstantCommand(m_turret::startTracking),
-    new InstantCommand(m_sensors.limelight::ledOn),
-    new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-    new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new SequentialCommandGroup(
-      new ParallelDeadlineGroup(
-        new SequentialCommandGroup(
-          new InstantCommand(() -> m_targeting.setModeToLimelight()),
-          new WaitCommand(0.5),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
-          new WaitCommand(0.5),
-          new ShootAll(m_shooter).withTimeout(4.0),
-          new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
-          new InstantCommand(m_turret::stopTracking),
-          new InstantCommand(m_sensors.limelight::ledOff),
-          new ShootAll(m_shooter).withTimeout(2.0),
-          new InstantCommand(m_turret::startTracking),
-          new InstantCommand(m_sensors.limelight::ledOn),
-          new DriveDegrees(m_drive, -120.0, -120.0),
-          new InstantCommand(() -> m_targeting.setModeToDefault())
-        ),
-        new RunCommand(m_hood::raiseHood, m_hood)
-      ),
-      new ParallelCommandGroup(
-        new HoodTrackCombo(m_hood, m_targeting),
-        new SequentialCommandGroup(
-          new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
-          new InstantCommand(m_shooter::activatePermissive)
-        )
-      )
-    )
-  );
+  // private CommandBase m_autoTwoBallSpicy = 
+  // new ParallelCommandGroup(
+  //   new TiltCameraDown(m_sensors),
+  //   new InstantCommand(m_turret::startTracking),
+  //   new InstantCommand(m_sensors.limelight::ledOn),
+  //   new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+  //   new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //   new SequentialCommandGroup(
+  //     new ParallelDeadlineGroup(
+  //       new SequentialCommandGroup(
+  //         new InstantCommand(() -> m_targeting.setModeToLimelight()),
+  //         new WaitCommand(0.5),
+  //         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
+  //         new WaitCommand(0.5),
+  //         new ShootAll(m_shooter).withTimeout(4.0),
+  //         new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+  //         new InstantCommand(m_turret::stopTracking),
+  //         new InstantCommand(m_sensors.limelight::ledOff),
+  //         new ShootAll(m_shooter).withTimeout(2.0),
+  //         new InstantCommand(m_turret::startTracking),
+  //         new InstantCommand(m_sensors.limelight::ledOn),
+  //         new DriveDegrees(m_drive, -120.0, -120.0),
+  //         new InstantCommand(() -> m_targeting.setModeToDefault())
+  //       ),
+  //       new RunCommand(m_hood::raiseHood, m_hood)
+  //     ),
+  //     new ParallelCommandGroup(
+  //       new HoodTrackCombo(m_hood, m_targeting),
+  //       new SequentialCommandGroup(
+  //         new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
+  //         new InstantCommand(m_shooter::activatePermissive)
+  //       )
+  //     )
+  //   )
+  // );
 
-  private CommandBase m_autoFiveBall = 
-    new ParallelCommandGroup(
-      new TiltCameraDown(m_sensors),
-      new InstantCommand(m_turret::startTracking),
-      new InstantCommand(m_sensors.limelight::ledOn),
-      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
-      new InstantCommand(() -> m_targeting.setModeToLimelight()),
-      new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-      new SequentialCommandGroup(
-        // new InstantCommand(() -> m_targeting.disableDefault()),
-        new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
-        new WaitCommand(0.5),
-        new ShootAll(m_shooter).withTimeout(3.0),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
-        // new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
-        new InstantCommand(m_targeting::disableDefault),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
-        new ShootAll(m_shooter).withTimeout(3.0),
-        new InstantCommand(m_targeting::disableDefault),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour.wpilib.json"), false),
-        new WaitCommand(0.3),
-        // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
-        new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
-          DriverStation.getAlliance() == Alliance.Red ? "legsix.wpilib.json" : "legsix.wpilib.json"), true),
-        new InstantCommand(m_shooter::activatePermissive)
-      )
-    );
+  // private CommandBase m_autoFiveBall = 
+  //   new ParallelCommandGroup(
+  //     new TiltCameraDown(m_sensors),
+  //     new InstantCommand(m_turret::startTracking),
+  //     new InstantCommand(m_sensors.limelight::ledOn),
+  //     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+  //     new InstantCommand(() -> m_targeting.setModeToLimelight()),
+  //     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+  //     new SequentialCommandGroup(
+  //       // new InstantCommand(() -> m_targeting.disableDefault()),
+  //       new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
+  //       new WaitCommand(0.5),
+  //       new ShootAll(m_shooter).withTimeout(3.0),
+  //       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legone.wpilib.json"), true),
+  //       // new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
+  //       new InstantCommand(m_targeting::disableDefault),
+  //       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legtwo.wpilib.json"), false),
+  //       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("legthree.wpilib.json"), false),
+  //       new ShootAll(m_shooter).withTimeout(3.0),
+  //       new InstantCommand(m_targeting::disableDefault),
+  //       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+  //         DriverStation.getAlliance() == Alliance.Red ? "legfour.wpilib.json" : "legfour.wpilib.json"), false),
+  //       new WaitCommand(0.3),
+  //       // new InstantCommand(() -> m_targeting.enableDefault(226, 25)),
+  //       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory(
+  //         DriverStation.getAlliance() == Alliance.Red ? "legsix.wpilib.json" : "legsix.wpilib.json"), true),
+  //       new InstantCommand(m_shooter::activatePermissive)
+  //     )
+  //   );
 
   public static  String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
@@ -413,47 +410,47 @@ public class RobotContainer {
   }
   
   public void disabledPeriodic() {
-    if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
-      m_autoCommand = m_autoFiveBall;
-      m_autoCommandName = "5 Cargo";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
+    // if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("5 Cargo")) {
+    //   m_autoCommand = m_autoFiveBall;
+    //   m_autoCommandName = "5 Cargo";
+    //   new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
 
-    }
+    // }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
-      m_autoCommand = m_autoTwoBallSpicy;
-      m_autoCommandName = "2 Cargo Spicy";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
-    }
+    // if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
+    //   m_autoCommand = m_autoTwoBallSpicy;
+    //   m_autoCommandName = "2 Cargo Spicy";
+    //   new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+    // }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = m_autoTwoBall;
-      m_autoCommandName = "2 Cargo";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
-    }
+    // if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+    //   m_autoCommand = m_autoTwoBall;
+    //   m_autoCommandName = "2 Cargo";
+    //   new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+    // }
 
-    if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
-      m_autoCommand = new WaitCommand(1.0);
-      m_autoCommandName = "Wait 1";
-      new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
-    }
+    // if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
+    //   m_autoCommand = new WaitCommand(1.0);
+    //   m_autoCommandName = "Wait 1";
+    //   new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
+    // }
 
-    if (m_buttonBox.isDefaultTurretButtonPressed() && !m_autoCommandName.equals("1 Ball Left")) {
-      m_autoCommand = m_autoOneBallLeft;
-      m_autoCommandName = "1 Ball Left";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1L").schedule();
-    }
+    // if (m_buttonBox.isDefaultTurretButtonPressed() && !m_autoCommandName.equals("1 Ball Left")) {
+    //   m_autoCommand = m_autoOneBallLeft;
+    //   m_autoCommandName = "1 Ball Left";
+    //   new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1L").schedule();
+    // }
 
-    if (m_buttonBox.isCancelClimbPressed() && !m_autoCommandName.equals("1 Ball Left")) {
-      m_autoCommand = m_autoOneBallRight;
-      m_autoCommandName = "1 Ball Right";
-      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1R").schedule();
-    }
+    // if (m_buttonBox.isCancelClimbPressed() && !m_autoCommandName.equals("1 Ball Left")) {
+    //   m_autoCommand = m_autoOneBallRight;
+    //   m_autoCommandName = "1 Ball Right";
+    //   new SetGlobalPoseToWaypoint(m_nav, "<team>_start_1R").schedule();
+    // }
 
-    if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {
-      m_autoCommand = m_autoPursuitOnly;
-      m_autoCommandName = "Pursuit Only";
-    }
+    // if (m_buttonBox.isOutgestButtonPressed() && !m_autoCommandName.equals("Pursuit Only")) {
+    //   m_autoCommand = m_autoPursuitOnly;
+    //   m_autoCommandName = "Pursuit Only";
+    // }
 
     if (m_buttonBox.isCentralizerDownButtonPressed()) {
       m_sensors.limelight.ledOn();
@@ -648,8 +645,8 @@ public class RobotContainer {
 
   private void configureDashboardCommands() {
     // Autonomous testing
-    SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
-    SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
+    // SmartDashboard.putData("Auto Two Ball", m_autoTwoBall);
+    // SmartDashboard.putData("Auto Five Ball", m_autoFiveBall);
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
@@ -743,7 +740,7 @@ public class RobotContainer {
   }
 
   private void configureDefaultCommands() {
-    m_drive.setDefaultCommand(m_arcadeDrive);
+    m_drive.setDefaultCommand(m_swerveDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     m_centralizer.setDefaultCommand(m_centralizerCargolizer);
     m_chamber.setDefaultCommand(m_chamberCargolizer);

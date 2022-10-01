@@ -8,6 +8,8 @@ import com.kauailabs.navx.frc.AHRS;
 import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
 import com.swervedrivespecialties.swervelib.SwerveModule;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -18,6 +20,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.coprocessortable.ChassisInterface;
+import frc.robot.util.coprocessortable.VelocityCommand;
 
 import static frc.robot.Constants.*;
 
@@ -171,12 +174,40 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
 
         // TODO
-        // public void drive(VelocityCommand command);
-        // public void drive(double vx, double vy, double angularVelocity);
-        // public void stop();
-        // public void resetPosition(Pose2d pose);
-        // public Pose2d getOdometryPose();
-        // public ChassisSpeeds getChassisVelocity();
+        public void drive(VelocityCommand command) {
+                // TODO? ?
+        }
+
+        public void drive(double vx, double vy, double angularVelocity) {
+                // TODO? ?
+        }
+
+        public void stop() {
+                // TODO? ?
+        }
+
+        public void resetPosition(Pose2d pose) {
+                // TODO? ?
+        }
+
+        public Pose2d getOdometryPose() {
+                // TODO? ?
+                return null;
+        }
+
+        public ChassisSpeeds getChassisVelocity() {
+                // TODO? ?
+                return null;
+        }
+
+
+        public void enableMolassesMode() {
+                // TODO? ?
+        }
+
+        public void disableMolassesMode() {
+                // TODO? ?
+        }
 
         public void drive(ChassisSpeeds chassisSpeeds) {
                 m_chassisSpeeds = chassisSpeeds;
