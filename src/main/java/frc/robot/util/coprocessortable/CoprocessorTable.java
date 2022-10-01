@@ -209,7 +209,7 @@ public class CoprocessorTable {
 
         waypointsTable = rootTable.getSubTable("waypoints");
 
-        sendOdometry();
+        // sendOdometry();
         sendImu(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
 
