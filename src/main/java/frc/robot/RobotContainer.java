@@ -44,7 +44,7 @@ import frc.robot.subsystems.Targeting;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
 import frc.robot.util.NumberCache;
-import frc.robot.util.RapidReactTrajectories;
+// import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
@@ -55,7 +55,7 @@ import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
-import frc.robot.commands.autos.AutoFollowTrajectory;
+// import frc.robot.commands.autos.AutoFollowTrajectory;
 // import frc.robot.commands.autos.DriveToCargo;
 // import frc.robot.commands.autos.DriveToWaypoint;
 // import frc.robot.commands.autos.DriveToWaypointWithHeading;
@@ -650,8 +650,8 @@ public class RobotContainer {
     SmartDashboard.putData("Tilt Camera Down", new TiltCameraDown(m_sensors));
 
     // Trajectory testing
-    SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
-    SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
+    // SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
+    // SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
