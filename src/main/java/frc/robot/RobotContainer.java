@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
-import frc.robot.commands.drive.TankDrive;
 import frc.robot.commands.feeder.FeederAcceptCargo;
 import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.test.CollectLimelightRectification;
@@ -136,7 +135,27 @@ public class RobotContainer {
         )
       );
     
-
+      private static double deadband(double value, double deadband) {
+        if (Math.abs(value) > deadband) {
+          if (value > 0.0) {
+            return (value - deadband) / (1.0 - deadband);
+          } else {
+            return (value + deadband) / (1.0 - deadband);
+          }
+        } else {
+          return 0.0;
+        }
+      }
+    
+      private static double modifyAxis(double value) {
+        // Deadband
+        value = deadband(value, 0.05);
+    
+        // Square the axis
+        value = Math.copySign(value * value, value);
+    
+        return value;
+      }
 
 
 

@@ -12,10 +12,10 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SwerveDrive;
 
 public class AutoFollowTrajectory extends CommandBase {
-  private Drive m_drive;
+  private SwerveDrive m_drive;
   private Trajectory m_trajectory;
   private boolean m_resetOdometry;
   private RamseteController m_controller = new RamseteController();
@@ -23,7 +23,7 @@ public class AutoFollowTrajectory extends CommandBase {
   private double m_duration;
   private int m_state;
 
-  public AutoFollowTrajectory(final Drive drive, Trajectory trajectory, boolean resetOdometry) {
+  public AutoFollowTrajectory(final SwerveDrive drive, Trajectory trajectory, boolean resetOdometry) {
     m_drive = drive;
     m_resetOdometry = resetOdometry;
     m_trajectory = trajectory;
@@ -53,7 +53,6 @@ public class AutoFollowTrajectory extends CommandBase {
           m_drive.resetTrajectoryPose(m_trajectory.getInitialPose());
         }
         m_drive.setBrakeMode();
-        m_drive.shiftToHigh();
         m_state++;
         break;
       case 1: // reset the timer and go!

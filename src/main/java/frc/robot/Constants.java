@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import frc.robot.util.drive.Shifter;
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean constants. This class should not be used for any other
@@ -58,6 +55,17 @@ public final class Constants {
 	public static final double MAX_TRAJ_ACCELERATION = 4.0;
 	public static final double MAX_TRAJ_CENTRIP_ACC = 1.5;
 
+	public static final int DRIVE_SPEED_EXP_XBOX = 2;
+	public static final int DRIVE_TURN_EXP_XBOX = 2;
+	public static final int DRIVE_SPEED_EXP_FRSKY = 2;
+	public static final int DRIVE_TURN_EXP_FRSKY = 2;
+	public static final double XBOX_DEADBAND = 0.12;
+	public static final double FRSKY_DEADBAND = 0.07;
+	public static final double CHEESY_DRIVE_MIN_TURN = 0.4;
+	public static final double CHEESY_DRIVE_MAX_TURN = 0.9;
+	public static final double CHEESY_DRIVE_FORCE_LOW_MIN_TURN = 0.6;
+	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
+	
 	// Shooter & Hood
 	public static final int SHOOTER_FLYWHEEL_ID = 8;
     public static final int HOOD_ID = 9;
