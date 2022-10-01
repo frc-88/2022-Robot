@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
@@ -32,6 +33,7 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
+  private TalonFX m_flywheelFollower = new TalonFX(Constants.SHOOTER_FLYWHEEL_FOLLOWER_ID, "1");
   private CargoSource[] m_sources;
   private Sensors m_sensors;
   private Hood m_hood;
@@ -133,32 +135,37 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.nominalOutputForward = 0.02;
     config.nominalOutputReverse = -0.02;
     m_flywheel.configAllSettings(config);
+
+    //Configures Follower
+    m_flywheelFollower.configFactoryDefault();
+    m_flywheelFollower.follow(m_flywheel);
+    m_flywheelFollower.setInverted(TalonFXInvertType.OpposeMaster);
   }
 
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
+    // m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
   }
 
   public void setFlywheelRaw(double percentOutput) {
-    m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
+    // m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
   public void setFlywheelSpeedAuto(double target_dist) {
-    if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
-    } else if (!m_turret.isTracking()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
-    } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
-    }
+    // if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
+    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    // } else if (!m_turret.isTracking()) {
+    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    // } else {
+    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
+    // }
   }
 
   public void setFlywheelFenderShot() {
-    if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
-    } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
-    }
+    // if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
+    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    // } else {
+    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    // }
   }
 
   private double calcSpeedFromDistance(double target_dist) {

@@ -236,12 +236,12 @@ public class Hood extends SubsystemBase {
   }
 
   public void setHoodPercentOut(int direction) {
-    m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue() * direction);
+    // m_hood.set(TalonFXControlMode.PercentOutput, p_hoodSpeed.getValue() * direction);
   }
 
   private void setHoodMotionMagic(double setpoint) {
-    m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint), DemandType.ArbitraryFeedForward,
-        p_hoodArbitraryF.getValue());
+    // m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint), DemandType.ArbitraryFeedForward,
+        // p_hoodArbitraryF.getValue());
   }
 
   public double getHoodPosition() {

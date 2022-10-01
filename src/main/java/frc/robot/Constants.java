@@ -67,12 +67,13 @@ public final class Constants {
 	public static final double CHEESY_DRIVE_FORCE_LOW_MAX_TURN = 1.5;
 	
 	// Shooter & Hood
-	public static final int SHOOTER_FLYWHEEL_ID = 8;
-    public static final int HOOD_ID = 9;
+	public static final int SHOOTER_FLYWHEEL_ID = 15;
+	public static final int SHOOTER_FLYWHEEL_FOLLOWER_ID = 14;
+    public static final int HOOD_ID = 13;
 
 	// Turret
-	public static final int TURRET_MOTOR_ID = 13;
-	public static final int TURRET_CANCODER_ID = 13;
+	public static final int TURRET_MOTOR_ID = 5;
+	public static final int TURRET_CANCODER_ID = 5;
 	public static final double TURRET_GEAR_RATIO = 7.0 * 144.0 / 18;  // 56.0
 	public static final double TURRET_CANCODER_GEAR_RATIO = 124;
 	// public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 54.0 / 8.0;  // 94.5
@@ -91,10 +92,10 @@ public final class Constants {
 	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
-	public static final int OUTER_CLIMBER_PIVOT_ID = 3;
-	public static final int OUTER_CLIMBER_TELESCOPE_ID = 17;
-	public static final int INNER_CLIMBER_PIVOT_ID = 16;
-	public static final int INNER_CLIMBER_TELESCOPE_ID = 2;
+	public static final int OUTER_CLIMBER_PIVOT_ID = 17;
+	public static final int OUTER_CLIMBER_TELESCOPE_ID = 4;
+	public static final int INNER_CLIMBER_PIVOT_ID = 3;
+	public static final int INNER_CLIMBER_TELESCOPE_ID = 16;
 
 	// Sensors
 	public static final int SENSORS_COAST_BUTTON_ID = 0;
