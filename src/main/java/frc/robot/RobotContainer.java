@@ -259,9 +259,12 @@ public class RobotContainer {
       // new DriveDistanceMeters(m_drive, 1.5, 5.0),
       new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Boring.wpilib.json"), true),
       new WaitCommand(0.5),
-      new ShootAll(m_shooter),
+      new ShootAll(m_shooter).withTimeout(4.0),
+      new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("Spicy.wpilib.json"), false),
+      new ShootAll(m_shooter).withTimeout(3.0),
       new DriveDegrees(m_drive, 150.0, 180.0),
-      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5)
+      new DriveToCargo(m_nav, m_ros_interface, m_drive, m_shooter, m_sensors, 5).withInterrupt(m_chamber::hasCargo),
+      new InstantCommand(m_shooter::activatePermissive)
     )
   );
 
@@ -338,6 +341,68 @@ public class RobotContainer {
       )
     );
 
+    private CommandBase m_autoTwoBallMysterySpice = 
+    new ParallelCommandGroup(
+      new TiltCameraDown(m_sensors),
+      new InstantCommand(m_turret::startTracking),
+      new InstantCommand(m_sensors.limelight::ledOn),
+      new InstantCommand(() -> m_turret.setDefaultFacing(0)),
+      new InstantCommand(() -> m_targeting.setModeToLimelight()),
+      new SequentialCommandGroup(
+        new WaitCommand(0.5),
+        new ParallelDeadlineGroup(
+          new SequentialCommandGroup(
+            new ShootAll(m_shooter).withTimeout(4.0),
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("mysteryspice.wpilib.json"), true)
+          ),
+          new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+          new FeederCargolizer(m_chamber, m_centralizer, m_shooter),
+          new FeederCargolizer(m_centralizer, m_intake, m_chamber)
+        ),
+        new WaitCommand(0.5),
+        new ParallelDeadlineGroup(
+          new WaitCommand(4.0),
+          new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+          new FeederCargolizer(m_chamber, m_centralizer, m_shooter),
+          new SequentialCommandGroup(
+            new ParallelDeadlineGroup(
+              new WaitCommand(0.5),
+              new RunCommand(m_centralizer::stop, m_centralizer)
+            ),
+            new RunCommand(m_centralizer::forceReverse, m_centralizer)
+          ),
+          new SequentialCommandGroup(
+            new WaitCommand(0.75),
+            new RunCommand(m_shooter::activatePermissive)
+          )
+        ),
+        new InstantCommand(m_shooter::deactivate),
+        new WaitCommand(0.5),
+        new ParallelDeadlineGroup(
+            new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("extraspicy.wpilib.json"), true),
+            new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
+            new FeederCargolizer(m_chamber, m_centralizer, m_shooter),
+            new FeederCargolizer(m_centralizer, m_intake, m_chamber)
+          ),
+        new ParallelDeadlineGroup(
+          new WaitCommand(4.0),
+          new RunCommand(() -> {m_intake.stow(); m_intake.rollerStop();}, m_intake),
+          new SequentialCommandGroup(
+            new ParallelDeadlineGroup(
+              new WaitCommand(0.5),
+              new RunCommand(m_chamber::stop, m_chamber),
+              new RunCommand(m_centralizer::stop, m_centralizer)
+            ),
+            new ParallelCommandGroup(
+              new RunCommand(m_chamber::forceReverse, m_chamber),
+              new RunCommand(m_centralizer::forceReverse, m_centralizer)
+            )
+          )
+        )
+      )
+    );
+
+
   public static  String getTeamColorName() {
     if (DriverStation.getAlliance() == Alliance.Red) {
       return "red";
@@ -390,15 +455,15 @@ public class RobotContainer {
 
     }
 
-    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo Spicy")) {
-      m_autoCommand = m_autoTwoBallSpicy;
-      m_autoCommandName = "2 Cargo Spicy";
+    if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
+      m_autoCommand = m_autoTwoBall;
+      m_autoCommandName = "2 Cargo";
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
-    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
-      m_autoCommand = m_autoTwoBall;
-      m_autoCommandName = "2 Cargo";
+    if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("Mystery Spice")) {
+      m_autoCommand = m_autoTwoBallMysterySpice;
+      m_autoCommandName = "Mystery Spice";
       new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
@@ -435,7 +500,10 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    if (m_buttonBox.isAutoShootSwitchOn()) {
+    
+    if (m_driverController.getShooterMode()) {
+      m_shooter.activatePermissive();
+    } else if (m_buttonBox.isAutoShootSwitchOn()) {
       m_shooter.activateRestrictive();
     } else {
       m_shooter.deactivate();
@@ -450,12 +518,6 @@ public class RobotContainer {
       m_turret.stopTracking();
       m_flywheelFenderShot.schedule();
       m_hoodUp.schedule();
-    }
-
-    if (m_driverController.getMolassesMode()) {
-      m_drive.enableMolassesMode();
-    } else {
-      m_drive.disableMolassesMode();
     }
 
     m_turret.setDefaultFacing(0.);
@@ -476,9 +538,9 @@ public class RobotContainer {
   }
 
   private void configureButtonBox() {
-    Button molassesButton = new Button(m_driverController::getMolassesMode);
-    molassesButton.whenPressed(new InstantCommand(m_drive::enableMolassesMode));
-    molassesButton.whenReleased(new InstantCommand(m_drive::disableMolassesMode));
+    Button shooterButton = new Button(m_driverController::getShooterMode);
+    shooterButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    shooterButton.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activateRestrictive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isAutoShootSwitchOn));
 
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
