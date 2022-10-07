@@ -9,5 +9,5 @@ public interface ChassisInterface {
     public void stop();
     public void resetPosition(Pose2d pose);
     public Pose2d getOdometryPose();
-    public ChassisSpeeds getChassisVelocity();
+    public ChassisSpeeds getChassisSpeeds();
 }

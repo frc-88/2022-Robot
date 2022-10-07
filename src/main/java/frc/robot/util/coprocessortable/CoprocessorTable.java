@@ -278,7 +278,7 @@ public class CoprocessorTable {
     public void sendOdometry()
     {
         Pose2d pose = this.chassis.getOdometryPose();
-        ChassisSpeeds velocity = this.chassis.getChassisVelocity();
+        ChassisSpeeds velocity = this.chassis.getChassisSpeeds();
         odomEntryX.setDouble(pose.getX());
         odomEntryY.setDouble(pose.getY());
         odomEntryT.setDouble(pose.getRotation().getRadians());

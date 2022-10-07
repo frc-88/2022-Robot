@@ -144,14 +144,14 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public void updateOdometry() {
                 m_pose = m_odometry.update(getGyroscopeRotation(),
-                                m_kinematics.toSwerveModuleStates(getChassisVelocity()));
+                                m_kinematics.toSwerveModuleStates(getChassisSpeeds()));
         }
 
         public Pose2d getOdometryPose() {
                 return m_pose;
         }
 
-        public ChassisSpeeds getChassisVelocity() {
+        public ChassisSpeeds getChassisSpeeds() {
                 var frontLeftState = new SwerveModuleState(m_frontLeftModule.getDriveVelocity(),
                                 Rotation2d.fromDegrees(m_frontLeftModule.getSteerAngle()));
                 var frontRightState = new SwerveModuleState(m_frontRightModule.getDriveVelocity(),
@@ -170,24 +170,23 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
 
         public double getStraightSpeed() {
-                // TODO
-                return 0.0;
-        }
-
-        public void stop() {
-                // TODO? ?
+                return Math.sqrt(Math.pow(m_chassisSpeeds.vxMetersPerSecond, 2) + Math.pow(m_chassisSpeeds.vyMetersPerSecond, 2));
         }
 
         public void resetPosition(Pose2d pose) {
                 // TODO? ?
         }
 
+        public void stop() {
+                drive(new ChassisSpeeds(0.0, 0.0, 0.0));
+        }
+
         public void drive(VelocityCommand command) {
-                m_chassisSpeeds = new ChassisSpeeds(command.vx, command.vy, command.vt);
+                drive(new ChassisSpeeds(command.vx, command.vy, command.vt));
         }
 
         public void drive(double vx, double vy, double angularVelocity) {
-                m_chassisSpeeds = new ChassisSpeeds(vx, vy, angularVelocity);
+                drive(new ChassisSpeeds(vx, vy, angularVelocity));
         }
 
         public void drive(ChassisSpeeds chassisSpeeds) {
