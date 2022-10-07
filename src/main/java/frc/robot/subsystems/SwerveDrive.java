@@ -182,14 +182,6 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 // TODO? ?
         }
 
-        public void enableMolassesMode() {
-                // TODO? ?
-        }
-
-        public void disableMolassesMode() {
-                // TODO? ?
-        }
-
         public void drive(VelocityCommand command) {
                 m_chassisSpeeds = new ChassisSpeeds(command.vx, command.vy, command.vt);
         }
