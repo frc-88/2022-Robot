@@ -43,9 +43,9 @@ public class Limelight {
 
     private double m_motionOffset;
 
-    private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
+    private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 33.339); // from CAD
     private final DoublePreferenceConstant p_angle = new DoublePreferenceConstant("Limelight Angle", 0);
-    private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
+    private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 8.399); // from CAD
     private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
