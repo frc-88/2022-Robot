@@ -174,7 +174,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
 
         public void resetPosition(Pose2d pose) {
-                // TODO? ?
+                resetOdometry(pose, getGyroscopeRotation());
         }
 
         public void stop() {
