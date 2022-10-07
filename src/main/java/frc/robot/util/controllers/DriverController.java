@@ -2,12 +2,12 @@ package frc.robot.util.controllers;
 
 public interface DriverController {
     
-    public double getThrottle();
+    public double getTranslationX();
 
-    public double getTurn();
+    public double getTranslationY();
 
-    public boolean getForceLowGear();
+    public double getRotation();
 
-    public boolean getMolassesMode();
+    public boolean getGyroReset();
 
 }

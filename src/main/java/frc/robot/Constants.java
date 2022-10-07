@@ -34,22 +34,22 @@ public final class Constants {
     public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1; 
     public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 0; 
     public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 0; 
-    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(199.1);
+    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(198.6);
 
     public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 18; 
     public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 19; 
     public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 18; 
-    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(172.6);
+    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(142.1);
 
     public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 8; 
     public static final int BACK_LEFT_MODULE_STEER_MOTOR = 9; 
     public static final int BACK_LEFT_MODULE_STEER_ENCODER = 8; 
-    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(52.4);
+    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(56.6);
 
     public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10; 
     public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 11; 
     public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 10;
-    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(242.7);
+    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(77.0);
 	
 	public static final double MAX_TRAJ_VELOCITY = 6.0;
 	public static final double MAX_TRAJ_ACCELERATION = 4.0;
@@ -81,15 +81,12 @@ public final class Constants {
 	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
 
 	// Feeders
-	public static final int FEEDER_CENTRALIZER_MOTOR_ID = 7;
-	public static final int FEEDER_CENTRALIZER_BLOCKER_ID = 0;
-
-	public static final int FEEDER_CHAMBER_MOTOR_ID = 6;
+	public static final int CENTRALIZER_ID = 7;
+	public static final int CHAMBER_ID = 6;
 
 	// Intake
-	public static final int INTAKE_ROLLER_ID = 1;
+	public static final int INTAKE_ROLLER_ID = 0;
 	public static final int INTAKE_ARM_ID = 12;
-	public static final int INTAKE_IR_ID = 3;
 
 	// Climber
 	public static final int OUTER_CLIMBER_PIVOT_ID = 17;
