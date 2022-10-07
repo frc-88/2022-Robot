@@ -160,10 +160,6 @@ public class Limelight {
         return m_motionOffset;
     }
 
-    private double rectifyDistance(double x) {
-        return 2.69840693e-01 * -x * Math.log(1.25456722e-04 * x) + -1.63681970e+01;
-    }
-
     /**
      * Calculate the distance to the target.
      * 
@@ -181,7 +177,6 @@ public class Limelight {
                     (Math.tan(Math.toRadians(p_angle.getValue() + m_targetVerticalOffsetAngle))
                             * Math.cos(Math.toRadians(m_targetHorizontalOffsetAngle)));
             distance += Constants.FIELD_UPPER_HUB_RADIUS;
-            distance = rectifyDistance(distance);
         }
 
         return distance;
