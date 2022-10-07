@@ -19,8 +19,6 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
-import frc.robot.commands.feeder.FeederAcceptCargo;
-import frc.robot.commands.feeder.FeederCargolizer;
 import frc.robot.commands.test.CollectLimelightRectification;
 import frc.robot.commands.turret.HoodTrackCombo;
 import frc.robot.commands.turret.ShooterTrackCombo;
@@ -83,8 +81,7 @@ public class RobotContainer {
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret(m_sensors);
   private final Hood m_hood = new Hood(m_sensors);
-  private final Feeder m_centralizer = new Feeder("Centralizer", Constants.FEEDER_CENTRALIZER_MOTOR_ID, true, Constants.FEEDER_CENTRALIZER_BLOCKER_ID);
-  private final Feeder m_chamber = new Feeder("Chamber", Constants.FEEDER_CHAMBER_MOTOR_ID, false);
+  private final Feeder m_feeder = new Feeder();
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(
     m_drive,
     Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
@@ -92,7 +89,7 @@ public class RobotContainer {
     Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
   );
-  private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, new CargoSource[]{m_chamber, m_centralizer}, m_ros_interface);
+  private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, m_feeder, m_ros_interface);
 
   private final Navigation m_nav = new Navigation(m_ros_interface);
   private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive, m_shooter);
@@ -127,9 +124,9 @@ public class RobotContainer {
   private CommandBase m_swerveDrive =    
     new SwerveDriveCommand(
       m_drive,
-      () -> -modifyAxis(filterY.calculate(((FrskyDriverController)m_driverController).getLeftStickY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
-      () -> -modifyAxis(filterX.calculate(((FrskyDriverController)m_driverController).getLeftStickX())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
-      () -> -modifyAxis(((FrskyDriverController)m_driverController).getRightStickX()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+      () -> modifyAxis(filterY.calculate(m_driverController.getTranslationY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> modifyAxis(filterX.calculate(m_driverController.getTranslationX())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> modifyAxis(m_driverController.getRotation()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
     );
     
       private static double deadband(double value, double deadband) {
@@ -160,25 +157,23 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new RunCommand(() -> {
+  private CommandBase m_ingestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
-      }, m_intake);
+      }, m_intake),
+      new RunCommand(m_feeder::intake, m_feeder));
 
   private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerOutgest();
       }, m_intake),
-      new RunCommand(m_chamber::forceReverse, m_chamber),
-      new RunCommand(m_centralizer::forceReverse, m_centralizer));
+      new RunCommand(m_feeder::outgest, m_feeder));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
         m_intake.rollerStop();
       }, m_intake);
 
-  private CommandBase m_centralizerCargolizer = new FeederCargolizer(m_centralizer, m_intake, m_chamber);
-  private CommandBase m_chamberCargolizer = new FeederCargolizer(m_chamber, m_centralizer, m_shooter);
 
   /////////////////////////////////////
   //            SHOOTING             //
@@ -479,12 +474,6 @@ public class RobotContainer {
       m_hoodUp.schedule();
     }
 
-    if (m_driverController.getMolassesMode()) {
-      m_drive.enableMolassesMode();
-    } else {
-      m_drive.disableMolassesMode();
-    }
-
     m_turret.setDefaultFacing(0.);
     m_targeting.disableDefault();
     m_ros_interface.enableCargoMarauding();
@@ -503,17 +492,10 @@ public class RobotContainer {
   }
 
   private void configureButtonBox() {
-    Button molassesButton = new Button(m_driverController::getMolassesMode);
-    molassesButton.whenPressed(new InstantCommand(m_drive::enableMolassesMode));
-    molassesButton.whenReleased(new InstantCommand(m_drive::disableMolassesMode));
+    new Button(m_driverController::getGyroReset).whenPressed(new InstantCommand(m_drive::zeroGyroscope));
 
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
-
-    m_buttonBox.centralizerUp.whileHeld(new RunCommand(m_centralizer::forceForwards, m_centralizer));
-    m_buttonBox.centralizerDown.whileHeld(new RunCommand(m_centralizer::forceReverse, m_centralizer));
-    m_buttonBox.chamberUp.whileHeld(new RunCommand(m_chamber::forceForwards, m_chamber));
-    m_buttonBox.chamberDown.whileHeld(new RunCommand(m_chamber::forceReverse, m_chamber));
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
     m_buttonBox.shootButton.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activateRestrictive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isAutoShootSwitchOn));
@@ -586,7 +568,7 @@ public class RobotContainer {
       new RunCommand(m_hood::lowerHood, m_hood),
       new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
       new SequentialCommandGroup(
-        new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID), 
           new ConditionalCommand(
@@ -604,7 +586,7 @@ public class RobotContainer {
       new RunCommand(m_hood::lowerHood, m_hood),
       new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
       new SequentialCommandGroup(
-        new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW), 
           new ConditionalCommand(
@@ -625,7 +607,7 @@ public class RobotContainer {
       new RunCommand(m_hood::lowerHood, m_hood),
       new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
       new SequentialCommandGroup(
-        new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW), 
           new ConditionalCommand(
@@ -657,19 +639,6 @@ public class RobotContainer {
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
     SmartDashboard.putData("Intake:Outgest", m_outgestCargo);
     SmartDashboard.putData("Intake:Stow", m_stowIntake);
-
-    // Centralizer and Chamber commmands
-    SmartDashboard.putData("Centralizer:AcceptCargo", new FeederAcceptCargo(m_centralizer));
-    SmartDashboard.putData("Centralizer:Run", new RunCommand(m_centralizer::forceForwards, m_centralizer));
-    SmartDashboard.putData("Centralizer:Reverse", new RunCommand(m_centralizer::forceReverse, m_centralizer));
-    SmartDashboard.putData("Centralizer:Stop", new RunCommand(m_centralizer::stop, m_centralizer));
-    SmartDashboard.putData("Centralizer:Cargolizer", m_centralizerCargolizer);
-    
-    SmartDashboard.putData("Chamber:AcceptCargo", new FeederAcceptCargo(m_chamber));
-    SmartDashboard.putData("Chamber:Run", new RunCommand(m_chamber::forceForwards, m_chamber));
-    SmartDashboard.putData("Chamber:Reverse", new RunCommand(m_chamber::forceReverse, m_chamber));
-    SmartDashboard.putData("Chamber:Stop", new RunCommand(m_chamber::stop, m_chamber));
-    SmartDashboard.putData("Chamber:Cargolizer", m_chamberCargolizer);
 
     // Turret test commands
     SmartDashboard.putData("Turret Raw Control",new TurretRawJoystick(m_turret, m_testController2));
@@ -742,8 +711,13 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     m_drive.setDefaultCommand(m_swerveDrive);
     m_intake.setDefaultCommand(m_stowIntake);
-    m_centralizer.setDefaultCommand(m_centralizerCargolizer);
-    m_chamber.setDefaultCommand(m_chamberCargolizer);
+    m_feeder.setDefaultCommand(new RunCommand(() -> {
+      if (m_shooter.wantsCargo()) {
+        m_feeder.shoot();
+      } else {
+        m_feeder.hold();
+      }
+    }, m_feeder));
 
     // m_hood.setDefaultCommand(new RunCommand(m_hood::hoodAuto, m_hood));
     // m_hood.setDefaultCommand(new HoodTrackCombo(m_hood, m_targeting));

@@ -137,6 +137,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 BACK_RIGHT_MODULE_STEER_MOTOR,
                                 BACK_RIGHT_MODULE_STEER_ENCODER,
                                 BACK_RIGHT_MODULE_STEER_OFFSET);
+
+                zeroGyroscope();
         }
 
         /**

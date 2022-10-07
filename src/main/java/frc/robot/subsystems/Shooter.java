@@ -34,7 +34,7 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
   private TalonFX m_flywheelFollower = new TalonFX(Constants.SHOOTER_FLYWHEEL_FOLLOWER_ID, "1");
-  private CargoSource[] m_sources;
+  private Feeder m_feeder;
   private Sensors m_sensors;
   private Hood m_hood;
   private Turret m_turret;
@@ -59,7 +59,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private double m_rosDistance = 0;
   private double m_rosAngle = 0;
 
-  private static final double FLYWHEEL_RATIO = 1;
+  private static final double FLYWHEEL_RATIO = 40./24.;
 
   private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
       new ValueInterpolator.ValuePair(77, 2200),
@@ -103,12 +103,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, Hood hood, SwerveDrive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
+  public Shooter(Sensors sensors, Hood hood, SwerveDrive drive, Turret turret, Feeder feeder, ThisRobotTable ros_interface) {
     m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;
     m_turret = turret;
-    m_sources = sources;
+    m_feeder = feeder;
     m_ros_interface = ros_interface;
     m_shotProbabilitySupplier = () -> 1.;
 
@@ -129,11 +129,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.slot0.kF = p_flywheelPID.getKF().getValue();
     config.slot0.integralZone = p_flywheelPID.getIZone().getValue();
     config.slot0.maxIntegralAccumulator = p_flywheelPID.getIMax().getValue();
-    config.neutralDeadband = 0.001;
-    config.peakOutputForward = 1.0;
-    config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0.02;
-    config.nominalOutputReverse = -0.02;
     m_flywheel.configAllSettings(config);
 
     //Configures Follower
@@ -143,29 +138,29 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeed(double speed) {
-    // m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
+    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
   }
 
   public void setFlywheelRaw(double percentOutput) {
-    // m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
+    m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
   public void setFlywheelSpeedAuto(double target_dist) {
-    // if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
-    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
-    // } else if (!m_turret.isTracking()) {
-    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
-    // } else {
-    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
-    // }
+    if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    } else if (!m_turret.isTracking()) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
+    }
   }
 
   public void setFlywheelFenderShot() {
-    // if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
-    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
-    // } else {
-    //   m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
-    // }
+    if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    } else {
+      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+    }
   }
 
   private double calcSpeedFromDistance(double target_dist) {
@@ -211,21 +206,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public boolean sourcesHaveCargo() {
-    boolean hasCargo = false;
-
-    for (CargoSource source : m_sources) {
-      hasCargo = hasCargo || source.hasCargo();
-    }
-
-    return hasCargo;
+    return m_feeder.hasBallInChamber() || m_feeder.hasBallInCentralizer();
   }
 
   public boolean cargoChambered() {
-    return m_sources[0].hasCargo();
+    return m_feeder.hasBallInChamber();
   }
 
   public boolean cargoCentralized() {
-    return m_sources[1].hasCargo();
+    return m_feeder.hasBallInCentralizer();
   }
 
   @Override
@@ -244,11 +233,19 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
     boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && hoodNotMoving && highShotProbability;
     boolean restrictiveChecks = false;
-    if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+    if (m_wantedCargo && m_feeder.hasBallInChamber()) {
       restrictiveChecks = true;
-    } else if (!untimedChecks) {
-      m_restrictiveCheckTimer.reset();
+    } else {
+      if (m_wantedCargo) {
+        m_restrictiveCheckTimer.reset();
+      }
+      if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+        restrictiveChecks = true;
+      } else if (!untimedChecks) {
+        m_restrictiveCheckTimer.reset();
+      }
     }
+    restrictiveChecks = true;
     
 
     boolean wantsCargo = (m_active == ActiveMode.ACTIVE_PERMISSIVE && permissiveChecks) || (m_active == ActiveMode.ACTIVE_RESTRICTIVE && restrictiveChecks);

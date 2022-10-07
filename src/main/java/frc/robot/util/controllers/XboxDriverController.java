@@ -10,28 +10,23 @@ public class XboxDriverController extends XboxController implements DriverContro
     }
 
     @Override
-    public double getThrottle() {
-        return DriveUtils.deadbandExponential(getLeftStickY(), Constants.DRIVE_SPEED_EXP_XBOX, Constants.XBOX_DEADBAND);
+    public double getTranslationX() {
+        return getLeftStickX();
     }
 
     @Override
-    public double getTurn() {
-        double cheesyDriveMinTurn = getForceLowGear() ? Constants.CHEESY_DRIVE_FORCE_LOW_MIN_TURN : Constants.CHEESY_DRIVE_MIN_TURN;
-        double cheesyDriveMaxTurn = getForceLowGear() ? Constants.CHEESY_DRIVE_FORCE_LOW_MAX_TURN : Constants.CHEESY_DRIVE_MAX_TURN;
-        return DriveUtils.cheesyTurn(getThrottle(), 
-            DriveUtils.deadbandExponential(
-                getRightStickX(), Constants.DRIVE_SPEED_EXP_XBOX, Constants.XBOX_DEADBAND),
-            cheesyDriveMinTurn, cheesyDriveMaxTurn);
+    public double getTranslationY() {
+        return getLeftStickY();
     }
 
     @Override
-    public boolean getForceLowGear() {
-        return getLeftTrigger() > 0.5;
+    public double getRotation() {
+        return getRightStickX();
     }
 
     @Override
-    public boolean getMolassesMode() {
-        return getRightTrigger() > 0.5;
+    public boolean getGyroReset() {
+        return buttonBack.get();
     }
     
 }
