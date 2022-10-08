@@ -46,6 +46,7 @@ import frc.robot.util.NumberCache;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
 import frc.robot.util.controllers.DriverController;
+import frc.robot.util.controllers.FrskyController;
 import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
@@ -66,6 +67,7 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
+import frc.robot.commands.drive.GrantDriveCommand;
 // import frc.robot.commands.drive.DriveDegrees;
 import frc.robot.commands.drive.SwerveDriveCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
@@ -129,7 +131,16 @@ public class RobotContainer {
       () -> modifyAxis(m_driverController.getRotation()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
     );
     
-      private static double deadband(double value, double deadband) {
+    private CommandBase m_grantDrive =    
+    new GrantDriveCommand(
+      m_drive,
+      () -> modifyAxis(filterY.calculate(((FrskyController) m_driverController).getLeftStickY())) * SwerveDrive.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> modifyAxis(((FrskyController) m_driverController).getRightStickX()),
+      () -> modifyAxis(((FrskyController) m_driverController).getRightStickY()),
+      () -> -modifyAxis(((FrskyController) m_driverController).getLeftStickX()) * SwerveDrive.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+    );
+
+    private static double deadband(double value, double deadband) {
         if (Math.abs(value) > deadband) {
           if (value > 0.0) {
             return (value - deadband) / (1.0 - deadband);
@@ -465,12 +476,12 @@ public class RobotContainer {
     
     if (m_buttonBox.isTrackTurretSwitchOn()) {
       m_turret.startTracking();
-      m_startFlywheel.schedule();
+      //m_startFlywheel.schedule();
       m_hoodAuto.schedule();
       
     } else {
       m_turret.stopTracking();
-      m_flywheelFenderShot.schedule();
+      //m_flywheelFenderShot.schedule();
       m_hoodUp.schedule();
     }
 
@@ -709,7 +720,8 @@ public class RobotContainer {
   }
 
   private void configureDefaultCommands() {
-    m_drive.setDefaultCommand(m_swerveDrive);
+    //m_drive.setDefaultCommand(m_swerveDrive);
+     m_drive.setDefaultCommand(m_grantDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     m_feeder.setDefaultCommand(new RunCommand(() -> {
       if (m_shooter.wantsCargo()) {
@@ -725,6 +737,7 @@ public class RobotContainer {
     // m_shooter.setDefaultCommand(new ShooterTrackCombo(m_shooter, m_targeting));
     // m_turret.setDefaultCommand(new TurretTrackLimelight(m_turret, m_sensors.limelight));
     // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_targeting));
+    m_turret.setDefaultCommand(new TurretLock(m_turret));
 
     m_climber.setDefaultCommand(
       new SequentialCommandGroup(

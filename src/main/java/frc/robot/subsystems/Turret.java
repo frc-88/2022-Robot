@@ -264,8 +264,8 @@ public class Turret extends SubsystemBase {
   private double cancoderPostionToFalconPosition(double position) {
     double normalPosition = (position - p_zeroPosition.getValue());
 
-    // if (normalPosition > 180) { normalPosition -= 360; }
-    // if (normalPosition < -180) { normalPosition += 360; }
+    while (normalPosition > 180) { normalPosition -= 360; }
+    while (normalPosition < -180) { normalPosition += 360; }
 
     return turretFacingToEncoderPosition(normalPosition *
     (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
