@@ -309,7 +309,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
 
     m_wantedCargo = wantsCargo;
-    return wantsCargo;
+    // return wantsCargo;
+    return false;
   }
 
   public void registerLimelightTarget(double distance, double angle) {
