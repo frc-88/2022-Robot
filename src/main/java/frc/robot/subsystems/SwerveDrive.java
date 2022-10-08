@@ -124,10 +124,10 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
 
         public Rotation2d getGyroscopeRotation() {
-                if (m_navx.isMagnetometerCalibrated()) {
-                        // We will only get valid fused headings if the magnetometer is calibrated
-                        return Rotation2d.fromDegrees(m_navx.getFusedHeading());
-                }
+                // if (m_navx.isMagnetometerCalibrated()) {
+                //         // We will only get valid fused headings if the magnetometer is calibrated
+                //         return Rotation2d.fromDegrees(m_navx.getFusedHeading());
+                // }
 
                 // We have to invert the angle of the NavX so that rotating the robot
                 // counter-clockwise makes the angle increase.
@@ -154,13 +154,13 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public ChassisSpeeds getChassisSpeeds() {
                 var frontLeftState = new SwerveModuleState(m_frontLeftModule.getDriveVelocity(),
-                                Rotation2d.fromDegrees(m_frontLeftModule.getSteerAngle()));
+                                new Rotation2d(m_frontLeftModule.getSteerAngle()));
                 var frontRightState = new SwerveModuleState(m_frontRightModule.getDriveVelocity(),
-                                Rotation2d.fromDegrees(m_frontRightModule.getSteerAngle()));
+                                new Rotation2d(m_frontRightModule.getSteerAngle()));
                 var backLeftState = new SwerveModuleState(m_backLeftModule.getDriveVelocity(),
-                                Rotation2d.fromDegrees(m_backLeftModule.getSteerAngle()));
+                                new Rotation2d(m_backLeftModule.getSteerAngle()));
                 var backRightState = new SwerveModuleState(m_backRightModule.getDriveVelocity(),
-                                Rotation2d.fromDegrees(m_backRightModule.getSteerAngle()));
+                                new Rotation2d(m_backRightModule.getSteerAngle()));
 
                 return m_kinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
         }
@@ -213,5 +213,6 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
                 SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
                 SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
+                SmartDashboard.putNumber("odomTheta", Units.metersToFeet(m_pose.getRotation));
         }
 }
