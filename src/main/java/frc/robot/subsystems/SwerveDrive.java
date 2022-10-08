@@ -211,7 +211,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[3].angle.getRadians());
 
-                SmartDashboard.putNumber("odomX", m_pose.getX());
-                SmartDashboard.putNumber("odomY", m_pose.getY());
+                SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
+                SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
         }
 }
