@@ -476,7 +476,7 @@ public class RobotContainer {
 
     m_turret.setDefaultFacing(0.);
     m_targeting.disableDefault();
-    m_ros_interface.enableCargoMarauding();
+    // m_ros_interface.enableCargoMarauding();
     // m_ros_interface.disableCargoMarauding();
   }
 
