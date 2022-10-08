@@ -221,31 +221,31 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public boolean wantsCargo() {
     // Permissive checks
     boolean flywheelOnTarget = onTarget();
-    boolean turretOnTarget = m_turret.onTarget();
-    boolean permissiveChecks = flywheelOnTarget && turretOnTarget;
+    //boolean turretOnTarget = m_turret.onTarget();
+    boolean permissiveChecks = flywheelOnTarget; // && turretOnTarget;
 
     // Restrictive checks
-    boolean turretTracking = m_turret.isTracking();
-    boolean turretNotMoving = m_turret.notMoving();
-    boolean driveNotSpinning = Math.abs(m_sensors.ahrs_navx.getRate()) <= p_shooterSpinLimit.getValue();
-    boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
-    boolean hoodNotMoving = !m_hood.isMoving();
-    boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
-    boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && hoodNotMoving && highShotProbability;
+    // boolean turretTracking = m_turret.isTracking();
+    // boolean turretNotMoving = m_turret.notMoving();
+    // boolean driveNotSpinning = Math.abs(m_sensors.ahrs_navx.getRate()) <= p_shooterSpinLimit.getValue();
+    // boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
+    // boolean hoodNotMoving = !m_hood.isMoving();
+    // boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
+    // boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && hoodNotMoving && highShotProbability;
     boolean restrictiveChecks = false;
-    if (m_wantedCargo && m_feeder.hasBallInChamber()) {
-      restrictiveChecks = true;
-    } else {
-      if (m_wantedCargo) {
-        m_restrictiveCheckTimer.reset();
-      }
-      if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
-        restrictiveChecks = true;
-      } else if (!untimedChecks) {
-        m_restrictiveCheckTimer.reset();
-      }
-    }
-    restrictiveChecks = true;
+    // if (m_wantedCargo && m_feeder.hasBallInChamber()) {
+    //   restrictiveChecks = true;
+    // } else {
+    //   if (m_wantedCargo) {
+    //     m_restrictiveCheckTimer.reset();
+    //   }
+    //   if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+    //     restrictiveChecks = true;
+    //   } else if (!untimedChecks) {
+    //     m_restrictiveCheckTimer.reset();
+    //   }
+    // }
+    //restrictiveChecks = true;
     
 
     boolean wantsCargo = (m_active == ActiveMode.ACTIVE_PERMISSIVE && permissiveChecks) || (m_active == ActiveMode.ACTIVE_RESTRICTIVE && restrictiveChecks);

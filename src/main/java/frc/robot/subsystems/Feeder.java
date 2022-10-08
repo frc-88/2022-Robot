@@ -70,7 +70,7 @@ public class Feeder extends SubsystemBase {
     }
 
     public void shoot() {
-        disableLimits();
+        enableLimits();
         m_chamber.set(TalonFXControlMode.PercentOutput, p_chamberShootSpeed.getValue());
         if (hasBallInChamber()) {
             m_centralizer.set(TalonFXControlMode.PercentOutput, 0);
@@ -88,10 +88,10 @@ public class Feeder extends SubsystemBase {
       }
     }
 
-    @Override
-    public void periodic() {
-        SmartDashboard.putBoolean("Ball In Centralizer", hasBallInCentralizer());
-        SmartDashboard.putBoolean("Ball In Chamber", hasBallInChamber());
-    }
+    // @Override
+    // public void periodic() {
+    //     SmartDashboard.putBoolean("Ball In Centralizer", hasBallInCentralizer());
+    //     SmartDashboard.putBoolean("Ball In Chamber", hasBallInChamber());
+    // }
     
 }
