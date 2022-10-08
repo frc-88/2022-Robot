@@ -1,4 +1,4 @@
-package frc.robot.util.coprocessortable;
+package frc.robot.util.coprocessor;
 
 public class VelocityCommand {
     public double vx = 0.0;  // x velocity (robot centric) in meters per second
@@ -14,5 +14,13 @@ public class VelocityCommand {
         this.vx = vx;
         this.vy = vy;
         this.vt = vt;
+    }
+
+    public double getHeading() {
+        return Math.atan2(vy, vx);
+    }
+
+    public double getSpeed() {
+        return Math.sqrt(vx * vx + vy * vy);
     }
 }

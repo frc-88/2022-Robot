@@ -51,7 +51,7 @@ import frc.robot.util.controllers.FrskyDriverController;
 import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
 import frc.robot.util.controllers.ButtonBox.ClimbDirection;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 // import frc.robot.commands.autos.AutoFollowTrajectory;
@@ -84,7 +84,7 @@ public class RobotContainer {
   private final Turret m_turret = new Turret(m_sensors);
   private final Hood m_hood = new Hood(m_sensors);
   private final Feeder m_feeder = new Feeder();
-  private final ThisRobotTable m_ros_interface = new ThisRobotTable(
+  private final SwerveTable m_ros_interface = new SwerveTable(
     m_drive,
     Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
     Constants.COPROCESSOR_PORT,
