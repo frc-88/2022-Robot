@@ -2,13 +2,13 @@ package frc.robot.util.roswaypoints;
 
 import java.util.ArrayList;
 
-import frc.robot.util.coprocessortable.CoprocessorTable;
+import frc.robot.util.coprocessor.CoprocessorBase;
 
 public class WaypointsPlan {
     private ArrayList<Waypoint> waypoints = new ArrayList<>();
-    private final CoprocessorTable coprocessor;
+    private final CoprocessorBase coprocessor;
 
-    public WaypointsPlan(CoprocessorTable coprocessor) {
+    public WaypointsPlan(CoprocessorBase coprocessor) {
         this.coprocessor = coprocessor;
     }
     

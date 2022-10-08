@@ -20,7 +20,7 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -39,7 +39,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Hood m_hood;
   private Turret m_turret;
   private SwerveDrive m_drive;
-  private ThisRobotTable m_ros_interface;
+  private SwerveTable m_ros_interface;
   private DoubleSupplier m_shotProbabilitySupplier;
 
   private static enum ActiveMode {
@@ -103,7 +103,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
 
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, Hood hood, SwerveDrive drive, Turret turret, Feeder feeder, ThisRobotTable ros_interface) {
+  public Shooter(Sensors sensors, Hood hood, SwerveDrive drive, Turret turret, Feeder feeder, SwerveTable ros_interface) {
     m_sensors = sensors;
     m_hood = hood;
     m_drive = drive;

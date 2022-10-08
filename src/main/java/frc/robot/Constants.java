@@ -30,6 +30,10 @@ public final class Constants {
      * Should be measured from center to center.
      */
     public static final double DRIVETRAIN_WHEELBASE_METERS = 0.57785; // 22.75 inches
+	public static final double DRIVETRAIN_BOUNDARY_WIDTH = 0.5;  // meters
+    public static final double DRIVETRAIN_BOUNDARY_LENGTH = 0.5;  // meters
+	public static final double DRIVETRAIN_MIN_COLLISION_INFLATE = 0.05;  // meters
+    public static final double DRIVETRAIN_MAX_COLLISION_INFLATE = 1.75;  // meters
 
     public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1; 
     public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 0; 
