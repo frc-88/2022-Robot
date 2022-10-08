@@ -20,6 +20,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.VelocityCommand;
@@ -209,5 +210,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 states[2].angle.getRadians());
                 m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[3].angle.getRadians());
+
+                SmartDashboard.putNumber("odomX", m_pose.getX());
+                SmartDashboard.putNumber("odomY", m_pose.getY());
         }
 }

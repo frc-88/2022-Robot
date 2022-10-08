@@ -74,10 +74,9 @@ public final class Constants {
 	// Turret
 	public static final int TURRET_MOTOR_ID = 5;
 	public static final int TURRET_CANCODER_ID = 5;
-	public static final double TURRET_GEAR_RATIO = 7.0 * 144.0 / 18;  // 56.0
-	public static final double TURRET_CANCODER_GEAR_RATIO = 124;
-	// public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 54.0 / 8.0;  // 94.5
-    public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 2048.0;
+	public static final double TURRET_GEAR_RATIO = 7.0 * 148.0 / 20;  // 51.8
+	public static final double TURRET_CANCODER_GEAR_RATIO = 7.0 * 2.0 * 7.0;  // 98.0
+	public static final double TURRET_COUNTS_PER_REV = TURRET_GEAR_RATIO * 2048.0;
 	public static final double TURRET_SPIN_THRESHOLD = TURRET_COUNTS_PER_REV / 5.0;
 
 	// Feeders
