@@ -25,7 +25,11 @@ public class LaserScanObstacleTracker {
         return obstacles.size();
     }
 
-    public void set(double[] laserXs, double[] laserYs) {
+    public ArrayList<PointObstacle> getPoints() {
+        return obstacles;
+    }
+
+    public void setPoints(double[] laserXs, double[] laserYs) {
         if (laserXs.length != laserYs.length) {
             System.out.println(String.format(
                 "Warning! Laser obstacle coordinate lengths do not match. %d != %d", 

@@ -463,6 +463,6 @@ public class CoprocessorTable extends CoprocessorBase {
         laserXs = laserScanEntryXs.getDoubleArray(laserXs);
         laserYs = laserScanEntryYs.getDoubleArray(laserYs);
 
-        laserObstacles.set(laserXs, laserYs);
+        laserObstacles.setPoints(laserXs, laserYs);
     }
 }
