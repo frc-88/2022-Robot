@@ -213,6 +213,6 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
                 SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
                 SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
-                SmartDashboard.putNumber("odomTheta", Units.metersToFeet(m_pose.getRotation));
+                SmartDashboard.putNumber("odomTheta", m_pose.getRotation().getDegrees());
         }
 }
