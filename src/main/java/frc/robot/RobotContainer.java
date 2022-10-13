@@ -42,6 +42,7 @@ import frc.robot.subsystems.Targeting;
 import frc.robot.subsystems.Turret;
 import frc.robot.util.CargoSource;
 import frc.robot.util.NumberCache;
+import frc.robot.util.RapidReactTrajectories;
 // import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.climber.ClimberConstants;
 import frc.robot.util.controllers.ButtonBox;
@@ -67,6 +68,7 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
+import frc.robot.commands.drive.FollowTrajectory;
 import frc.robot.commands.drive.GrantDriveCommand;
 // import frc.robot.commands.drive.DriveDegrees;
 import frc.robot.commands.drive.SwerveDriveCommand;
@@ -645,6 +647,7 @@ public class RobotContainer {
     // Trajectory testing
     // SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
     // SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
+    SmartDashboard.putData("Swerve Test Trajectory", new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("swervetest.wpilib.json"), true));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
