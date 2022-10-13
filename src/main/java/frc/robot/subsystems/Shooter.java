@@ -245,7 +245,6 @@ public class Shooter extends SubsystemBase implements CargoTarget {
         m_restrictiveCheckTimer.reset();
       }
     }
-    restrictiveChecks = true;
     
 
     boolean wantsCargo = (m_active == ActiveMode.ACTIVE_PERMISSIVE && permissiveChecks) || (m_active == ActiveMode.ACTIVE_RESTRICTIVE && restrictiveChecks);
@@ -309,8 +308,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
 
     m_wantedCargo = wantsCargo;
-    // return wantsCargo;
-    return false;
+    return wantsCargo;
   }
 
   public void registerLimelightTarget(double distance, double angle) {

@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.preferenceconstants.IntPreferenceConstant;
 
 public class Feeder extends SubsystemBase {
 
@@ -18,6 +19,9 @@ public class Feeder extends SubsystemBase {
     private final DoublePreferenceConstant p_centralizerShootSpeed;
     private final DoublePreferenceConstant p_chamberOutgestSpeed;
     private final DoublePreferenceConstant p_chamberShootSpeed;
+
+    private double m_cyclesSinceBallLeftChamber = 1000;
+    private final IntPreferenceConstant p_ballLeftChamberCycles;
 
     public Feeder() {
         m_centralizer = new TalonFX(Constants.CENTRALIZER_ID, "1");
@@ -34,6 +38,7 @@ public class Feeder extends SubsystemBase {
         p_centralizerShootSpeed = new DoublePreferenceConstant("Centralizer Shoot Speed", .75);
         p_chamberOutgestSpeed = new DoublePreferenceConstant("Chamber Outgest Speed", 1);
         p_chamberShootSpeed = new DoublePreferenceConstant("Chamber Shoot Speed", .75);
+        p_ballLeftChamberCycles = new IntPreferenceConstant("Ball Left Chamber Cycles", 5);
     }
 
     public boolean hasBallInCentralizer() {
@@ -73,6 +78,9 @@ public class Feeder extends SubsystemBase {
         disableLimits();
         m_chamber.set(TalonFXControlMode.PercentOutput, p_chamberShootSpeed.getValue());
         if (hasBallInChamber()) {
+            m_cyclesSinceBallLeftChamber = 0;
+            m_centralizer.set(TalonFXControlMode.PercentOutput, 0);
+        } else if (++m_cyclesSinceBallLeftChamber < p_ballLeftChamberCycles.getValue()) {
             m_centralizer.set(TalonFXControlMode.PercentOutput, 0);
         } else {
             m_centralizer.set(TalonFXControlMode.PercentOutput, p_centralizerShootSpeed.getValue());

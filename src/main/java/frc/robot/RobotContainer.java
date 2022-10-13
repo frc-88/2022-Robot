@@ -723,8 +723,8 @@ public class RobotContainer {
   }
 
   private void configureDefaultCommands() {
-    //m_drive.setDefaultCommand(m_swerveDrive);
-     m_drive.setDefaultCommand(m_grantDrive);
+    m_drive.setDefaultCommand(m_swerveDrive);
+    //  m_drive.setDefaultCommand(m_grantDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     m_feeder.setDefaultCommand(new RunCommand(() -> {
       if (m_shooter.wantsCargo()) {
