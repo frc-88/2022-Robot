@@ -648,6 +648,7 @@ public class RobotContainer {
     // SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
     // SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
     SmartDashboard.putData("Swerve Test Trajectory", new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("swervetest.wpilib.json"), true));
+    SmartDashboard.putData("Zero Drive", new InstantCommand(() -> {m_drive.zeroGyroscope();}));
 
     // Intake testing commands
     SmartDashboard.putData("Intake:Ingest", m_ingestCargo);
@@ -723,8 +724,8 @@ public class RobotContainer {
   }
 
   private void configureDefaultCommands() {
-    m_drive.setDefaultCommand(m_swerveDrive);
-    //  m_drive.setDefaultCommand(m_grantDrive);
+    // m_drive.setDefaultCommand(m_swerveDrive);
+     m_drive.setDefaultCommand(m_grantDrive);
     m_intake.setDefaultCommand(m_stowIntake);
     m_feeder.setDefaultCommand(new RunCommand(() -> {
       if (m_shooter.wantsCargo()) {
