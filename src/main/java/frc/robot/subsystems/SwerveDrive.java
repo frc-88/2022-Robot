@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.coprocessortable.ChassisInterface;
 import frc.robot.util.coprocessortable.VelocityCommand;
+import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 
 import static frc.robot.Constants.*;
 
@@ -65,11 +66,19 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                         // Back right
                         new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0));
 
+        private DoublePreferenceConstant p_frontLeftOffset = new DoublePreferenceConstant("Drive Front Left Offset",
+                        0.0);
+        private DoublePreferenceConstant p_frontRightOffset = new DoublePreferenceConstant("Drive Front Right Offset",
+                        0.0);
+        private DoublePreferenceConstant p_backLeftOffset = new DoublePreferenceConstant("Drive Back Left Offset", 0.0);
+        private DoublePreferenceConstant p_backRightOffset = new DoublePreferenceConstant("Drive Back Right Offset",
+                        0.0);
+
         private final AHRS m_navx;
-        private final SwerveModule m_frontLeftModule;
-        private final SwerveModule m_frontRightModule;
-        private final SwerveModule m_backLeftModule;
-        private final SwerveModule m_backRightModule;
+        private SwerveModule m_frontLeftModule;
+        private SwerveModule m_frontRightModule;
+        private SwerveModule m_backLeftModule;
+        private SwerveModule m_backRightModule;
 
         private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
         private SwerveDriveOdometry m_odometry;
@@ -77,6 +86,20 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public SwerveDrive(AHRS navx) {
                 m_navx = navx;
+                configureModules();
+
+                zeroGyroscope();
+
+                m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
+                m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(), m_pose);
+                
+                // p_frontLeftOffset.addChangeHandler((Double unused) -> configureModules());
+                // p_frontRightOffset.addChangeHandler((Double unused) -> configureModules());
+                // p_backLeftOffset.addChangeHandler((Double unused) -> configureModules());
+                // p_backRightOffset.addChangeHandler((Double unused) -> configureModules());
+        }
+
+        public void configureModules() {
                 ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
                 m_frontLeftModule = Mk4iSwerveModuleHelper.createFalcon500(
@@ -85,33 +108,28 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 FRONT_LEFT_MODULE_DRIVE_MOTOR,
                                 FRONT_LEFT_MODULE_STEER_MOTOR,
                                 FRONT_LEFT_MODULE_STEER_ENCODER,
-                                FRONT_LEFT_MODULE_STEER_OFFSET);
+                                -Math.toRadians(p_frontLeftOffset.getValue()));
                 m_frontRightModule = Mk4iSwerveModuleHelper.createFalcon500(
                                 tab.getLayout("Front Right", BuiltInLayouts.kList).withSize(2, 4).withPosition(2, 0),
                                 Mk4iSwerveModuleHelper.GearRatio.L2,
                                 FRONT_RIGHT_MODULE_DRIVE_MOTOR,
                                 FRONT_RIGHT_MODULE_STEER_MOTOR,
                                 FRONT_RIGHT_MODULE_STEER_ENCODER,
-                                FRONT_RIGHT_MODULE_STEER_OFFSET);
+                                -Math.toRadians(p_frontRightOffset.getValue()));
                 m_backLeftModule = Mk4iSwerveModuleHelper.createFalcon500(
                                 tab.getLayout("Back Left", BuiltInLayouts.kList).withSize(2, 4).withPosition(4, 0),
                                 Mk4iSwerveModuleHelper.GearRatio.L2,
                                 BACK_LEFT_MODULE_DRIVE_MOTOR,
                                 BACK_LEFT_MODULE_STEER_MOTOR,
                                 BACK_LEFT_MODULE_STEER_ENCODER,
-                                BACK_LEFT_MODULE_STEER_OFFSET);
+                                -Math.toRadians(p_backLeftOffset.getValue()));
                 m_backRightModule = Mk4iSwerveModuleHelper.createFalcon500(
                                 tab.getLayout("Back Right", BuiltInLayouts.kList).withSize(2, 4).withPosition(6, 0),
                                 Mk4iSwerveModuleHelper.GearRatio.L2,
                                 BACK_RIGHT_MODULE_DRIVE_MOTOR,
                                 BACK_RIGHT_MODULE_STEER_MOTOR,
                                 BACK_RIGHT_MODULE_STEER_ENCODER,
-                                BACK_RIGHT_MODULE_STEER_OFFSET);
-
-                zeroGyroscope();
-
-                m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
-                m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(), m_pose);
+                                -Math.toRadians(p_backRightOffset.getValue()));
         }
 
         /**
@@ -125,8 +143,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public Rotation2d getGyroscopeRotation() {
                 // if (m_navx.isMagnetometerCalibrated()) {
-                //         // We will only get valid fused headings if the magnetometer is calibrated
-                //         return Rotation2d.fromDegrees(m_navx.getFusedHeading());
+                // // We will only get valid fused headings if the magnetometer is calibrated
+                // return Rotation2d.fromDegrees(m_navx.getFusedHeading());
                 // }
 
                 // We have to invert the angle of the NavX so that rotating the robot
@@ -171,7 +189,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
 
         public double getStraightSpeed() {
-                return Math.sqrt(Math.pow(m_chassisSpeeds.vxMetersPerSecond, 2) + Math.pow(m_chassisSpeeds.vyMetersPerSecond, 2));
+                return Math.sqrt(Math.pow(m_chassisSpeeds.vxMetersPerSecond, 2)
+                                + Math.pow(m_chassisSpeeds.vyMetersPerSecond, 2));
         }
 
         public void resetPosition(Pose2d pose) {
