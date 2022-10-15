@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean constants. This class should not be used for any other
@@ -142,5 +144,18 @@ public final class Constants {
 	public static final double COPROCESSOR_PERIODIC_UPDATE_OFFSET = 1.0 / 60.0;
 	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_DELAY = 1.0 / 5.0;
 	public static final double COPROCESSOR_SLOW_PERIODIC_UPDATE_OFFSET = 0.025;
-
+	
+	public static final class AutoConstants {
+		public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
+		public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+	
+		public static final double kPXController = 0.5;
+		public static final double kPYController = 0.5;
+		public static final double kPThetaController = 0.5;
+	
+		// Constraint for the motion profilied robot angle controller
+		public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
+			new TrapezoidProfile.Constraints(
+				kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+	  }
 }

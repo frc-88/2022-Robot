@@ -4,7 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -30,6 +33,7 @@ import frc.robot.commands.turret.TurretTrackLimelight;
 import frc.robot.commands.turret.TurretTrackCombo;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Feeder;
@@ -53,6 +57,7 @@ import frc.robot.util.controllers.XboxController;
 import frc.robot.util.controllers.ButtonBox.ClimbBar;
 import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.util.ThisRobotTable;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 // import frc.robot.commands.autos.AutoFollowTrajectory;
@@ -225,6 +230,21 @@ public class RobotContainer {
   private DoublePreferenceConstant p_oneBallDelay = new DoublePreferenceConstant("One Ball Delay", 0.25);
   private Timer m_oneBallTimer = new Timer();
   
+  private ProfiledPIDController thetaController = new ProfiledPIDController(AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+  private Trajectory testTrajectory = RapidReactTrajectories.generatePathWeaverTrajectory("swervetest.wpilib.json");
+
+SwerveControllerCommand swerveControllerCommand =
+  new SwerveControllerCommand(
+      testTrajectory,
+      m_drive::getOdometryPose, // Functional interface to feed supplier
+      m_drive.kinematics,
+      // Position controllers
+      new PIDController(AutoConstants.kPXController, 0, 0),
+      new PIDController(AutoConstants.kPYController, 0, 0),
+      thetaController,
+      m_drive::setModuleStates,
+      m_drive);
+
   // private CommandBase m_autoOneBallLeft =
   // new ParallelCommandGroup(
   //   new TiltCameraDown(m_sensors),
@@ -390,9 +410,13 @@ public class RobotContainer {
     SmartDashboard.putBoolean("Publishing Enabled", false);
     LiveWindow.disableAllTelemetry();
 
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
     configurePeriodics(robot);
     configureButtonBox();
     configureDefaultCommands();
+
+    m_drive.resetOdometry(testTrajectory.sample(0).poseMeters, m_drive.getGyroscopeRotation());
   }
 
   private void configurePeriodics(Robot robot) {
@@ -647,7 +671,9 @@ public class RobotContainer {
     // Trajectory testing
     // SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
     // SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
-    SmartDashboard.putData("Swerve Test Trajectory", new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("swervetest.wpilib.json"), true));
+    SmartDashboard.putData("Swerve Controller Test", swerveControllerCommand);
+    SmartDashboard.putData("Swerve Test Trajectory", new FollowTrajectory(m_drive, testTrajectory, true));
+    SmartDashboard.putData("Swerve Five", new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("swerve5_leg1.wpilib.json"), true));
     SmartDashboard.putData("Zero Drive", new InstantCommand(() -> {m_drive.zeroGyroscope();}));
 
     // Intake testing commands
@@ -743,13 +769,13 @@ public class RobotContainer {
     // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_targeting));
     // m_turret.setDefaultCommand(new TurretLock(m_turret));
 
-    m_climber.setDefaultCommand(
-      new SequentialCommandGroup(
-        new RunCommand(m_climber::calibrate, m_climber)
-          .withInterrupt(m_climber::isCalibrated)
-          .withName("calibrateClimber"),
-          new RunCommand(() -> {}, m_climber)
-      ));
+    // m_climber.setDefaultCommand(
+    //   new SequentialCommandGroup(
+    //     new RunCommand(m_climber::calibrate, m_climber)
+    //       .withInterrupt(m_climber::isCalibrated)
+    //       .withName("calibrateClimber"),
+    //       new RunCommand(() -> {}, m_climber)
+    //   ));
   }
 
   /**

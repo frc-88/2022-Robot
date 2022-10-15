@@ -56,7 +56,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND /
                         Math.hypot(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0);
 
-        private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+        public final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
                         // Front left
                         new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
                         // Front right
@@ -91,7 +91,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 zeroGyroscope();
 
                 m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
-                m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(), m_pose);
+                m_odometry = new SwerveDriveOdometry(kinematics, getGyroscopeRotation(), m_pose);
                 
                 // p_frontLeftOffset.addChangeHandler((Double unused) -> configureModules());
                 // p_frontRightOffset.addChangeHandler((Double unused) -> configureModules());
@@ -163,7 +163,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public void updateOdometry() {
                 m_pose = m_odometry.update(getGyroscopeRotation(),
-                                m_kinematics.toSwerveModuleStates(getChassisSpeeds()));
+                                kinematics.toSwerveModuleStates(getChassisSpeeds()));
         }
 
         public Pose2d getOdometryPose() {
@@ -180,7 +180,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 var backRightState = new SwerveModuleState(m_backRightModule.getDriveVelocity(),
                                 new Rotation2d(m_backRightModule.getSteerAngle()));
 
-                return m_kinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
+                return kinematics.toChassisSpeeds(frontLeftState, frontRightState, backLeftState, backRightState);
         }
 
         public double getAccelerationEstimate() {
@@ -213,12 +213,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 m_chassisSpeeds = chassisSpeeds;
         }
 
-        @Override
-        public void periodic() {
-                updateOdometry();
-
-                // set modules to desired chassis speed
-                SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
+        public void setModuleStates(SwerveModuleState[] states) {
                 SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
 
                 m_frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
@@ -229,7 +224,16 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 states[2].angle.getRadians());
                 m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[3].angle.getRadians());
+        }
 
+        @Override
+        public void periodic() {
+                updateOdometry();
+
+                // set modules to desired chassis speed
+                SwerveModuleState[] states = kinematics.toSwerveModuleStates(m_chassisSpeeds);
+                setModuleStates(states);
+                
                 SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
                 SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
                 SmartDashboard.putNumber("odomTheta", m_pose.getRotation().getDegrees());
