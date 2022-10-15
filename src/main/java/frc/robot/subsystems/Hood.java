@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.NumberCache;
+import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
@@ -62,11 +63,25 @@ public class Hood extends SubsystemBase {
   private DoublePreferenceConstant p_hoodMaxVelocity = new DoublePreferenceConstant("Hood Max Velocity", 360);
   private DoublePreferenceConstant p_hoodMaxAcceleration = new DoublePreferenceConstant("Hood Max Acceleration", 1080);
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
+  private DoublePreferenceConstant p_hoodBlind = new DoublePreferenceConstant("Hood Blind Angle", 20.0);
   private DoublePreferenceConstant p_hoodArbitraryF = new DoublePreferenceConstant("Hood Arbitrary F", 0.0);
   private DoublePreferenceConstant p_hoodSpeed = new DoublePreferenceConstant("Hood Speed", 0.0);
   private DoublePreferenceConstant p_hoodMidDistance = new DoublePreferenceConstant("Hood Mid Distance", 80.);
   private DoublePreferenceConstant p_hoodUpDistance = new DoublePreferenceConstant("Hood Up Distance", 110.);
 
+  private final ValueInterpolator hoodInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(66.6739, 13),
+    new ValueInterpolator.ValuePair(73.7607, 13),
+    new ValueInterpolator.ValuePair(90.29, 19),
+    new ValueInterpolator.ValuePair(108.77, 24),
+    new ValueInterpolator.ValuePair(127.7, 24),
+    new ValueInterpolator.ValuePair(156.5, 28.1),
+    new ValueInterpolator.ValuePair(173, 31.2),
+    new ValueInterpolator.ValuePair(193.5, 33.9),
+    new ValueInterpolator.ValuePair(218.7, 33.6),
+    new ValueInterpolator.ValuePair(260.47, 34.0),
+    new ValueInterpolator.ValuePair(284.6, 36.2));
+    
   public Hood(Sensors sensors) {
     m_sensors = sensors;
 
@@ -96,6 +111,14 @@ public class Hood extends SubsystemBase {
         p_triggerCurrentLimit.getValue(), p_triggerDuration.getValue());
     m_hood.configAllSettings(config);
     m_hood.setInverted(InvertType.InvertMotorOutput);
+  }
+
+  private double calcHoodFromDistance(double target_dist) {
+    if (target_dist > 0.0) {
+      return hoodInterpolator.getInterpolatedValue(target_dist);
+    } else {
+      return p_hoodBlind.getValue();
+    }
   }
 
   public void hoodAuto(double target_dist) {
