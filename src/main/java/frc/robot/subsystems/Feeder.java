@@ -76,13 +76,15 @@ public class Feeder extends SubsystemBase {
 
     public void shoot() {
         disableLimits();
-        m_chamber.set(TalonFXControlMode.PercentOutput, p_chamberShootSpeed.getValue());
         if (hasBallInChamber()) {
             m_cyclesSinceBallLeftChamber = 0;
+            m_chamber.set(TalonFXControlMode.PercentOutput, p_chamberShootSpeed.getValue());
             m_centralizer.set(TalonFXControlMode.PercentOutput, 0);
         } else if (++m_cyclesSinceBallLeftChamber < p_ballLeftChamberCycles.getValue()) {
+            m_chamber.set(TalonFXControlMode.PercentOutput, p_chamberShootSpeed.getValue());
             m_centralizer.set(TalonFXControlMode.PercentOutput, 0);
         } else {
+            m_chamber.set(TalonFXControlMode.PercentOutput, 0);
             m_centralizer.set(TalonFXControlMode.PercentOutput, p_centralizerShootSpeed.getValue());
         }
     }

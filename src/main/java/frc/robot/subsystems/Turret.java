@@ -238,7 +238,7 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSafeForClimber() {
-    return Math.abs(getPosition()) % 180 < 10;
+    return Math.abs(getFacing()) < 3;
   }
 
   private double getPosition() {

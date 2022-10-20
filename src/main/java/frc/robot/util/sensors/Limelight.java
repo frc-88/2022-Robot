@@ -221,7 +221,7 @@ public class Limelight {
         double tof;
 
         for (int i = 0; i < 3; i++) {
-            tof = getTofTable(isHoodUp).getInterpolatedValue(target);
+            tof = getTofTable(isHoodUp).getInterpolatedValue(target)[0];
             target = Math.sqrt(
                 Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
@@ -241,7 +241,7 @@ public class Limelight {
      */
     public double calcMovingTurretOffset(double robotSpeed, double turretAngle, double distance, boolean isHoodUp) {
         double offset = 0.0;
-        double tof = getTofTable(isHoodUp).getInterpolatedValue(distance);
+        double tof = getTofTable(isHoodUp).getInterpolatedValue(distance)[0];
 
         Math.asin(
             Math.sin(Math.toRadians(180 + m_turretOffset - turretAngle)) *

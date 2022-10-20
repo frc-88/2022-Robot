@@ -9,7 +9,6 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.SwerveDrive;
-import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Turret;
@@ -37,7 +36,6 @@ public class ThisRobotTable extends CoprocessorTable {
     private Intake intake;
     private Turret turret;
     private Sensors sensors;
-    private Hood hood;
     private SwerveDrive drive;
 
     private NetworkTable hoodTable;
@@ -88,8 +86,7 @@ public class ThisRobotTable extends CoprocessorTable {
             ClimberArm outerArm, ClimberArm innerArm,
             Intake intake,
             Turret turret,
-            Sensors sensors,
-            Hood hood) {
+            Sensors sensors) {
         super(chassis, address, port, updateInterval);
 
         this.outerArm = outerArm;
@@ -97,7 +94,6 @@ public class ThisRobotTable extends CoprocessorTable {
         this.intake = intake;
         this.turret = turret;
         this.sensors = sensors;
-        this.hood = hood;
         this.drive = (SwerveDrive)chassis;
 
         hoodTable = getRootTable().getSubTable("hood");
@@ -227,7 +223,7 @@ public class ThisRobotTable extends CoprocessorTable {
         );
 
         // hood
-        setHoodState(this.hood.isUp());
+        setHoodState(true);
 
         SmartDashboard.putNumber("ROS Ping", NetworkTableInstance.getDefault().getEntry("/ROS/status/tunnel/ping").getDouble(0.0));
     }
