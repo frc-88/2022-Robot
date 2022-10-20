@@ -293,12 +293,12 @@ SwerveControllerCommand swerveControllerCommand =
         // new InstantCommand(() -> m_targeting.enableDefault(97, -14.5)),
         new WaitCommand(0.5),
         new ShootAll(m_shooter).withTimeout(3.0),
-        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveFive.wpilib.json"), true),
+        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix.wpilib.json"), true),
         // new InstantCommand(() -> m_targeting.enableDefault(159, 30)),
         // new InstantCommand(m_targeting::disableDefault),
         new WaitCommand(0.5),
         new ShootAll(m_shooter).withTimeout(3.0),
-        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveFive_0.wpilib.json"), false),
+        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_0.wpilib.json"), false),
         new ShootAll(m_shooter)
       )
     );
