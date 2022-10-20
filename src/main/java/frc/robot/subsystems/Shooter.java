@@ -152,6 +152,10 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_hood.setInverted(InvertType.InvertMotorOutput);
   }
 
+  public void calibrateHood() {
+    m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_DOWN));
+  }
+
 
   public void setFlywheelSpeed(double speed) {
     m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));

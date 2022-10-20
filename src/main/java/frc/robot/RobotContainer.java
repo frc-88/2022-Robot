@@ -196,6 +196,8 @@ public class RobotContainer {
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
   private CommandBase m_flywheelFenderShot = new RunCommand(m_shooter::setFlywheelFenderShot, m_shooter);
 
+  private boolean m_hoodCalibrated = false;
+
   /////////////////////////////////////
   //             CLIMBER             //
   /////////////////////////////////////
@@ -393,6 +395,11 @@ SwerveControllerCommand swerveControllerCommand =
   }
 
   public void teleopInit() {
+    if (!m_hoodCalibrated) {
+      m_shooter.calibrateHood();
+      m_hoodCalibrated = true;
+    }
+
     if (m_buttonBox.isAutoShootSwitchOn()) {
       m_shooter.activateRestrictive();
     } else {
@@ -412,6 +419,13 @@ SwerveControllerCommand swerveControllerCommand =
     m_targeting.disableDefault();
     // m_ros_interface.enableCargoMarauding();
     // m_ros_interface.disableCargoMarauding();
+  }
+
+  public void autoInit() {
+    if (!m_hoodCalibrated) {
+      m_shooter.calibrateHood();
+      m_hoodCalibrated = true;
+    }
   }
 
   public void robotFirstPeriodic() {
