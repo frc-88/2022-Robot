@@ -56,6 +56,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private boolean m_cargoWaiting = false;
   private boolean m_wantedCargo = false;
   private Timer m_restrictiveCheckTimer = new Timer();
+  private Timer m_rampDownTimer = new Timer();
+  private static final double RAMP_DOWN_TIME = 0.75;
 
   private double m_limelightDistance = 0;
   private double m_limelightAngle = 0;
@@ -160,7 +162,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public void setFlywheelSpeedAuto(double target_dist) {
-    if (!m_turret.isTracking()) {
+    if (m_feeder.hasBallInChamber()) {
+      m_rampDownTimer.reset();
+    }
+
+    if (m_rampDownTimer.hasElapsed(RAMP_DOWN_TIME)) {
+      m_flywheel.set(TalonFXControlMode.Velocity, 0);
+      setHoodMotionMagic(getHoodPosition());
+    } else if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
       setHoodMotionMagic(HOOD_DOWN);
     } else {
@@ -176,6 +185,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   private void setHoodMotionMagic(double setpoint) {
+    if (setpoint > 38) {
+      setpoint = 38;
+    } else if (setpoint < HOOD_DOWN) {
+      setpoint = HOOD_DOWN;
+    }
     m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint));
   }
 
