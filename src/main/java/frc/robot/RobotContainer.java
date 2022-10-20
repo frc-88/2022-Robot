@@ -112,8 +112,8 @@ public class RobotContainer {
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
   private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
-  private final SlewRateLimiter filterX = new SlewRateLimiter(2.0);
-  private final SlewRateLimiter filterY = new SlewRateLimiter(2.0);
+  private final SlewRateLimiter filterX = new SlewRateLimiter(4.0);
+  private final SlewRateLimiter filterY = new SlewRateLimiter(4.0);
 
   private boolean m_hasConfiguredDashboardButtons = false;
 
