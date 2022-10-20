@@ -167,7 +167,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
 
     if (m_rampDownTimer.hasElapsed(RAMP_DOWN_TIME)) {
-      m_flywheel.set(TalonFXControlMode.Velocity, 0);
+      m_flywheel.set(TalonFXControlMode.PercentOutput, 0);
       setHoodMotionMagic(getHoodPosition());
     } else if (!m_turret.isTracking()) {
       m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
