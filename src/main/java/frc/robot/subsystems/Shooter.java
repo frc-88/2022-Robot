@@ -164,6 +164,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   public void setFlywheelSpeedAuto(double target_dist) {
     if (m_feeder.hasBallInChamber()) {
       m_rampDownTimer.reset();
+      m_rampDownTimer.start();
     }
 
     if (m_rampDownTimer.hasElapsed(RAMP_DOWN_TIME)) {

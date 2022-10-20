@@ -325,6 +325,10 @@ public class Intake extends SubsystemBase {
     m_roller.set(rolleroutgestSpeed.getValue());
   }
 
+  public boolean isIntaking() {
+    return m_roller.get() > 0.001;
+  }
+
   @Override
   public void periodic() {
     SmartDashboard.putBoolean("Intake Roller Alive", m_roller.isAlive());

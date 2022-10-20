@@ -172,17 +172,15 @@ public class RobotContainer {
   //          BALL HANDLING          //
   /////////////////////////////////////
 
-  private CommandBase m_ingestCargo = new ParallelCommandGroup(new RunCommand(() -> {
+  private CommandBase m_ingestCargo = new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerIntake();
-      }, m_intake),
-      new RunCommand(m_feeder::intake, m_feeder));
+      }, m_intake);
 
-  private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
+  private CommandBase m_outgestCargo = new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerOutgest();
-      }, m_intake),
-      new RunCommand(m_feeder::outgest, m_feeder));
+      }, m_intake);
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
@@ -641,6 +639,8 @@ SwerveControllerCommand swerveControllerCommand =
     m_feeder.setDefaultCommand(new RunCommand(() -> {
       if (m_shooter.wantsCargo()) {
         m_feeder.shoot();
+      } else if (m_intake.isIntaking()) {
+        m_feeder.intake();
       } else {
         m_feeder.hold();
       }
