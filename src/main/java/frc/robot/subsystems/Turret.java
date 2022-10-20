@@ -293,7 +293,7 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
     SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
-    SmartDashboard.putBoolean("Turret:OnTarget", onTarget()));
+    SmartDashboard.putBoolean("Turret:OnTarget", onTarget());
   }
 
   public void setHasTarget(boolean hasTarget) {
