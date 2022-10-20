@@ -245,7 +245,6 @@ SwerveControllerCommand swerveControllerCommand =
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new InstantCommand(() -> m_targeting.setModeToLimelight()),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new HoodTrackCombo(m_hood, m_targeting),
     new SequentialCommandGroup(
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
@@ -262,7 +261,6 @@ SwerveControllerCommand swerveControllerCommand =
     new InstantCommand(() -> m_turret.setDefaultFacing(0)),
     new InstantCommand(() -> m_targeting.setModeToLimelight()),
     new RunCommand(() -> {m_intake.deploy(); m_intake.rollerIntake();}, m_intake),
-    new HoodTrackCombo(m_hood, m_targeting),
     new SequentialCommandGroup(
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
