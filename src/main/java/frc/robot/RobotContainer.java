@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.commands.test.CollectLimelightRectification;
-import frc.robot.commands.turret.HoodTrackCombo;
 import frc.robot.commands.turret.ShooterTrackCombo;
 import frc.robot.commands.turret.TurretCalibrate;
 import frc.robot.commands.turret.TurretLock;
@@ -37,7 +36,6 @@ import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Feeder;
-import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Navigation;
 import frc.robot.subsystems.Sensors;
@@ -89,19 +87,18 @@ public class RobotContainer {
   private final Climber m_climber = new Climber(m_sensors::isCoastButtonPressed);
   private final Intake m_intake = new Intake();
   private final Turret m_turret = new Turret(m_sensors);
-  private final Hood m_hood = new Hood(m_sensors);
   private final Feeder m_feeder = new Feeder();
   private final ThisRobotTable m_ros_interface = new ThisRobotTable(
     m_drive,
     Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
     Constants.COPROCESSOR_PORT,
     Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
-    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors, m_hood
+    m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
   );
-  private final Shooter m_shooter = new Shooter(m_sensors, m_hood, m_drive, m_turret, m_feeder, m_ros_interface);
+  private final Shooter m_shooter = new Shooter(m_sensors, m_drive, m_turret, m_feeder, m_ros_interface);
 
   private final Navigation m_nav = new Navigation(m_ros_interface);
-  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_hood, m_drive, m_shooter);
+  private final Targeting m_targeting = new Targeting(m_sensors.limelight, m_ros_interface, m_turret, m_drive, m_shooter);
 
   /////////////////////////////////////////////////////////////////////////////
   //                              CONTROLLERS                                //
@@ -200,11 +197,6 @@ public class RobotContainer {
   private CommandBase m_startFlywheel = new ShooterTrackCombo(m_shooter, m_targeting);
   private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
   private CommandBase m_flywheelFenderShot = new RunCommand(m_shooter::setFlywheelFenderShot, m_shooter);
-
-  private CommandBase m_hoodUp = new RunCommand(m_hood::raiseHood, m_hood);
-  private CommandBase m_hoodMid = new RunCommand(m_hood::midHood, m_hood);
-  private CommandBase m_hoodDown = new RunCommand(m_hood::lowerHood, m_hood);
-  private CommandBase m_hoodAuto = new HoodTrackCombo(m_hood, m_targeting);
 
   /////////////////////////////////////
   //             CLIMBER             //
@@ -502,13 +494,11 @@ SwerveControllerCommand swerveControllerCommand =
     
     if (m_buttonBox.isTrackTurretSwitchOn()) {
       m_turret.startTracking();
-      //m_startFlywheel.schedule();
-      m_hoodAuto.schedule();
+      m_startFlywheel.schedule();
       
     } else {
       m_turret.stopTracking();
-      //m_flywheelFenderShot.schedule();
-      m_hoodUp.schedule();
+      m_flywheelFenderShot.schedule();
     }
 
     m_turret.setDefaultFacing(0.);
@@ -542,10 +532,8 @@ SwerveControllerCommand swerveControllerCommand =
 
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenPressed(m_startFlywheel);
-    m_buttonBox.turretTrackSwitch.whenPressed(m_hoodAuto);
     m_buttonBox.turretTrackSwitch.whenReleased(new InstantCommand(m_turret::stopTracking));
     m_buttonBox.turretTrackSwitch.whenReleased(m_flywheelFenderShot);
-    m_buttonBox.turretTrackSwitch.whenReleased(m_hoodUp);
     
     // m_buttonBox.rosDisableSwitch.whenPressed(m_arcadeDrive);
     // m_buttonBox.rosDisableSwitch.whenReleased(new PassthroughRosCommand(m_drive, m_ros_interface));
@@ -602,10 +590,9 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(m_hood::lowerHood, m_hood),
-      new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
-        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_PREP_LOW_MID), 
           new ConditionalCommand(
@@ -620,10 +607,9 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.raiseClimberButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(m_hood::lowerHood, m_hood),
-      new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
-        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_RAISE_LOW), 
           new ConditionalCommand(
@@ -641,10 +627,9 @@ SwerveControllerCommand swerveControllerCommand =
     ));
     m_buttonBox.climbButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(m_hood::lowerHood, m_hood),
-      new RunCommand(() -> m_shooter.setFlywheelSpeed(0), m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
-        // new WaitUntilCommand(() -> m_hood.isDown() && m_turret.isSafeForClimber()),
+        new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(
           new ClimberStateMachineExecutor(m_climber, m_sensors, ClimberConstants.M_CLIMB_LOW), 
           new ConditionalCommand(
@@ -717,14 +702,6 @@ SwerveControllerCommand swerveControllerCommand =
     SmartDashboard.putData("Shooter:ActivateRestrictive", new InstantCommand(m_shooter::activateRestrictive, m_shooter));
     SmartDashboard.putData("Shooter:Deactivate", new InstantCommand(m_shooter::deactivate, m_shooter));
 
-    SmartDashboard.putData("Hood:Raise", m_hoodUp);
-    SmartDashboard.putData("Hood:Mid", m_hoodMid);
-    SmartDashboard.putData("Hood:Lower", m_hoodDown);
-    SmartDashboard.putData("Hood:Auto", m_hoodAuto);
-    SmartDashboard.putData("Hood:UpRaw", new RunCommand(()->{m_hood.setHoodPercentOut(1);}, m_hood));
-    SmartDashboard.putData("Hood:DownRaw", new RunCommand(()->{m_hood.setHoodPercentOut(-1);}, m_hood));
-    SmartDashboard.putData("Hood:StopRaw", new RunCommand(()->{m_hood.setHoodPercentOut(0);}, m_hood));
-
     SmartDashboard.putData("Rectify Limelight", new CollectLimelightRectification(m_sensors.limelight, m_ros_interface));
 
     // Limelight
@@ -769,13 +746,13 @@ SwerveControllerCommand swerveControllerCommand =
     // m_turret.setDefaultCommand(new TurretTrackCombo(m_turret, m_targeting));
     // m_turret.setDefaultCommand(new TurretLock(m_turret));
 
-    // m_climber.setDefaultCommand(
-    //   new SequentialCommandGroup(
-    //     new RunCommand(m_climber::calibrate, m_climber)
-    //       .withInterrupt(m_climber::isCalibrated)
-    //       .withName("calibrateClimber"),
-    //       new RunCommand(() -> {}, m_climber)
-    //   ));
+    m_climber.setDefaultCommand(
+      new SequentialCommandGroup(
+        new RunCommand(m_climber::calibrate, m_climber)
+          .withInterrupt(m_climber::isCalibrated)
+          .withName("calibrateClimber"),
+          new RunCommand(() -> {}, m_climber)
+      ));
   }
 
   /**
