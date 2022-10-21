@@ -34,7 +34,7 @@ public class GrantDriveCommand extends CommandBase {
     public void execute() {
         double heading = Math.atan2(-m_translationXSupplier.getAsDouble(), m_translationYSupplier.getAsDouble());
         heading -= m_drivetrainSubsystem.getFieldOffset();
-        if (Math.abs(m_translationXSupplier.getAsDouble()) < 0.5 && Math.abs(m_translationYSupplier.getAsDouble()) < 0.5) {
+        if (Math.abs(m_translationXSupplier.getAsDouble()) < 0.25 && Math.abs(m_translationYSupplier.getAsDouble()) < 0.25) {
             heading = m_lastHeading;
         } else {
             m_lastHeading = heading;
