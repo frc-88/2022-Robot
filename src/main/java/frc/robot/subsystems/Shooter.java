@@ -23,7 +23,7 @@ import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
 import frc.robot.util.NumberCache;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -42,7 +42,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private Sensors m_sensors;
   private Turret m_turret;
   private SwerveDrive m_drive;
-  private ThisRobotTable m_ros_interface;
+  private SwerveTable m_ros_interface;
   private DoubleSupplier m_shotProbabilitySupplier;
 
   private static enum ActiveMode {
@@ -97,7 +97,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
 
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, SwerveDrive drive, Turret turret, Feeder feeder, ThisRobotTable ros_interface) {
+  public Shooter(Sensors sensors, SwerveDrive drive, Turret turret, Feeder feeder, SwerveTable ros_interface) {
     m_sensors = sensors;
     m_drive = drive;
     m_turret = turret;

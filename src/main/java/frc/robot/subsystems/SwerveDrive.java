@@ -22,9 +22,10 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.coprocessortable.ChassisInterface;
-import frc.robot.util.coprocessortable.VelocityCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.coprocessor.BoundingBox;
+import frc.robot.util.coprocessor.ChassisInterface;
+import frc.robot.util.coprocessor.VelocityCommand;
 
 import static frc.robot.Constants.*;
 
@@ -36,6 +37,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
          * useful during initial testing of the robot.
          */
         public static final double MAX_VOLTAGE = 12.0;
+
+        public static final int NUM_MODULES = 4;
 
         /**
          * The maximum velocity of the robot in meters per second.
@@ -79,6 +82,9 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         private SwerveModule m_frontRightModule;
         private SwerveModule m_backLeftModule;
         private SwerveModule m_backRightModule;
+        private SwerveModule[] m_modules;
+
+        private BoundingBox m_collisionBoundingBox;
 
         private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
         private SwerveDriveOdometry m_odometry;
@@ -130,8 +136,32 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 BACK_RIGHT_MODULE_STEER_MOTOR,
                                 BACK_RIGHT_MODULE_STEER_ENCODER,
                                 -Math.toRadians(p_backRightOffset.getValue()));
+
+                m_modules = new SwerveModule[] {m_frontLeftModule, m_frontRightModule, m_backLeftModule, m_backRightModule};
+                zeroGyroscope();
+
+                m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
+                m_odometry = new SwerveDriveOdometry(kinematics, getGyroscopeRotation(), m_pose);
+
+                m_collisionBoundingBox = new BoundingBox(
+                        DRIVETRAIN_BOUNDARY_WIDTH / 2.0, 
+                        DRIVETRAIN_BOUNDARY_LENGTH / 2.0,
+                        -DRIVETRAIN_BOUNDARY_WIDTH / 2.0,
+                        -DRIVETRAIN_BOUNDARY_LENGTH / 2.0,
+                        DRIVETRAIN_MIN_COLLISION_INFLATE,
+                        DRIVETRAIN_MAX_COLLISION_INFLATE,
+                        MAX_TRAJ_VELOCITY
+                );
         }
 
+
+        public SwerveModule[] getModules() {
+                return m_modules;
+        }
+
+        public int getNumModules() {
+                return m_modules.length;
+        }
         /**
          * Sets the gyroscope angle to zero. This can be used to set the direction the
          * robot is currently facing to the
@@ -139,6 +169,10 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
          */
         public void zeroGyroscope() {
                 m_navx.zeroYaw();
+        }
+
+        public AHRS getNavX() {
+                return m_navx;
         }
 
         public Rotation2d getGyroscopeRotation() {
@@ -211,6 +245,10 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public void drive(ChassisSpeeds chassisSpeeds) {
                 m_chassisSpeeds = chassisSpeeds;
+        }
+
+        public BoundingBox getBoundingBox() {
+                return m_collisionBoundingBox;
         }
 
         public void setModuleStates(SwerveModuleState[] states) {

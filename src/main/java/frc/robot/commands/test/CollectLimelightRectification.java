@@ -5,17 +5,17 @@
 package frc.robot.commands.test;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.util.sensors.Limelight;
 
 public class CollectLimelightRectification extends CommandBase {
 
   private Limelight m_limelight;
-  private ThisRobotTable m_ros;
+  private SwerveTable m_ros;
 
   private int m_runCounter = 0;
 
-  public CollectLimelightRectification(Limelight limelight, ThisRobotTable ros) {
+  public CollectLimelightRectification(Limelight limelight, SwerveTable ros) {
     m_limelight = limelight;
     m_ros = ros;
   }

@@ -10,19 +10,19 @@ import java.util.Set;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.coprocessor.VelocityCommand;
+import frc.robot.util.coprocessor.CoprocessorBase;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.WaypointMap;
 import frc.robot.util.roswaypoints.WaypointsPlan;
-import frc.robot.util.coprocessortable.CoprocessorTable;
-import frc.robot.util.coprocessortable.VelocityCommand;
 
 public class Navigation extends SubsystemBase {
   private final WaypointMap m_waypointMap;
-  private final CoprocessorTable m_coprocessor;
+  private final CoprocessorBase m_coprocessor;
   public static final String CENTER_WAYPOINT_NAME = "center";
 
   public static enum RosAutoState {
-    SEND_PLAN, WAIT_FOR_RUNNING, WAIT_FOR_FINISHED, FINISHED, FAILED
+    SEND_PLAN, WAIT_FOR_RUNNING, WAIT_FOR_FINISHED, FINISHED
   }
 
   private RosAutoState m_ros_auto_state = RosAutoState.FINISHED;
@@ -34,7 +34,7 @@ public class Navigation extends SubsystemBase {
   private long m_is_finished_timeout = 0;
 
   /** Creates a new NavigationSubsystem. */
-  public Navigation(CoprocessorTable coprocessor) {
+  public Navigation(CoprocessorBase coprocessor) {
     m_coprocessor = coprocessor;
     m_waypointMap = new WaypointMap(m_coprocessor);
   }
@@ -44,7 +44,7 @@ public class Navigation extends SubsystemBase {
 
   }
 
-  public CoprocessorTable getCoprocessorTable() {
+  public CoprocessorBase getCoprocessorBase() {
     return m_coprocessor;
   }
 
@@ -58,7 +58,6 @@ public class Navigation extends SubsystemBase {
   public boolean isConnected() {
     return m_coprocessor.isConnected();
   }
-
   public WaypointsPlan makeEmptyWaypointPlan() {
     return new WaypointsPlan(m_coprocessor);
   }
@@ -88,7 +87,7 @@ public class Navigation extends SubsystemBase {
   }
 
   public void setWaypointsPlan(WaypointsPlan plan, long is_finished_timeout) {
-    if (isRosAutoFinished()) {
+    if (m_ros_auto_state == RosAutoState.FINISHED) {
       m_ros_auto_state = RosAutoState.SEND_PLAN;
       m_plan = plan;
       m_is_finished_timeout = is_finished_timeout;
@@ -99,25 +98,17 @@ public class Navigation extends SubsystemBase {
 
   public void cancelAutoGoal() {
     m_coprocessor.cancelGoal();
-    m_ros_auto_state = RosAutoState.FAILED;
+    m_ros_auto_state = RosAutoState.FINISHED;
   }
 
   public RosAutoState getRosAutoState() {
     return m_ros_auto_state;
   }
 
-  public boolean isRosAutoFinished() {
-    return m_ros_auto_state == RosAutoState.FINISHED || m_ros_auto_state == RosAutoState.FAILED;
-  }
-
-  public boolean isRosAutoFailed() {
-    return m_ros_auto_state == RosAutoState.FINISHED || m_ros_auto_state == RosAutoState.FAILED;
-  }
-
   public VelocityCommand getAutoCommand() {
     VelocityCommand command = null;
     if (Objects.isNull(m_plan)) {
-      m_ros_auto_state = RosAutoState.FAILED;
+      m_ros_auto_state = RosAutoState.FINISHED;
       return command;
     }
     switch (m_ros_auto_state) {
@@ -133,13 +124,13 @@ public class Navigation extends SubsystemBase {
         }
         if (getTime() - m_is_running_timer > m_is_running_timeout) {
           System.out.println("Timeout exceeded while waiting for goal to signal running");
-          m_ros_auto_state = RosAutoState.FAILED;
+          m_ros_auto_state = RosAutoState.FINISHED;
         }
         break;
       case WAIT_FOR_FINISHED:
         if (m_is_finished_timeout > 0 && getTime() - m_is_finished_timer > m_is_finished_timeout) {
           System.out.println("Timeout exceeded while waiting for goal to signal running");
-          m_ros_auto_state = RosAutoState.FAILED;
+          m_ros_auto_state = RosAutoState.FINISHED;
         }
         switch (m_coprocessor.getGoalStatus()) {
           case RUNNING:
@@ -148,9 +139,7 @@ public class Navigation extends SubsystemBase {
           case IDLE:
           case FAILED:
             System.out.println("Coprocessor entered into an aborted state. Cancelling goal.");
-            m_ros_auto_state = RosAutoState.FAILED;
-            break;
-            case FINISHED:
+          case FINISHED:
             m_ros_auto_state = RosAutoState.FINISHED;
             break;
         }
@@ -159,8 +148,6 @@ public class Navigation extends SubsystemBase {
         }
         break;
       case FINISHED:
-        break;
-      case FAILED:
         break;
     }
     return command;

@@ -1,6 +1,8 @@
-package frc.robot.util.coprocessortable;
+package frc.robot.util.coprocessor.networktables;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,13 +16,16 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.util.coprocessor.ChassisInterface;
+import frc.robot.util.coprocessor.GameObject;
+import frc.robot.util.coprocessor.LaserScanObstacleTracker;
+import frc.robot.util.coprocessor.MessageTimer;
+import frc.robot.util.coprocessor.CoprocessorBase;
 import frc.robot.util.roswaypoints.GoalStatus;
 import frc.robot.util.roswaypoints.Waypoint;
 import frc.robot.util.roswaypoints.WaypointMap;
 
-public class CoprocessorTable {
-    protected ChassisInterface chassis;
-
+public class CoprocessorTable extends CoprocessorBase {
     private NetworkTableInstance instance;
     private String address;
     private int port;
@@ -38,39 +43,21 @@ public class CoprocessorTable {
     private NetworkTableEntry odomEntryVt;
     private NetworkTableEntry odomEntryUpdate;
 
-    private NetworkTable imuTable;
-    private NetworkTableEntry imuEntryAccelX;
-    private NetworkTableEntry imuEntryAccelY;
-    private NetworkTableEntry imuEntryAccelZ;
-    private NetworkTableEntry imuEntryGyroX;
-    private NetworkTableEntry imuEntryGyroY;
-    private NetworkTableEntry imuEntryGyroZ;
-    private NetworkTableEntry imuEntryAngleX;
-    private NetworkTableEntry imuEntryAngleY;
-    private NetworkTableEntry imuEntryAngleZ;
-    private NetworkTableEntry imuEntryUpdate;
-
     private NetworkTable cmdVelTable;
     private NetworkTableEntry cmdVelEntryX;
     private NetworkTableEntry cmdVelEntryY;
     private NetworkTableEntry cmdVelEntryT;
     private NetworkTableEntry cmdVelEntryUpdate;
-    private VelocityCommand command = new VelocityCommand();
-    private MessageTimer commandTimer = new MessageTimer(1_000_000);
 
     private NetworkTable globalPoseTable;
     private NetworkTableEntry globalPoseEntryX;
     private NetworkTableEntry globalPoseEntryY;
     private NetworkTableEntry globalPoseEntryT;
     private NetworkTableEntry globalPoseEntryUpdate;
-    private Pose2d globalPose = new Pose2d();
-    private MessageTimer globalPoseTimer = new MessageTimer(1_000_000);
 
     private NetworkTable goalStatusTable;
     private NetworkTableEntry goalStatusEntry;
     private NetworkTableEntry goalStatusUpdateEntry;
-    private MessageTimer goalStatusTimer = new MessageTimer(1_000_000);
-    protected GoalStatus goalStatus = GoalStatus.INVALID;
 
     private NetworkTable odomResetTable;
     private NetworkTableEntry odomResetEntryX;
@@ -94,9 +81,7 @@ public class CoprocessorTable {
     private NetworkTableEntry waypointIntermediateToleranceEntry;
     private NetworkTableEntry waypointIgnoreObstaclesEntry;
     private NetworkTableEntry waypointIgnoreWallsEntry;
-    private NetworkTableEntry waypointInterruptableByEntry;
     private NetworkTableEntry waypointTimeoutEntry;
-    private int numSentGoals = 0;
 
     private NetworkTable planControlTable;
     private NetworkTableEntry execPlanEntry;
@@ -113,13 +98,22 @@ public class CoprocessorTable {
     private NetworkTable jointsTable;
     private NetworkTable jointCommandsTable;
     ArrayList<NetworkTableEntry> jointCommandEntries = new ArrayList<>();
-    ArrayList<Double> jointCommandValues = new ArrayList<>();
-    ArrayList<MessageTimer> jointCommandTimers = new ArrayList<>();
 
     private NetworkTable waypointsTable;
+    protected Map<String, NetworkTableEntry> waypointXEntries = new HashMap<>();
+    protected Map<String, NetworkTableEntry> waypointYEntries = new HashMap<>();
+    protected Map<String, NetworkTableEntry> waypointTEntries = new HashMap<>();
+
+    private NetworkTable objectTable;
+
+    private NetworkTable laserScanTable;
+    private NetworkTableEntry laserScanEntryXs;
+    private NetworkTableEntry laserScanEntryYs;
+    private double[] laserXs = new double[0];
+    private double[] laserYs = new double[0];
 
     public CoprocessorTable(ChassisInterface chassis, String address, int port, double updateInterval) {
-        this.chassis = chassis;
+        super(chassis);
         this.address = address;
         this.port = port;
 
@@ -129,7 +123,7 @@ public class CoprocessorTable {
         this.updateInterval = updateInterval;
 
         rootTable = instance.getTable("ROS");
-
+        
         pingEntry = rootTable.getEntry("ping");
         pingReturnEntry = rootTable.getEntry("ping_return");
 
@@ -145,18 +139,6 @@ public class CoprocessorTable {
         odomEntryVy = odomTable.getEntry("vy");
         odomEntryVt = odomTable.getEntry("vt");
         odomEntryUpdate = odomTable.getEntry("update");
-
-        imuTable = rootTable.getSubTable("imu");
-        imuEntryAccelX = imuTable.getEntry("accel/x");
-        imuEntryAccelY = imuTable.getEntry("accel/y");
-        imuEntryAccelZ = imuTable.getEntry("accel/z");
-        imuEntryGyroX = imuTable.getEntry("gyro/x");
-        imuEntryGyroY = imuTable.getEntry("gyro/y");
-        imuEntryGyroZ = imuTable.getEntry("gyro/z");
-        imuEntryAngleX = imuTable.getEntry("angle/x");
-        imuEntryAngleY = imuTable.getEntry("angle/y");
-        imuEntryAngleZ = imuTable.getEntry("angle/z");
-        imuEntryUpdate = imuTable.getEntry("update");
 
         cmdVelTable = rootTable.getSubTable("cmd_vel");
         cmdVelEntryX = cmdVelTable.getEntry("x");
@@ -208,9 +190,15 @@ public class CoprocessorTable {
         jointCommandsTable = jointsTable.getSubTable("commands");
 
         waypointsTable = rootTable.getSubTable("waypoints");
+        waypointsTable.addSubTableListener((parent, name, table) -> {newWaypointCallback(name);}, true);
 
-        // sendOdometry();
-        sendImu(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        objectTable = rootTable.getSubTable("detections");
+        objectTable.addSubTableListener((parent, name, table) -> {newObjectCallback(name);}, true);
+
+        laserScanTable = rootTable.getSubTable("laser");
+        laserScanEntryXs = laserScanTable.getEntry("xs");
+        laserScanEntryYs = laserScanTable.getEntry("ys");
+        laserScanEntryXs.addListener(this::scanCallback, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     private void cmdVelCallback(EntryNotification notification) {
@@ -266,17 +254,6 @@ public class CoprocessorTable {
             return;
         }
         
-        sendOdometry();
-        
-        sendMatchStatus(
-            DriverStation.isAutonomous(),
-            DriverStation.getMatchTime(),
-            DriverStation.getAlliance()
-        );
-    }
-
-    public void sendOdometry()
-    {
         Pose2d pose = this.chassis.getOdometryPose();
         ChassisSpeeds velocity = this.chassis.getChassisSpeeds();
         odomEntryX.setDouble(pose.getX());
@@ -286,34 +263,56 @@ public class CoprocessorTable {
         odomEntryVy.setDouble(velocity.vyMetersPerSecond);
         odomEntryVt.setDouble(velocity.omegaRadiansPerSecond);
         odomEntryUpdate.setDouble(getTime());
-    }
 
-    public void sendImu(double ax, double ay, double az, double gx, double gy, double gz, double tx, double ty, double tz)
-    {
-        imuEntryAccelX.setDouble(ax);
-        imuEntryAccelY.setDouble(ay);
-        imuEntryAccelZ.setDouble(az);
-        imuEntryGyroX.setDouble(gx);
-        imuEntryGyroY.setDouble(gy);
-        imuEntryGyroZ.setDouble(gz);
-        imuEntryAngleX.setDouble(tx);
-        imuEntryAngleY.setDouble(ty);
-        imuEntryAngleZ.setDouble(tz);
-        imuEntryUpdate.setDouble(getTime());
-    }
-
-    public void sendImu(double ax, double ay, double gz, double tz)
-    {
-        // Only send 2D parameters
-        imuEntryAccelX.setDouble(ax);
-        imuEntryAccelY.setDouble(ay);
-        imuEntryGyroZ.setDouble(gz);
-        imuEntryAngleZ.setDouble(tz);
-        imuEntryUpdate.setDouble(getTime());
+        sendMatchStatus(
+            DriverStation.isAutonomous(),
+            DriverStation.getMatchTime(),
+            DriverStation.getAlliance()
+        );
     }
 
     public NetworkTable getWaypointsTable() {
         return waypointsTable;
+    }
+
+    private void newWaypointCallback(String name) {
+        NetworkTableEntry xEntry = waypointsTable.getSubTable(name).getEntry("x");
+        NetworkTableEntry yEntry = waypointsTable.getSubTable(name).getEntry("y");
+        NetworkTableEntry tEntry = waypointsTable.getSubTable(name).getEntry("theta");
+        waypointXEntries.put(name, xEntry);
+        waypointYEntries.put(name, yEntry);
+        waypointTEntries.put(name, tEntry);
+        xEntry.addListener((notification) -> this.waypointXEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        yEntry.addListener((notification) -> this.waypointYEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        tEntry.addListener((notification) -> this.waypointTEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+    }
+
+    private void waypointXEntryCallback(String waypointName, EntryNotification notification) {
+        Pose2d old_pose = waypoints.get(waypointName);
+        Pose2d new_pose = new Pose2d(
+            waypointXEntries.get(waypointName).getDouble(0.0),
+            old_pose.getY(),
+            old_pose.getRotation()
+        );
+        waypoints.put(waypointName, new_pose);
+    }
+    private void waypointYEntryCallback(String waypointName, EntryNotification notification) {
+        Pose2d old_pose = waypoints.get(waypointName);
+        Pose2d new_pose = new Pose2d(
+            old_pose.getX(),
+            waypointYEntries.get(waypointName).getDouble(0.0),
+            old_pose.getRotation()
+        );
+        waypoints.put(waypointName, new_pose);
+    }
+    private void waypointTEntryCallback(String waypointName, EntryNotification notification) {
+        Pose2d old_pose = waypoints.get(waypointName);
+        Pose2d new_pose = new Pose2d(
+            old_pose.getX(),
+            old_pose.getY(),
+            new Rotation2d(waypointTEntries.get(waypointName).getDouble(0.0))
+        );
+        waypoints.put(waypointName, new_pose);
     }
 
     public void stopComms() {
@@ -336,44 +335,8 @@ public class CoprocessorTable {
         return RobotController.getFPGATime() * 1E-6;
     }
 
-    /***
-     * Getters for data received from coprocessor
-     */
-
-    public boolean isCommandActive() {
-        return commandTimer.isActive();
-    }
-
-    public VelocityCommand getCommand() {
-        return command;
-    }
-
-    public Pose2d getGlobalPose() {
-        return globalPose;
-    }
-
-    public boolean isGlobalPoseActive() {
-        return globalPoseTimer.isActive();
-    }
-
-    public GoalStatus getGoalStatus() {
-        return goalStatus;
-    }
-
-    public boolean isGoalStatusActive() {
-        return goalStatusTimer.isActive();
-    }
-
     public double getUpdateInterval() {
         return updateInterval;
-    }
-
-    public double getJointCommand(int jointIndex) {
-        return jointCommandValues.get(jointIndex);
-    }
-
-    public boolean isJointCommandActive(int jointIndex) {
-        return jointCommandTimers.get(jointIndex).isActive();
     }
 
     /***
@@ -401,7 +364,6 @@ public class CoprocessorTable {
         waypointIntermediateToleranceEntry = waypointSegmentTable.getEntry("intermediate_tolerance");
         waypointIgnoreObstaclesEntry = waypointSegmentTable.getEntry("ignore_obstacles");
         waypointIgnoreWallsEntry = waypointSegmentTable.getEntry("ignore_walls");
-        waypointInterruptableByEntry = waypointSegmentTable.getEntry("interruptable_by");
         waypointTimeoutEntry = waypointSegmentTable.getEntry("timeout");
 
         waypointIsContinuousEntry.setValue(waypoint.is_continuous);
@@ -409,7 +371,6 @@ public class CoprocessorTable {
         waypointIntermediateToleranceEntry.setValue(waypoint.intermediate_tolerance);
         waypointIgnoreObstaclesEntry.setValue(waypoint.ignore_obstacles);
         waypointIgnoreWallsEntry.setValue(waypoint.ignore_walls);
-        waypointInterruptableByEntry.setValue(waypoint.interruptableBy);
         waypointTimeoutEntry.setValue(waypoint.timeout);
     }
 
@@ -429,16 +390,8 @@ public class CoprocessorTable {
     }
 
     public void sendMatchStatus(boolean is_autonomous, double match_timer, DriverStation.Alliance team_color) {
-        String team_name = "";
-        if (team_color == Alliance.Red) {
-            team_name = "red";
-        }
-        else if (team_color == Alliance.Blue) {
-            team_name = "blue";
-        }
-        
         isAutonomousEntry.setBoolean(is_autonomous);
-        teamColorEntry.setString(team_name);
+        teamColorEntry.setString(getTeamName(team_color));
         matchTimerEntry.setDouble(match_timer);
         matchUpdateEntry.setDouble(getTime());
     }
@@ -466,8 +419,50 @@ public class CoprocessorTable {
                 EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
             jointCommandEntries.set(index, jointUpdateEntry);
             jointCommandValues.set(index, 0.0);
-            jointCommandTimers.set(index, new MessageTimer(1_000_000));
+            jointCommandTimers.set(index, new MessageTimer(DEFAULT_MESSAGE_TIMEOUT));
         }
+    }
 
+    private void newObjectCallback(String name) {
+        gameObjects.put(name, new GameObject(name));
+        NetworkTableEntry updateEntry = objectTable.getSubTable(name).getEntry("update");
+        updateEntry.addListener((notification) -> this.objectEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        System.out.println("Registering object " + name);
+    }
+
+    void objectEntryCallback(String objectName, EntryNotification notification)
+    {
+        GameObject gameObject = gameObjects.get(objectName);
+        gameObject.count = (int)objectTable.getSubTable(objectName).getEntry("count").getDouble(0.0);
+        gameObject.set(
+            objectTable.getSubTable(objectName).getEntry("x").getDouble(0.0), 
+            objectTable.getSubTable(objectName).getEntry("y").getDouble(0.0), 
+            objectTable.getSubTable(objectName).getEntry("z").getDouble(0.0)
+        );
+    }
+
+    public String parseObjectName(String objectName) {
+        return objectName.replaceAll("<team>", getTeamName(DriverStation.getAlliance()));
+    }
+
+    public GameObject getNearestGameObject(String objectName)
+    {
+        objectName = parseObjectName(objectName);
+        if (!gameObjects.containsKey(objectName)) {
+            newObjectCallback(objectName);
+        }
+        if (!objectTable.containsSubTable(objectName)) {
+            System.out.println(objectName + " doesn't exist in object table!");
+            return new GameObject("");
+        }
+        return gameObjects.get(objectName);
+    }
+
+    private void scanCallback(EntryNotification notification)
+    {
+        laserXs = laserScanEntryXs.getDoubleArray(laserXs);
+        laserYs = laserScanEntryYs.getDoubleArray(laserYs);
+
+        laserObstacles.setPoints(laserXs, laserYs);
     }
 }
