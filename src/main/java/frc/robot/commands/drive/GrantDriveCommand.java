@@ -14,6 +14,8 @@ public class GrantDriveCommand extends CommandBase {
     private final DoubleSupplier m_translationYSupplier;
     private final DoubleSupplier m_rotationSupplier;
 
+    private double m_lastHeading = 0;
+
     public GrantDriveCommand(SwerveDrive drivetrainSubsystem,
                                DoubleSupplier throttleSupplier,
                                DoubleSupplier translationXSupplier,
@@ -31,6 +33,15 @@ public class GrantDriveCommand extends CommandBase {
     @Override
     public void execute() {
         double heading = Math.atan2(-m_translationXSupplier.getAsDouble(), m_translationYSupplier.getAsDouble());
+        if (Math.abs(m_translationXSupplier.getAsDouble()) < 0.5 && Math.abs(m_translationYSupplier.getAsDouble()) < 0.5) {
+            heading = m_lastHeading;
+        } else {
+            m_lastHeading = heading;
+        }
+        double throttle = m_throttleSupplier.getAsDouble();
+        if (Math.abs(throttle) < 0.001) {
+            throttle = 0.001;
+        }
         double vx = m_throttleSupplier.getAsDouble() * Math.cos(heading);
         double vy = m_throttleSupplier.getAsDouble() * Math.sin(heading);
 
