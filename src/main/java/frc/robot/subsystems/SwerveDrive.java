@@ -81,6 +81,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         private SwerveModule m_backRightModule;
 
         private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+        private double m_fieldOffset = 0.0;
         private SwerveDriveOdometry m_odometry;
         private Pose2d m_pose;
 
@@ -159,6 +160,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public void resetOdometry(Pose2d startPose, Rotation2d startGyro) {
                 m_odometry.resetPosition(startPose, startGyro);
+                m_fieldOffset = startPose.getRotation().getDegrees();
         }
 
         public void updateOdometry() {
@@ -195,6 +197,10 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public void resetPosition(Pose2d pose) {
                 resetOdometry(pose, getGyroscopeRotation());
+        }
+
+        public double getFieldOffset() {
+                return m_fieldOffset;
         }
 
         public void stop() {
@@ -237,5 +243,6 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
                 SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
                 SmartDashboard.putNumber("odomTheta", m_pose.getRotation().getDegrees());
+                SmartDashboard.putNumber("field offset", m_fieldOffset);
         }
 }
