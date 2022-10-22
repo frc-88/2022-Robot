@@ -180,10 +180,11 @@ public class RobotContainer {
         m_intake.rollerIntake();
       }, m_intake);
 
-  private CommandBase m_outgestCargo = new RunCommand(() -> {
+  private CommandBase m_outgestCargo = new ParallelCommandGroup(new RunCommand(() -> {
         m_intake.deploy();
         m_intake.rollerOutgest();
-      }, m_intake);
+      }, m_intake),
+      new RunCommand(m_feeder::outgest));
 
   private CommandBase m_stowIntake = new RunCommand(() -> {
         m_intake.stow();
