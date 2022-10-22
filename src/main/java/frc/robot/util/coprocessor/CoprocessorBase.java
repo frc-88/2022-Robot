@@ -98,7 +98,13 @@ public class CoprocessorBase {
     }
 
     public Pose2d getWaypoint(String waypointName) {
+        System.out.println("waypoints.keySet(): " + waypoints.keySet());
         return waypoints.get(waypointName);
+    }
+
+    public void putWaypoint(String waypointName, Pose2d pose) {
+        System.out.println("putting waypoint: " + waypointName + ", " + pose);
+        waypoints.put(waypointName, pose);
     }
 
     public boolean doesWaypointExist(String waypointName) {

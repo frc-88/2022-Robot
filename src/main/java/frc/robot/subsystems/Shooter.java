@@ -74,12 +74,12 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     new ValueInterpolator.ValuePair(90.29, 1350, 19),
     new ValueInterpolator.ValuePair(108.77, 1375, 24),
     new ValueInterpolator.ValuePair(127.7, 1460, 24),
-    new ValueInterpolator.ValuePair(156.5, 1575, 28.1),
-    new ValueInterpolator.ValuePair(173, 1675, 31.2),
-    new ValueInterpolator.ValuePair(193.5, 1735, 33.9),
-    new ValueInterpolator.ValuePair(218.7, 1775, 33.6),
-    new ValueInterpolator.ValuePair(260.47, 1825, 32.3),
-    new ValueInterpolator.ValuePair(284.6, 1925, 36.2));
+    new ValueInterpolator.ValuePair(156.5, 1560, 28.1),
+    new ValueInterpolator.ValuePair(173, 1645, 31.2),
+    new ValueInterpolator.ValuePair(193.5, 1705, 33.9),
+    new ValueInterpolator.ValuePair(218.7, 1740, 33.6),
+    new ValueInterpolator.ValuePair(260.47, 1780, 32.3),
+    new ValueInterpolator.ValuePair(284.6, 1880, 36.2));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,

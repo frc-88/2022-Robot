@@ -282,37 +282,40 @@ public class CoprocessorTable extends CoprocessorBase {
         waypointXEntries.put(name, xEntry);
         waypointYEntries.put(name, yEntry);
         waypointTEntries.put(name, tEntry);
-        xEntry.addListener((notification) -> this.waypointXEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
-        yEntry.addListener((notification) -> this.waypointYEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
-        tEntry.addListener((notification) -> this.waypointTEntryCallback(name, notification), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        this.waypointXEntryCallback(name);
+        this.waypointYEntryCallback(name);
+        this.waypointTEntryCallback(name);
+        xEntry.addListener((notification) -> this.waypointXEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        yEntry.addListener((notification) -> this.waypointYEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        tEntry.addListener((notification) -> this.waypointTEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
-    private void waypointXEntryCallback(String waypointName, EntryNotification notification) {
+    private void waypointXEntryCallback(String waypointName) {
         Pose2d old_pose = waypoints.get(waypointName);
         Pose2d new_pose = new Pose2d(
             waypointXEntries.get(waypointName).getDouble(0.0),
             old_pose.getY(),
             old_pose.getRotation()
         );
-        waypoints.put(waypointName, new_pose);
+        putWaypoint(waypointName, new_pose);
     }
-    private void waypointYEntryCallback(String waypointName, EntryNotification notification) {
+    private void waypointYEntryCallback(String waypointName) {
         Pose2d old_pose = waypoints.get(waypointName);
         Pose2d new_pose = new Pose2d(
             old_pose.getX(),
             waypointYEntries.get(waypointName).getDouble(0.0),
             old_pose.getRotation()
         );
-        waypoints.put(waypointName, new_pose);
+        putWaypoint(waypointName, new_pose);
     }
-    private void waypointTEntryCallback(String waypointName, EntryNotification notification) {
+    private void waypointTEntryCallback(String waypointName) {
         Pose2d old_pose = waypoints.get(waypointName);
         Pose2d new_pose = new Pose2d(
             old_pose.getX(),
             old_pose.getY(),
             new Rotation2d(waypointTEntries.get(waypointName).getDouble(0.0))
         );
-        waypoints.put(waypointName, new_pose);
+        putWaypoint(waypointName, new_pose);
     }
 
     public void stopComms() {

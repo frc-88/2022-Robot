@@ -1,1 +1,5 @@
-{}
+{
+  "NetworkTables Settings": {
+    "mode": "Client"
+  }
+}
