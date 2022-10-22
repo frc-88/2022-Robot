@@ -14,6 +14,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.VideoException;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -68,7 +69,11 @@ public class Sensors extends SubsystemBase {
    * Creates a new Sensors subsystem
    */
   public Sensors() {
+    try {
     CameraServer.startAutomaticCapture();
+    } catch (VideoException e) {
+      System.out.println("Failed to start video! " + e);
+    }
     setCameraTilterAngle(Constants.CAMERA_TILT_DOWN_ANGLE);
 
     SmartDashboard.putBoolean("Virtual Coast Button", false);

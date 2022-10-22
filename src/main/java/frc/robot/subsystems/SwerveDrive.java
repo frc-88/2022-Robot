@@ -137,7 +137,6 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                                 BACK_RIGHT_MODULE_STEER_MOTOR,
                                 BACK_RIGHT_MODULE_STEER_ENCODER,
                                 -Math.toRadians(p_backRightOffset.getValue()));
-
                 m_modules = new SwerveModule[] {m_frontLeftModule, m_frontRightModule, m_backLeftModule, m_backRightModule};
                 zeroGyroscope();
 
