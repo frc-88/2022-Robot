@@ -43,8 +43,8 @@ public class GrantDriveCommand extends CommandBase {
         if (Math.abs(throttle) < 0.001) {
             throttle = 0.001;
         }
-        double vx = m_throttleSupplier.getAsDouble() * Math.cos(heading);
-        double vy = m_throttleSupplier.getAsDouble() * Math.sin(heading);
+        double vx = throttle * Math.cos(heading);
+        double vy = throttle * Math.sin(heading);
 
         m_drivetrainSubsystem.drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy,
