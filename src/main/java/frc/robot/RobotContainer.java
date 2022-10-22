@@ -109,8 +109,8 @@ public class RobotContainer {
   private final XboxController m_testController2 = new XboxController(Constants.TEST_CONTROLLER_2_ID);
   
   private DoublePreferenceConstant p_shooterAutoSpeed = new DoublePreferenceConstant("Shooter Auto Speed", 0.0);
-  private final SlewRateLimiter filterX = new SlewRateLimiter(4.0);
-  private final SlewRateLimiter filterY = new SlewRateLimiter(4.0);
+  private final SlewRateLimiter filterX = new SlewRateLimiter(3.0);
+  private final SlewRateLimiter filterY = new SlewRateLimiter(3.0);
 
   private boolean m_hasConfiguredDashboardButtons = false;
 
@@ -292,6 +292,8 @@ SwerveControllerCommand swerveControllerCommand =
         new WaitCommand(0.5),
         new ShootAll(m_shooter).withTimeout(4.0),
         new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_0.wpilib.json"), false),
+        new WaitCommand(0.2),
+        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_final.wpilib.json"), false),
         new ShootAll(m_shooter)
       )
     );
