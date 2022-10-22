@@ -1,5 +1,12 @@
 {
   "NetworkTables Settings": {
-    "mode": "Client"
+    "dsClient": false,
+    "mode": "Client",
+    "serverTeam": "10.0.88.44:5800"
+  },
+  "ROS": {
+    "status": {
+      "open": true
+    }
   }
 }

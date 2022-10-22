@@ -92,7 +92,7 @@ public class RobotContainer {
   private final Feeder m_feeder = new Feeder();
   private final SwerveTable m_ros_interface = new SwerveTable(
     m_drive,
-    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
+    Constants.COPROCESSOR_ADDRESS,
     Constants.COPROCESSOR_PORT,
     Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors

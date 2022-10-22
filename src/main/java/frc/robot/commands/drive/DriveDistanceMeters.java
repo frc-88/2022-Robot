@@ -18,7 +18,7 @@ public class DriveDistanceMeters extends CommandBase {
     // Use addRequirements() here to declare subsystem dependencies.
     m_drive = drive;
     this.distanceMeters = distanceMeters;
-    this.translationVelocityMetersPerSecond = translationVelocityMetersPerSecond;
+    this.translationVelocityMetersPerSecond = Math.abs(translationVelocityMetersPerSecond);
     addRequirements(drive);
   }
 
@@ -32,6 +32,9 @@ public class DriveDistanceMeters extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    if (distanceMeters < 0.0 ) {
+      translationVelocityMetersPerSecond *= -1.0;
+    }
     m_drive.drive(translationVelocityMetersPerSecond, 0.0, 0.0);
   }
 

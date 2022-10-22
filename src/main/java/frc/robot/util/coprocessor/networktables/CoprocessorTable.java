@@ -282,9 +282,6 @@ public class CoprocessorTable extends CoprocessorBase {
         waypointXEntries.put(name, xEntry);
         waypointYEntries.put(name, yEntry);
         waypointTEntries.put(name, tEntry);
-        this.waypointXEntryCallback(name);
-        this.waypointYEntryCallback(name);
-        this.waypointTEntryCallback(name);
         xEntry.addListener((notification) -> this.waypointXEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
         yEntry.addListener((notification) -> this.waypointYEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
         tEntry.addListener((notification) -> this.waypointTEntryCallback(name), EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
@@ -292,6 +289,7 @@ public class CoprocessorTable extends CoprocessorBase {
 
     private void waypointXEntryCallback(String waypointName) {
         Pose2d old_pose = waypoints.get(waypointName);
+        System.out.println("waypointXEntryCallback: " + old_pose);
         Pose2d new_pose = new Pose2d(
             waypointXEntries.get(waypointName).getDouble(0.0),
             old_pose.getY(),
