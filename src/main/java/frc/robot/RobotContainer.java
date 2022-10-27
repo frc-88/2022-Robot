@@ -448,7 +448,6 @@ SwerveControllerCommand swerveControllerCommand =
   }
 
   private void configureButtonBox() {
-    new Button(m_driverController::getGyroReset).whenPressed(new InstantCommand(m_drive::zeroGyroscope));
 
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
@@ -458,6 +457,8 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.autoShootSwitch.whenPressed(new InstantCommand(m_shooter::activateRestrictive));
     m_buttonBox.autoShootSwitch.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
 
+    m_driverController.getShootButton().whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    m_driverController.getShootButton().whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
 
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenPressed(m_startFlywheel);

@@ -31,7 +31,7 @@ public class Feeder extends SubsystemBase {
         m_chamber.configFactoryDefault();
 
         m_chamber.configOpenloopRamp(0.1);
-        m_centralizer.configOpenloopRamp(0.1);
+        m_centralizer.configOpenloopRamp(0.07);
 
         p_centralizerIntakeSpeed = new DoublePreferenceConstant("Centralizer Intake Speed", .75);
         p_centralizerOutgestSpeed = new DoublePreferenceConstant("Centralizer Outgest Speed", 1);
