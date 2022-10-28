@@ -197,7 +197,7 @@ public class RobotContainer {
   /////////////////////////////////////
 
   private CommandBase m_startFlywheel = new ShooterTrackCombo(m_shooter, m_targeting);
-  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelSpeed(0.0);}, m_shooter);
+  private CommandBase m_stopFlywheel = new InstantCommand(() -> {m_shooter.setFlywheelRaw(0);}, m_shooter);
   private CommandBase m_flywheelFenderShot = new RunCommand(m_shooter::setFlywheelFenderShot, m_shooter);
 
   private boolean m_hoodCalibrated = false;
@@ -516,7 +516,7 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.prepClimberButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelRaw(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
         new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(
@@ -533,7 +533,7 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.raiseClimberButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(() -> {m_turret.setDefaultFacing(0.);}),
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelRaw(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
         new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(
@@ -553,7 +553,7 @@ SwerveControllerCommand swerveControllerCommand =
     ));
     m_buttonBox.climbButton.whenPressed(new ParallelCommandGroup(
       new InstantCommand(m_turret::stopTracking),
-      new RunCommand(() -> { m_shooter.setFlywheelSpeed(0); m_shooter.hoodDown(); }, m_shooter),
+      new RunCommand(() -> { m_shooter.setFlywheelRaw(0); m_shooter.hoodDown(); }, m_shooter),
       new SequentialCommandGroup(
         new WaitUntilCommand(m_turret::isSafeForClimber),
         new ConditionalCommand(

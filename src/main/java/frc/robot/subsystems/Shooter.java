@@ -14,6 +14,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -57,7 +58,8 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private boolean m_wantedCargo = false;
   private Timer m_restrictiveCheckTimer = new Timer();
   private Timer m_rampDownTimer = new Timer();
-  private static final double RAMP_DOWN_TIME = 0.75;
+  private static final double RAMP_DOWN_TIME = 1.5;
+  private SlewRateLimiter m_flywheelLimiter = new SlewRateLimiter(5000);
 
   private double m_limelightDistance = 0;
   private double m_limelightAngle = 0;
@@ -158,10 +160,11 @@ public class Shooter extends SubsystemBase implements CargoTarget {
 
 
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
+    m_flywheel.set(TalonFXControlMode.Velocity, m_flywheelLimiter.calculate(convertRPMsToMotorTicks(speed)));
   }
 
   public void setFlywheelRaw(double percentOutput) {
+    m_flywheelLimiter.reset(0);
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
@@ -172,20 +175,20 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     }
 
     if (m_rampDownTimer.hasElapsed(RAMP_DOWN_TIME)) {
-      m_flywheel.set(TalonFXControlMode.PercentOutput, 0);
+      setFlywheelRaw(0);
       setHoodMotionMagic(getHoodPosition());
     } else if (!m_turret.isTracking()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
+      setFlywheelSpeed(p_flywheelIdle.getValue());
       setHoodMotionMagic(HOOD_DOWN);
     } else {
       double[] values = calcSpeedFromDistance(target_dist);
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(values[0]));
+      setFlywheelSpeed(values[0]);
       setHoodMotionMagic(values[1]);
     }
   }
 
   public void setFlywheelFenderShot() {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelIdle.getValue()));
+    setFlywheelSpeed(p_flywheelIdle.getValue());
     setHoodMotionMagic(HOOD_DOWN);
   }
 

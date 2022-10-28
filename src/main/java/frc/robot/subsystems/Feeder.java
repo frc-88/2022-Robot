@@ -59,7 +59,7 @@ public class Feeder extends SubsystemBase {
     }
 
     public void intake() {
-        enableLimits();
+        disableLimits();
         m_chamber.set(TalonFXControlMode.PercentOutput, 0);
         if (!hasBallInChamber() || !hasBallInCentralizer()) {
             m_centralizer.set(TalonFXControlMode.PercentOutput, p_centralizerIntakeSpeed.getValue());
