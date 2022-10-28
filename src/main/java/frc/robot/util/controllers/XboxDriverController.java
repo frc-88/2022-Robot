@@ -1,5 +1,6 @@
 package frc.robot.util.controllers;
 
+import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.Constants;
 import frc.robot.util.drive.DriveUtils;
 
@@ -28,5 +29,11 @@ public class XboxDriverController extends XboxController implements DriverContro
     public boolean getGyroReset() {
         return buttonBack.get();
     }
+
+    @Override
+    public Button getShootButton() {
+        return buttonLeftBumper;
+    }
+    
     
 }

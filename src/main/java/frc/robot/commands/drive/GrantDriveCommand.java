@@ -33,7 +33,8 @@ public class GrantDriveCommand extends CommandBase {
     @Override
     public void execute() {
         double heading = Math.atan2(-m_translationXSupplier.getAsDouble(), m_translationYSupplier.getAsDouble());
-        heading -= m_drivetrainSubsystem.getFieldOffset();
+        heading -= Math.toRadians(m_drivetrainSubsystem.getFieldOffset());
+    
         if (Math.abs(m_translationXSupplier.getAsDouble()) < 0.25 && Math.abs(m_translationYSupplier.getAsDouble()) < 0.25) {
             heading = m_lastHeading;
         } else {

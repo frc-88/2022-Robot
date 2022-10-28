@@ -1,5 +1,7 @@
 package frc.robot.util.controllers;
 
+import edu.wpi.first.wpilibj2.command.button.Button;
+
 public class FrskyDriverController extends FrskyController implements DriverController{
 
     public FrskyDriverController(int port) {
@@ -24,6 +26,11 @@ public class FrskyDriverController extends FrskyController implements DriverCont
     @Override
     public boolean getGyroReset() {
         return isTopRightSwitchOn();
+    }
+
+    @Override
+    public Button getShootButton() {
+        return topLeftSwitch;
     }
     
 }

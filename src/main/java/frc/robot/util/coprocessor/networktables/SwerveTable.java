@@ -282,14 +282,15 @@ public class SwerveTable extends CoprocessorTable {
         );
 
         // hood
+        setHoodState(0.0);
+
         SmartDashboard.putNumber("ROS Ping", NetworkTableInstance.getDefault().getEntry("/ROS/status/tunnel/ping").getDouble(0.0));
-        // setHoodState(this.hood.isUp());
     }
 
-    // private void setHoodState(boolean state) {
-    //     hoodStateEntry.setBoolean(state);
-    //     hoodStateUpdate.setDouble(getTime());
-    // }
+    private void setHoodState(double state) {
+        hoodStateEntry.setDouble(state);
+        hoodStateUpdate.setDouble(getTime());
+    }
 
     public void resetPoseToLimelight() {
         resetPoseToLimelightUpdate.setDouble(getTime());

@@ -37,6 +37,7 @@ public class WaypointMap {
 
     public Pose2d getWaypoint(String waypointName) {
         waypointName = parseWaypointName(waypointName);
+        System.out.println("Getting waypoint " + waypointName);
         if (doesWaypointExist(waypointName)) {
             return m_coprocessor.getWaypoint(waypointName);
         }

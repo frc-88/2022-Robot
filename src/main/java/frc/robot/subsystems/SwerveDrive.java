@@ -46,9 +46,12 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
          * This is a measure of how fast the robot should be able to drive in a straight
          * line. The calculated theoritical maximum is used below.
          */
-        public static final double MAX_VELOCITY_METERS_PER_SECOND = 6380.0 / 60.0 *
+        
+        /*public static final double MAX_VELOCITY_METERS_PER_SECOND = 6380.0 / 60.0 *
                         SdsModuleConfigurations.MK4I_L2.getDriveReduction() *
-                        SdsModuleConfigurations.MK4I_L2.getWheelDiameter() * Math.PI;
+                        SdsModuleConfigurations.MK4I_L2.getWheelDiameter() * Math.PI;*/
+        
+         public static final double MAX_VELOCITY_METERS_PER_SECOND = 0.9;
 
         /**
          * The maximum angular velocity of the robot in radians per second.

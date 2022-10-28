@@ -58,6 +58,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
+import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 // import frc.robot.commands.autos.AutoFollowTrajectory;
 // import frc.robot.commands.autos.DriveToCargo;
 // import frc.robot.commands.autos.DriveToWaypoint;
@@ -71,6 +72,7 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
+import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.drive.FollowTrajectory;
 import frc.robot.commands.drive.GrantDriveCommand;
 // import frc.robot.commands.drive.DriveDegrees;
@@ -90,7 +92,7 @@ public class RobotContainer {
   private final Feeder m_feeder = new Feeder();
   private final SwerveTable m_ros_interface = new SwerveTable(
     m_drive,
-    Robot.isSimulation() ? Constants.COPROCESSOR_ADDRESS_SIMULATED : Constants.COPROCESSOR_ADDRESS,
+    Constants.COPROCESSOR_ADDRESS,
     Constants.COPROCESSOR_PORT,
     Constants.COPROCESSOR_TABLE_UPDATE_DELAY,
     m_climber.outerArm, m_climber.innerArm, m_intake, m_turret, m_sensors
@@ -294,7 +296,8 @@ SwerveControllerCommand swerveControllerCommand =
         new ShootAll(m_shooter).withTimeout(4.0),
         new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_0.wpilib.json"), false),
         new WaitCommand(0.2),
-        new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_final.wpilib.json"), false),
+        new DriveDistanceMeters(m_drive, -1.5, 2.0),
+        // new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_final.wpilib.json"), false),
         new ShootAll(m_shooter)
       )
     );
@@ -351,26 +354,26 @@ SwerveControllerCommand swerveControllerCommand =
     if (m_buttonBox.isShootButtonPressed() && !m_autoCommandName.equals("6 Cargo")) {
       m_autoCommand = m_autoSixBall;
       m_autoCommandName = "6 Cargo";
-      // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_5").schedule();
 
     }
 
     if (m_buttonBox.isChamberUpButtonPressed() && !m_autoCommandName.equals("3 Cargo")) {
       m_autoCommand = m_autoThreeBall;
       m_autoCommandName = "3 Cargo";
-      // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
     if (m_buttonBox.isChamberDownButtonPressed() && !m_autoCommandName.equals("2 Cargo")) {
       m_autoCommand = m_autoTwoBall;
       m_autoCommandName = "2 Cargo";
-      // new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "<team>_start_2").schedule();
     }
 
     if (m_buttonBox.isCentralizerUpButtonPressed() && !m_autoCommandName.equals("Wait 1")) {
       m_autoCommand = new WaitCommand(1.0);
       m_autoCommandName = "Wait 1";
-      // new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
+      new SetGlobalPoseToWaypoint(m_nav, "center").schedule();
     }
 
     // if (m_buttonBox.isDefaultTurretButtonPressed() && !m_autoCommandName.equals("1 Ball Left")) {
@@ -445,7 +448,6 @@ SwerveControllerCommand swerveControllerCommand =
   }
 
   private void configureButtonBox() {
-    new Button(m_driverController::getGyroReset).whenPressed(new InstantCommand(m_drive::zeroGyroscope));
 
     m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
@@ -455,6 +457,8 @@ SwerveControllerCommand swerveControllerCommand =
     m_buttonBox.autoShootSwitch.whenPressed(new InstantCommand(m_shooter::activateRestrictive));
     m_buttonBox.autoShootSwitch.whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
 
+    m_driverController.getShootButton().whenPressed(new InstantCommand(m_shooter::activatePermissive));
+    m_driverController.getShootButton().whenReleased(new ConditionalCommand(new InstantCommand(m_shooter::activatePermissive), new InstantCommand(m_shooter::deactivate), m_buttonBox::isShootButtonPressed));
 
     m_buttonBox.turretTrackSwitch.whenPressed(new InstantCommand(m_turret::startTracking));
     m_buttonBox.turretTrackSwitch.whenPressed(m_startFlywheel);
