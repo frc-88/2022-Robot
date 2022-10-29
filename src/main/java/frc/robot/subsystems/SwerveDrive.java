@@ -26,6 +26,7 @@ import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.coprocessor.BoundingBox;
 import frc.robot.util.coprocessor.ChassisInterface;
 import frc.robot.util.coprocessor.VelocityCommand;
+import frc.robot.util.drive.DriveUtils;
 
 import static frc.robot.Constants.*;
 
@@ -93,6 +94,10 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         private double m_fieldOffset = 0.0;
         private SwerveDriveOdometry m_odometry;
         private Pose2d m_pose;
+        private Pose2d m_traj_pose;
+
+        private Pose2d m_traj_reset_pose;
+        private Pose2d m_traj_offset;
 
         public SwerveDrive(AHRS navx) {
                 m_navx = navx;
@@ -101,6 +106,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 zeroGyroscope();
 
                 m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
+                m_traj_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
                 m_odometry = new SwerveDriveOdometry(kinematics, getGyroscopeRotation(), m_pose);
                 
                 // p_frontLeftOffset.addChangeHandler((Double unused) -> configureModules());
@@ -145,6 +151,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 zeroGyroscope();
 
                 m_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
+                m_traj_pose = new Pose2d(Units.feetToMeters(0.0), Units.feetToMeters(0.0), new Rotation2d());
                 m_odometry = new SwerveDriveOdometry(kinematics, getGyroscopeRotation(), m_pose);
 
                 m_collisionBoundingBox = new BoundingBox(
@@ -200,9 +207,26 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 m_fieldOffset = startPose.getRotation().getDegrees();
         }
 
+
+        public void resetTrajectoryPose(Pose2d startPose) {
+                m_traj_reset_pose = m_odometry.getPoseMeters();
+                m_traj_offset = startPose;
+                m_fieldOffset = startPose.getRotation().getDegrees();
+        }
+    
         public void updateOdometry() {
                 m_pose = m_odometry.update(getGyroscopeRotation(),
-                                kinematics.toSwerveModuleStates(getChassisSpeeds()));
+                                        kinematics.toSwerveModuleStates(getChassisSpeeds()));
+                if (m_traj_reset_pose == null || m_traj_offset == null) {
+                        m_traj_pose = m_pose;
+                } else {
+                        Pose2d reset_relative_pose = m_pose.relativeTo(m_traj_reset_pose);
+                        m_traj_pose = DriveUtils.relativeToReverse(reset_relative_pose, m_traj_offset);
+                }
+        }
+
+        public Pose2d getTrajectoryOdometryPose() {
+                return m_traj_pose;
         }
 
         public Pose2d getOdometryPose() {

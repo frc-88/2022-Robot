@@ -56,6 +56,7 @@ import frc.robot.util.controllers.ButtonBox.ClimbBar;
 import frc.robot.util.controllers.ButtonBox.ClimbDirection;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.util.coprocessor.networktables.SwerveTable;
+import frc.robot.commands.autos.ChaseObject;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
@@ -72,7 +73,6 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
-import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.drive.FollowTrajectory;
 import frc.robot.commands.drive.GrantDriveCommand;
 // import frc.robot.commands.drive.DriveDegrees;
@@ -255,7 +255,11 @@ SwerveControllerCommand swerveControllerCommand =
       new WaitCommand(0.5),
       new ShootAll(m_shooter),
       new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveTwo.wpilib.json"), true),
-      new WaitCommand(0.5)
+      new WaitCommand(0.5),
+      new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
+      new ShootAll(m_shooter),
+      new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
+      new ShootAll(m_shooter)
     )
   );
 
@@ -272,6 +276,10 @@ SwerveControllerCommand swerveControllerCommand =
       new ShootAll(m_shooter),
       new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveThree.wpilib.json"), true),
       new WaitCommand(0.5),
+      new ShootAll(m_shooter),
+      new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
+      new ShootAll(m_shooter),
+      new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
       new ShootAll(m_shooter)
     )
   );
@@ -296,8 +304,11 @@ SwerveControllerCommand swerveControllerCommand =
         new ShootAll(m_shooter).withTimeout(4.0),
         new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_0.wpilib.json"), false),
         new WaitCommand(0.2),
-        new DriveDistanceMeters(m_drive, -1.5, 2.0),
         // new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_final.wpilib.json"), false),
+        new ShootAll(m_shooter),
+        new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
+        new ShootAll(m_shooter),
+        new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),
         new ShootAll(m_shooter)
       )
     );

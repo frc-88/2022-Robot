@@ -47,8 +47,8 @@ public class FollowTrajectory extends CommandBase {
     switch (m_state) {
       case 0: // Zero drive
         if (m_resetOdometry) {
-          // m_drive.resetTrajectoryPose(m_trajectory.getInitialPose());
-          m_drive.resetOdometry(m_trajectory.getInitialPose(), m_drive.getGyroscopeRotation());
+          m_drive.resetTrajectoryPose(m_trajectory.getInitialPose());
+          // m_drive.resetOdometry(m_trajectory.getInitialPose(), m_drive.getGyroscopeRotation());
         }
         m_state++;
         break;
@@ -60,7 +60,8 @@ public class FollowTrajectory extends CommandBase {
         if (m_timer.get() < m_duration) {
           double now = m_timer.get();
           Trajectory.State goal = m_trajectory.sample(now);
-          targetSpeeds = m_controller.calculate(m_drive.getOdometryPose(), goal);
+          targetSpeeds = m_controller.calculate(m_drive.getTrajectoryOdometryPose(), goal);
+          // targetSpeeds = m_controller.calculate(m_drive.getOdometryPose(), goal);
         } else {
           m_state++;
         }
