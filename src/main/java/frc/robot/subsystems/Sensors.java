@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.SPI;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
+import frc.robot.util.BatteryParamEstimator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.sensors.Limelight;
 
@@ -46,7 +48,9 @@ public class Sensors extends SubsystemBase {
 
   // private final ColorSensorV3 m_colorSensor = new ColorSensorV3(Port.kOnboard);
   private final PneumaticHub m_pneumaticHub = new PneumaticHub();
+  private final PowerDistribution m_pdb = new PowerDistribution();
   private final Servo m_cameraTilter = new Servo(Constants.CAMERA_TILTER_SERVO_CHANNEL);
+  private final BatteryParamEstimator m_batteryEstimator = new BatteryParamEstimator(500);
 
   private DoublePreferenceConstant p_colorRedThreshold = new DoublePreferenceConstant("Color Red Threshold", 0.0);
   private DoublePreferenceConstant p_colorBlueThreshold = new DoublePreferenceConstant("Color Blue Threshold", 0.0);
@@ -199,6 +203,12 @@ public class Sensors extends SubsystemBase {
     SmartDashboard.putNumber("Limelight Turret Offset", limelight.getTurretOffset());
     SmartDashboard.putBoolean("Limelight Has Target?", limelight.hasTarget());
     SmartDashboard.putBoolean("Limelight On Target?", limelight.onTarget());
+
+    // Battery estimator
+    m_batteryEstimator.updateEstimate(m_pdb.getVoltage(), m_pdb.getTotalCurrent());
+    SmartDashboard.putNumber("Battery ESR", m_batteryEstimator.getEstESR());
+    SmartDashboard.putNumber("Battery VOC", m_batteryEstimator.getEstVoc());
+    SmartDashboard.putNumber("Battery Energy Used", m_pdb.getTotalEnergy());
 
     // Color Sensor data
     // Color detectedColor = m_colorSensor.getColor();
