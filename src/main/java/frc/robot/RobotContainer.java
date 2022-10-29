@@ -73,7 +73,6 @@ import frc.robot.commands.climber.ClimberMotionMagicJoystick;
 import frc.robot.commands.climber.ClimberStateMachineExecutor;
 import frc.robot.commands.climber.ClimberTestMotionMagic;
 import frc.robot.commands.climber.ManualModeClimber;
-import frc.robot.commands.drive.DriveDistanceMeters;
 import frc.robot.commands.drive.FollowTrajectory;
 import frc.robot.commands.drive.GrantDriveCommand;
 // import frc.robot.commands.drive.DriveDegrees;
@@ -305,7 +304,6 @@ SwerveControllerCommand swerveControllerCommand =
         new ShootAll(m_shooter).withTimeout(4.0),
         new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_0.wpilib.json"), false),
         new WaitCommand(0.2),
-        new DriveDistanceMeters(m_drive, -1.5, 2.0),
         // new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("SwerveSix_final.wpilib.json"), false),
         new ShootAll(m_shooter),
         new ChaseObject(m_drive, m_ros_interface, "cargo_<team>"),

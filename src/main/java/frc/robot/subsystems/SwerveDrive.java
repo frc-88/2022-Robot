@@ -211,6 +211,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         public void resetTrajectoryPose(Pose2d startPose) {
                 m_traj_reset_pose = m_odometry.getPoseMeters();
                 m_traj_offset = startPose;
+                m_fieldOffset = startPose.getRotation().getDegrees();
         }
     
         public void updateOdometry() {

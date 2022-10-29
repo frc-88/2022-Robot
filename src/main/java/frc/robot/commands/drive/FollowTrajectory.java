@@ -60,7 +60,8 @@ public class FollowTrajectory extends CommandBase {
         if (m_timer.get() < m_duration) {
           double now = m_timer.get();
           Trajectory.State goal = m_trajectory.sample(now);
-          targetSpeeds = m_controller.calculate(m_drive.getOdometryPose(), goal);
+          targetSpeeds = m_controller.calculate(m_drive.getTrajectoryOdometryPose(), goal);
+          // targetSpeeds = m_controller.calculate(m_drive.getOdometryPose(), goal);
         } else {
           m_state++;
         }
