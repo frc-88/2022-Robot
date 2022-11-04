@@ -305,7 +305,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         }
         
         private boolean isFirstPath = false;
-        private PathPlannerTrajectory testTrajectory = RapidReactTrajectories.generateTrajectory("testpath.path");
+        private PathPlannerTrajectory testTrajectory = RapidReactTrajectories.generateTrajectory("testpath");
 
         public SequentialCommandGroup swerveControllerCommand =
         new SequentialCommandGroup(
