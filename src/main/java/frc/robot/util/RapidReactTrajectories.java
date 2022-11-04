@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
@@ -63,5 +67,12 @@ public class RapidReactTrajectories
 
     return trajectory;
   }
+
+
+  public static PathPlannerTrajectory generateTrajectory(String trajectoryName) {
+    // This will load the file "Example Path.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
+    return PathPlanner.loadPath(trajectoryName, new PathConstraints(Constants.MAX_TRAJ_VELOCITY, Constants.MAX_TRAJ_ACCELERATION));
+  }
+
 
 }

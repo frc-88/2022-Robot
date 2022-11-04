@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -229,19 +232,6 @@ public class RobotContainer {
   private Timer m_oneBallTimer = new Timer();
   
   private ProfiledPIDController thetaController = new ProfiledPIDController(AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-  private Trajectory testTrajectory = RapidReactTrajectories.generatePathWeaverTrajectory("swervetest.wpilib.json");
-
-SwerveControllerCommand swerveControllerCommand =
-  new SwerveControllerCommand(
-      testTrajectory,
-      m_drive::getOdometryPose, // Functional interface to feed supplier
-      m_drive.kinematics,
-      // Position controllers
-      new PIDController(AutoConstants.kPXController, 0, 0),
-      new PIDController(AutoConstants.kPYController, 0, 0),
-      thetaController,
-      m_drive::setModuleStates,
-      m_drive);
 
   private CommandBase m_autoTwoBall = 
   new ParallelCommandGroup(
@@ -335,8 +325,6 @@ SwerveControllerCommand swerveControllerCommand =
     configurePeriodics(robot);
     configureButtonBox();
     configureDefaultCommands();
-
-    m_drive.resetOdometry(testTrajectory.sample(0).poseMeters, m_drive.getGyroscopeRotation());
   }
 
   private void configurePeriodics(Robot robot) {
@@ -597,8 +585,7 @@ SwerveControllerCommand swerveControllerCommand =
     // Trajectory testing
     // SmartDashboard.putData("Ten Feet Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generateStraightTrajectory(10.0), true));
     // SmartDashboard.putData("Five Ball Trajectory", new AutoFollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("ThreeForThreeInThree.wpilib.json"), true));
-    SmartDashboard.putData("Swerve Controller Test", swerveControllerCommand);
-    SmartDashboard.putData("Swerve Test Trajectory", new FollowTrajectory(m_drive, testTrajectory, true));
+    SmartDashboard.putData("Swerve Test Tajectory", m_drive.swerveControllerCommand);
     SmartDashboard.putData("Swerve Five", new FollowTrajectory(m_drive, RapidReactTrajectories.generatePathWeaverTrajectory("swerve5_leg1.wpilib.json"), true));
     SmartDashboard.putData("Zero Drive", new InstantCommand(() -> {m_drive.zeroGyroscope();}));
 

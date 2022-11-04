@@ -5,10 +5,13 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -21,8 +24,12 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
+import frc.robot.util.RapidReactTrajectories;
 import frc.robot.util.coprocessor.BoundingBox;
 import frc.robot.util.coprocessor.ChassisInterface;
 import frc.robot.util.coprocessor.VelocityCommand;
@@ -296,6 +303,32 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                 m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[3].angle.getRadians());
         }
+        
+        private boolean isFirstPath = false;
+        private PathPlannerTrajectory testTrajectory = RapidReactTrajectories.generateTrajectory("testpath.path");
+
+        public SequentialCommandGroup swerveControllerCommand =
+        new SequentialCommandGroup(
+                new InstantCommand(() -> {
+                        // Reset odometry for the first path you run during auto
+                        if(isFirstPath){
+                        this.resetPosition(testTrajectory.getInitialHolonomicPose());
+                        }
+                }),
+                new PPSwerveControllerCommand(
+                        testTrajectory, 
+                        this::getOdometryPose, // Pose supplier
+                        this.kinematics, // SwerveDriveKinematics
+                        new PIDController(0, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+                        new PIDController(0, 0, 0), // Y controller (usually the same values as X controller)
+                        new PIDController(0, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+                        this::setModuleStates, // Module states consumer
+                        this // Requires this drive subsystem
+                )
+        );
+        
+      
+
 
         @Override
         public void periodic() {
