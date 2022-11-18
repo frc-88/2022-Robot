@@ -58,6 +58,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.commands.autos.ChaseObject;
 import frc.robot.commands.LimelightToggle;
+import frc.robot.commands.ROSIntake;
 import frc.robot.commands.ShootAll;
 import frc.robot.commands.autos.SetGlobalPoseToWaypoint;
 // import frc.robot.commands.autos.AutoFollowTrajectory;
@@ -193,6 +194,7 @@ public class RobotContainer {
         m_intake.rollerStop();
       }, m_intake);
 
+   private CommandBase m_ROSIntake = new ROSIntake(m_intake, m_ros_interface, "cargo_<team>", 1);   
 
   /////////////////////////////////////
   //            SHOOTING             //
@@ -460,7 +462,7 @@ SwerveControllerCommand swerveControllerCommand =
 
   private void configureButtonBox() {
 
-    m_buttonBox.intakeButton.whileHeld(m_ingestCargo);
+    m_buttonBox.intakeButton.whileHeld(m_ROSIntake);
     m_buttonBox.outgestButton.whileHeld(m_outgestCargo);
 
     m_buttonBox.shootButton.whenPressed(new InstantCommand(m_shooter::activatePermissive));
