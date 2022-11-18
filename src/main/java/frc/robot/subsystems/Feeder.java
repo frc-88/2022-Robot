@@ -42,7 +42,7 @@ public class Feeder extends SubsystemBase {
     }
 
     public boolean hasBallInCentralizer() {
-        return m_centralizer.isFwdLimitSwitchClosed() > 0;
+        return m_centralizer.isRevLimitSwitchClosed() > 0;
     }
 
     public boolean hasBallInChamber() {
