@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.util.drive.DriveUtils;
 import frc.robot.util.preferenceconstants.BooleanPreferenceConstant;
 import frc.robot.util.sensors.Limelight;
@@ -20,9 +20,8 @@ import frc.robot.util.sensors.Limelight;
 public class Targeting extends SubsystemBase {
   private final Limelight m_limelight;
   private final Turret m_turret;
-  private final Hood m_hood;
-  private final ThisRobotTable m_ros_interface;
-  private final Drive m_drive;
+  private final SwerveTable m_ros_interface;
+  private final SwerveDrive m_drive;
   private final Shooter m_shooter;
 
   private double m_target_angle = 0.0;
@@ -46,10 +45,9 @@ public class Targeting extends SubsystemBase {
   private double m_defaultAngle = 0;
 
   /** Creates a new Targeting. */
-  public Targeting(Limelight limelight, ThisRobotTable ros_interface, Turret turret, Hood hood, Drive drive, Shooter shooter) {
+  public Targeting(Limelight limelight, SwerveTable ros_interface, Turret turret, SwerveDrive drive, Shooter shooter) {
     m_limelight = limelight;
     m_turret = turret;
-    m_hood = hood;
     m_ros_interface = ros_interface;
     m_drive = drive;
     m_shooter = shooter;
@@ -67,9 +65,9 @@ public class Targeting extends SubsystemBase {
     double turretFacing = m_turret.getFacing();
 
     if (llMoving && m_limelight.hasTarget()) {
-      distance = m_limelight.calcMovingDistance(m_drive.getStraightSpeed(), turretFacing, m_hood.isUp());
+      distance = m_limelight.calcMovingDistance(m_drive.getStraightSpeed(), turretFacing, true);
       angle = turretFacing - m_limelight.getTurretOffset() 
-        - m_limelight.calcMovingTurretOffset(m_drive.getStraightSpeed(), turretFacing, distance, m_hood.isUp());
+        - m_limelight.calcMovingTurretOffset(m_drive.getStraightSpeed(), turretFacing, distance, true);
     } else if (m_limelight.onTarget()) {
         // keep on same target
         angle = turretFacing;

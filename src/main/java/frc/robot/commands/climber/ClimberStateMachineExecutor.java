@@ -51,7 +51,7 @@ public class ClimberStateMachineExecutor extends CommandBase {
 
   @Override
   public void execute() {
-    if (Math.abs(m_sensors.navx.getPitch()) > ROLL_THRESHOLD) {
+    if (Math.abs(m_sensors.ahrs_navx.getPitch()) > ROLL_THRESHOLD) {
       m_rollCount++;
     } else {
       m_rollCount = 0;

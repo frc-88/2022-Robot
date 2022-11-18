@@ -3,7 +3,6 @@ package frc.robot.util.controllers;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.util.ThisRobotTable;
 
 public class ButtonBox extends Joystick {
 
@@ -59,8 +58,8 @@ public class ButtonBox extends Joystick {
     public Button raiseClimberButton = new JoystickButton(this, CLIMBER_RAISE);
     public Button climbButton = new JoystickButton(this, CLIMBER_CLIMB);
     public Button shootButton = new JoystickButton(this, SHOOT);
-    public Button turretTrackSwitch = new JoystickButton(this, TURRET_TRACK);
-    public Button climbDirectionSwitch = new JoystickButton(this, CLIMBER_DIRECTION);
+    public Button turretTrackSwitch = new JoystickButton(this, CLIMBER_DIRECTION);
+    public Button climbDirectionSwitch = new JoystickButton(this, TURRET_TRACK);
     public Button traversalBarSwitch = new JoystickButton(this, TRAVERSAL_BAR);
     public Button highBarSwitch = new JoystickButton(this, HIGH_BAR);
     public Button midBarSwitch = new JoystickButton(this, MID_BAR);

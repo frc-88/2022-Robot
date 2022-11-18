@@ -6,19 +6,19 @@ package frc.robot.commands.drive;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SwerveDrive;
 
 public class DriveDistanceMeters extends CommandBase {
-  private Drive m_drive;
+  private SwerveDrive m_drive;
   private Pose2d startPose;
   private double distanceMeters;
   private double translationVelocityMetersPerSecond;
   /** Creates a new DriveDistanceMeters. */
-  public DriveDistanceMeters(Drive drive, double distanceMeters, double translationVelocityMetersPerSecond) {
+  public DriveDistanceMeters(SwerveDrive drive, double distanceMeters, double translationVelocityMetersPerSecond) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_drive = drive;
     this.distanceMeters = distanceMeters;
-    this.translationVelocityMetersPerSecond = translationVelocityMetersPerSecond;
+    this.translationVelocityMetersPerSecond = Math.abs(translationVelocityMetersPerSecond);
     addRequirements(drive);
   }
 
@@ -32,6 +32,9 @@ public class DriveDistanceMeters extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    if (distanceMeters < 0.0 ) {
+      translationVelocityMetersPerSecond *= -1.0;
+    }
     m_drive.drive(translationVelocityMetersPerSecond, 0.0, 0.0);
   }
 
@@ -47,11 +50,13 @@ public class DriveDistanceMeters extends CommandBase {
     Pose2d currentPose = m_drive.getOdometryPose();
     Pose2d relativePose = currentPose.relativeTo(startPose);
     System.out.println("Distance: " + relativePose.getX());
-    if (relativePose.getX() > distanceMeters) {
-      return true;
+    boolean shouldStop = false;
+    if (distanceMeters >= 0.0 ) {
+        shouldStop = relativePose.getX() > distanceMeters;
     }
     else {
-      return false;
+        shouldStop = relativePose.getX() < distanceMeters;
     }
+    return shouldStop;
   }
 }

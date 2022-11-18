@@ -43,9 +43,9 @@ public class Limelight {
 
     private double m_motionOffset;
 
-    private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 42.801723);
+    private final DoublePreferenceConstant p_height = new DoublePreferenceConstant("Limelight Height", 33.339); // from CAD
     private final DoublePreferenceConstant p_angle = new DoublePreferenceConstant("Limelight Angle", 0);
-    private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 6.0);
+    private final DoublePreferenceConstant p_radius = new DoublePreferenceConstant("Limelight Radius", 8.399); // from CAD
     private final DoublePreferenceConstant p_targetThreshold = new DoublePreferenceConstant("Limelight Target Threshold", 0);
     private final DoublePreferenceConstant p_testDistance = new DoublePreferenceConstant("Limelight Test Distance", 0);
     private final IntPreferenceConstant p_filterSize = new IntPreferenceConstant("Limelight Filter Size", 10);
@@ -160,10 +160,6 @@ public class Limelight {
         return m_motionOffset;
     }
 
-    private double rectifyDistance(double x) {
-        return 2.69840693e-01 * -x * Math.log(1.25456722e-04 * x) + -1.63681970e+01;
-    }
-
     /**
      * Calculate the distance to the target.
      * 
@@ -181,7 +177,6 @@ public class Limelight {
                     (Math.tan(Math.toRadians(p_angle.getValue() + m_targetVerticalOffsetAngle))
                             * Math.cos(Math.toRadians(m_targetHorizontalOffsetAngle)));
             distance += Constants.FIELD_UPPER_HUB_RADIUS;
-            distance = rectifyDistance(distance);
         }
 
         return distance;
@@ -226,7 +221,7 @@ public class Limelight {
         double tof;
 
         for (int i = 0; i < 3; i++) {
-            tof = getTofTable(isHoodUp).getInterpolatedValue(target);
+            tof = getTofTable(isHoodUp).getInterpolatedValue(target)[0];
             target = Math.sqrt(
                 Math.pow(hubDist, 2) 
                 + (robotSpeed * tof) 
@@ -246,7 +241,7 @@ public class Limelight {
      */
     public double calcMovingTurretOffset(double robotSpeed, double turretAngle, double distance, boolean isHoodUp) {
         double offset = 0.0;
-        double tof = getTofTable(isHoodUp).getInterpolatedValue(distance);
+        double tof = getTofTable(isHoodUp).getInterpolatedValue(distance)[0];
 
         Math.asin(
             Math.sin(Math.toRadians(180 + m_turretOffset - turretAngle)) *

@@ -1,13 +1,17 @@
 package frc.robot.util.controllers;
 
+import edu.wpi.first.wpilibj2.command.button.Button;
+
 public interface DriverController {
     
-    public double getThrottle();
+    public double getTranslationX();
 
-    public double getTurn();
+    public double getTranslationY();
 
-    public boolean getForceLowGear();
+    public double getRotation();
 
-    public boolean getMolassesMode();
+    public boolean getGyroReset();
+
+    public Button getShootButton();
 
 }

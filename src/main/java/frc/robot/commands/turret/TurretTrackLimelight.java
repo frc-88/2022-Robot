@@ -45,7 +45,7 @@ public class TurretTrackLimelight extends CommandBase {
       } else if (m_limelight.hasTarget()) {
         // if we have a target, track it
         m_lostCount = 0;
-        m_target = m_turret.getFacing() - m_limelight.getTurretOffset();
+        m_target = m_turret.getFacing() + m_limelight.getTurretOffset();
         spinCompensation = true;
       } else if (++m_lostCount > (p_resetTime.getValue() * 50)) {
         // if we don't have a target for too long, go to zero

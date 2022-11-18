@@ -138,8 +138,8 @@ public class ClimberConstants {
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_HIGH_BAR = new ClimberState(-28, 41, 12, 44, 34, 100, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_PIVOT_UNDER_TRAVERSAL_BAR = new ClimberState(-28, 44, 12, 27, ClimberState.DEFAULT_PIVOT_TOLERANCE, 100, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_RAISE_ABOVE_TRAVERSAL_BAR = new ClimberState(-28, 54, 10, 27);
-    public static final ClimberState S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR = new ClimberState(-19, 54, 10, 27);
-    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR_HEAD_START = new ClimberState(-19, 54, 10, 35, 5, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
+    public static final ClimberState S_TRAVERSAL_REVERSE_HIT_TRAVERSAL_BAR = new ClimberState(-16, 54, 10, 27);
+    public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR_HEAD_START = new ClimberState(-16, 54, 10, 35, 5, ClimberState.DEFAULT_TELESCOPE_TOLERANCE, false);
     public static final ClimberState S_TRAVERSAL_REVERSE_LIFT_ONTO_TRAVERSAL_BAR = new ClimberState(0, 38, -15, 35);
 
     public static final ClimberStateMachine M_CLIMB_TRAVERSAL_REVERSE = M_CLIMB_HIGH_REVERSE_TRANSFERABLE

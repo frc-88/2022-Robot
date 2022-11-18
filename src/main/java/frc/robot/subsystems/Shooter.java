@@ -6,11 +6,15 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix.motorcontrol.DemandType;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -19,7 +23,8 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.CargoSource;
 import frc.robot.util.CargoTarget;
-import frc.robot.util.ThisRobotTable;
+import frc.robot.util.NumberCache;
+import frc.robot.util.coprocessor.networktables.SwerveTable;
 import frc.robot.util.ValueInterpolator;
 import frc.robot.util.preferenceconstants.DoublePreferenceConstant;
 import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
@@ -32,12 +37,13 @@ import frc.robot.util.preferenceconstants.PIDPreferenceConstants;
 
 public class Shooter extends SubsystemBase implements CargoTarget {
   private TalonFX m_flywheel = new TalonFX(Constants.SHOOTER_FLYWHEEL_ID, "1");
-  private CargoSource[] m_sources;
+  private TalonFX m_flywheelFollower = new TalonFX(Constants.SHOOTER_FLYWHEEL_FOLLOWER_ID, "1");
+  private TalonFX m_hood = new TalonFX(Constants.HOOD_ID, "1");
+  private Feeder m_feeder;
   private Sensors m_sensors;
-  private Hood m_hood;
   private Turret m_turret;
-  private Drive m_drive;
-  private ThisRobotTable m_ros_interface;
+  private SwerveDrive m_drive;
+  private SwerveTable m_ros_interface;
   private DoubleSupplier m_shotProbabilitySupplier;
 
   private static enum ActiveMode {
@@ -51,48 +57,36 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private boolean m_cargoWaiting = false;
   private boolean m_wantedCargo = false;
   private Timer m_restrictiveCheckTimer = new Timer();
+  private Timer m_rampDownTimer = new Timer();
+  private static final double RAMP_DOWN_TIME = 1.5;
+  private SlewRateLimiter m_flywheelLimiter = new SlewRateLimiter(5000);
 
   private double m_limelightDistance = 0;
   private double m_limelightAngle = 0;
   private double m_rosDistance = 0;
   private double m_rosAngle = 0;
 
-  private static final double FLYWHEEL_RATIO = 1;
+  private static final double FLYWHEEL_RATIO = 40./24.;
+  private static final double HOOD_RATIO = 17. * 218. / 12.;
+  private static final double HOOD_DOWN = 13.;
 
-  private final ValueInterpolator hoodDownInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(77, 2200),
-      new ValueInterpolator.ValuePair(93, 2250),
-      new ValueInterpolator.ValuePair(99, 2300),
-      new ValueInterpolator.ValuePair(114, 2375),
-      new ValueInterpolator.ValuePair(122, 2450),
-      new ValueInterpolator.ValuePair(160, 2450));
-
-  private final ValueInterpolator hoodMidInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(85.5, 2200),
-      new ValueInterpolator.ValuePair(102, 2200),
-      new ValueInterpolator.ValuePair(117, 2300),
-      new ValueInterpolator.ValuePair(134, 2425),
-      new ValueInterpolator.ValuePair(152, 2850),
-      new ValueInterpolator.ValuePair(166, 3150));
-
-  private final ValueInterpolator hoodUpInterpolator = new ValueInterpolator(
-      new ValueInterpolator.ValuePair(125, 2425),
-      new ValueInterpolator.ValuePair(146, 2625),
-      new ValueInterpolator.ValuePair(184, 2975),
-      new ValueInterpolator.ValuePair(213, 3400),
-      new ValueInterpolator.ValuePair(240, 3625),
-      new ValueInterpolator.ValuePair(272, 4100),
-      new ValueInterpolator.ValuePair(298, 4675));
+  private final ValueInterpolator flywheelInterpolator = new ValueInterpolator(
+    new ValueInterpolator.ValuePair(66.6739, 1400, 13),
+    new ValueInterpolator.ValuePair(73.7607, 1450, 13),
+    new ValueInterpolator.ValuePair(90.29, 1350, 19),
+    new ValueInterpolator.ValuePair(108.77, 1375, 24),
+    new ValueInterpolator.ValuePair(127.7, 1460, 24),
+    new ValueInterpolator.ValuePair(156.5, 1560, 28.1),
+    new ValueInterpolator.ValuePair(173, 1645, 31.2),
+    new ValueInterpolator.ValuePair(193.5, 1705, 33.9),
+    new ValueInterpolator.ValuePair(218.7, 1740, 33.6),
+    new ValueInterpolator.ValuePair(260.47, 1780, 32.3),
+    new ValueInterpolator.ValuePair(284.6, 1880, 36.2));
 
   // Preferences
   private PIDPreferenceConstants p_flywheelPID = new PIDPreferenceConstants("Shooter PID", 0.0, 0.0, 0.0, 0.047, 0.0,
       0.0, 0.0);
-  private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1300.0);
-  private DoublePreferenceConstant p_flywheelFenderShotLow = new DoublePreferenceConstant("Shooter Fender Shot Low", 1500.0);
-  private DoublePreferenceConstant p_flywheelFenderShotHigh = new DoublePreferenceConstant("Shooter Fender Shot High", 2400.0);
-  private DoublePreferenceConstant p_flywheelBlindUp = new DoublePreferenceConstant("Shooter Blind Up Speed", 5000.0);
-  private DoublePreferenceConstant p_flywheelBlindDown = new DoublePreferenceConstant("Shooter Blind Down Speed",
-      5000.0);
+  private DoublePreferenceConstant p_flywheelIdle = new DoublePreferenceConstant("Shooter Idle Speed", 1150.0);
   private DoublePreferenceConstant p_shooterReady = new DoublePreferenceConstant("Shooter Pause (s)", 0.5);
   private DoublePreferenceConstant p_cargoInShooter = new DoublePreferenceConstant("Cargo In Shooter (s)", 0.2);
   private DoublePreferenceConstant p_shooterSpinLimit = new DoublePreferenceConstant("Shooter Spin Limit", 90.);
@@ -100,13 +94,16 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   private DoublePreferenceConstant p_shooterProbabilityLimit = new DoublePreferenceConstant("Shooter Probability Limit", 0.4);
   private DoublePreferenceConstant p_restrictiveCheckTime = new DoublePreferenceConstant("Shooter Restrictive Check Time", 0.2);
 
+  private DoublePreferenceConstant p_hoodMaxVelocity = new DoublePreferenceConstant("Hood Max Velocity", 360);
+  private DoublePreferenceConstant p_hoodMaxAcceleration = new DoublePreferenceConstant("Hood Max Acceleration", 1080);
+  private PIDPreferenceConstants p_hoodPID = new PIDPreferenceConstants("Hood", 0, 0, 0, 0, 0, 0, 0);
+
   /** Creates a new Shooter. */
-  public Shooter(Sensors sensors, Hood hood, Drive drive, Turret turret, CargoSource[] sources, ThisRobotTable ros_interface) {
+  public Shooter(Sensors sensors, SwerveDrive drive, Turret turret, Feeder feeder, SwerveTable ros_interface) {
     m_sensors = sensors;
-    m_hood = hood;
     m_drive = drive;
     m_turret = turret;
-    m_sources = sources;
+    m_feeder = feeder;
     m_ros_interface = ros_interface;
     m_shotProbabilitySupplier = () -> 1.;
 
@@ -114,8 +111,14 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_restrictiveCheckTimer.start();
 
     configureFlywheel();
+    configureHood();
 
     p_flywheelPID.addChangeHandler((Double unused) -> configureFlywheel());
+    p_hoodMaxVelocity.addChangeHandler((Double unused) -> configureHood());
+    p_hoodMaxAcceleration.addChangeHandler((Double unused) -> configureHood());
+    p_hoodPID.addChangeHandler((Double unused) -> configureHood());
+
+    m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_DOWN));
   }
 
   private void configureFlywheel() {
@@ -127,55 +130,86 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     config.slot0.kF = p_flywheelPID.getKF().getValue();
     config.slot0.integralZone = p_flywheelPID.getIZone().getValue();
     config.slot0.maxIntegralAccumulator = p_flywheelPID.getIMax().getValue();
-    config.neutralDeadband = 0.001;
-    config.peakOutputForward = 1.0;
-    config.peakOutputReverse = -1.0;
-    config.nominalOutputForward = 0.02;
-    config.nominalOutputReverse = -0.02;
     m_flywheel.configAllSettings(config);
+
+    //Configures Follower
+    m_flywheelFollower.configFactoryDefault();
+    m_flywheelFollower.follow(m_flywheel);
+    m_flywheelFollower.setInverted(TalonFXInvertType.OpposeMaster);
   }
 
+  private void configureHood(){
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.neutralDeadband = 0;
+    config.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();
+    config.motionCruiseVelocity = convertHoodVelocityToMotor(p_hoodMaxVelocity.getValue());
+    config.motionAcceleration = convertHoodVelocityToMotor(p_hoodMaxAcceleration.getValue());
+    config.slot0.kP = p_hoodPID.getKP().getValue();
+    config.slot0.kI = p_hoodPID.getKI().getValue();
+    config.slot0.kD = p_hoodPID.getKD().getValue();
+    config.slot0.kF = p_hoodPID.getKF().getValue();
+    config.slot0.integralZone = p_hoodPID.getIZone().getValue();
+    config.slot0.maxIntegralAccumulator = p_hoodPID.getIMax().getValue();
+    m_hood.configAllSettings(config);
+    m_hood.setInverted(InvertType.InvertMotorOutput);
+  }
+
+  public void calibrateHood() {
+    m_hood.setSelectedSensorPosition(convertHoodPositionToMotor(HOOD_DOWN));
+  }
+
+
   public void setFlywheelSpeed(double speed) {
-    m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(speed));
+    m_flywheel.set(TalonFXControlMode.Velocity, m_flywheelLimiter.calculate(convertRPMsToMotorTicks(speed)));
   }
 
   public void setFlywheelRaw(double percentOutput) {
+    m_flywheelLimiter.reset(0);
     m_flywheel.set(TalonFXControlMode.PercentOutput, percentOutput);
   }
 
   public void setFlywheelSpeedAuto(double target_dist) {
-    if (!m_turret.isTracking() && Math.abs(m_turret.getDefaultFacing()) < 90.) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
+    if (m_feeder.hasBallInChamber()) {
+      m_rampDownTimer.reset();
+      m_rampDownTimer.start();
+    }
+
+    if (m_rampDownTimer.hasElapsed(RAMP_DOWN_TIME)) {
+      setFlywheelRaw(0);
+      setHoodMotionMagic(getHoodPosition());
     } else if (!m_turret.isTracking()) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
+      setFlywheelSpeed(p_flywheelIdle.getValue());
+      setHoodMotionMagic(HOOD_DOWN);
     } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(calcSpeedFromDistance(target_dist)));
+      double[] values = calcSpeedFromDistance(target_dist);
+      setFlywheelSpeed(values[0]);
+      setHoodMotionMagic(values[1]);
     }
   }
 
   public void setFlywheelFenderShot() {
-    if (Math.abs(m_turret.getDefaultFacing()) < 90.) {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotLow.getValue()));
-    } else {
-      m_flywheel.set(TalonFXControlMode.Velocity, convertRPMsToMotorTicks(p_flywheelFenderShotHigh.getValue()));
-    }
+    setFlywheelSpeed(p_flywheelIdle.getValue());
+    setHoodMotionMagic(HOOD_DOWN);
   }
 
-  private double calcSpeedFromDistance(double target_dist) {
+  private void setHoodMotionMagic(double setpoint) {
+    if (setpoint > 38) {
+      setpoint = 38;
+    } else if (setpoint < HOOD_DOWN) {
+      setpoint = HOOD_DOWN;
+    }
+    m_hood.set(TalonFXControlMode.MotionMagic, convertHoodPositionToMotor(setpoint));
+  }
+
+  public void hoodDown() {
+    setHoodMotionMagic(HOOD_DOWN);
+  }
+
+  private double[] calcSpeedFromDistance(double target_dist) {
     if (target_dist > 0.0) {
-      if (m_hood.isDown()) {
-        return hoodDownInterpolator.getInterpolatedValue(target_dist);
-      } else if (m_hood.isUp()) {
-        return hoodUpInterpolator.getInterpolatedValue(target_dist);
-      } else {
-        return hoodMidInterpolator.getInterpolatedValue(target_dist);
-      }
+      return flywheelInterpolator.getInterpolatedValue(target_dist);
     } else {
-      if (m_hood.isDown()) {
-        return p_flywheelBlindDown.getValue();
-      } else {
-        return p_flywheelBlindUp.getValue();
-      }
+      return new double[]{p_flywheelIdle.getValue(), HOOD_DOWN};
     }
   }
 
@@ -204,21 +238,15 @@ public class Shooter extends SubsystemBase implements CargoTarget {
   }
 
   public boolean sourcesHaveCargo() {
-    boolean hasCargo = false;
-
-    for (CargoSource source : m_sources) {
-      hasCargo = hasCargo || source.hasCargo();
-    }
-
-    return hasCargo;
+    return m_feeder.hasBallInChamber() || m_feeder.hasBallInCentralizer();
   }
 
   public boolean cargoChambered() {
-    return m_sources[0].hasCargo();
+    return m_feeder.hasBallInChamber();
   }
 
   public boolean cargoCentralized() {
-    return m_sources[1].hasCargo();
+    return m_feeder.hasBallInCentralizer();
   }
 
   @Override
@@ -231,16 +259,22 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     // Restrictive checks
     boolean turretTracking = m_turret.isTracking();
     boolean turretNotMoving = m_turret.notMoving();
-    boolean driveNotSpinning = Math.abs(m_sensors.navx.getYawRate()) <= p_shooterSpinLimit.getValue();
+    boolean driveNotSpinning = Math.abs(m_sensors.ahrs_navx.getRate()) <= p_shooterSpinLimit.getValue();
     boolean driveNotAccelerating = m_drive.getAccelerationEstimate() <= p_shooterAccelerationLimit.getValue();
-    boolean hoodNotMoving = !m_hood.isMoving();
     boolean highShotProbability = m_shotProbabilitySupplier.getAsDouble() >= p_shooterProbabilityLimit.getValue();
-    boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && hoodNotMoving && highShotProbability;
+    boolean untimedChecks = permissiveChecks && turretTracking && turretNotMoving && driveNotSpinning && driveNotAccelerating && highShotProbability;
     boolean restrictiveChecks = false;
-    if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+    if (m_wantedCargo && m_feeder.hasBallInChamber()) {
       restrictiveChecks = true;
-    } else if (!untimedChecks) {
-      m_restrictiveCheckTimer.reset();
+    } else {
+      if (m_wantedCargo) {
+        m_restrictiveCheckTimer.reset();
+      }
+      if (untimedChecks && m_restrictiveCheckTimer.hasElapsed(p_restrictiveCheckTime.getValue())) {
+        restrictiveChecks = true;
+      } else if (!untimedChecks) {
+        m_restrictiveCheckTimer.reset();
+      }
     }
     
 
@@ -318,6 +352,30 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     m_rosAngle = angle;
   }
 
+  private double convertMotorPositionToHood(double motorPosition) {
+    return (motorPosition / (HOOD_RATIO * 2048.)) * 360.0;
+  }
+
+  private double convertMotorVelocityToHood(double motorVelocity) {
+    return convertMotorPositionToHood(motorVelocity) * 10;
+  }
+
+  private double convertHoodPositionToMotor(double hoodPosition) {
+    return (hoodPosition / 360.0) * HOOD_RATIO * 2048.;
+  }
+
+  private double convertHoodVelocityToMotor(double hoodVelocity) {
+    return convertHoodPositionToMotor(hoodVelocity) / 10;
+  }
+
+  public double getHoodPosition() {
+    if (NumberCache.hasValue("Hood Position")) {
+      return NumberCache.getValue("Hood Position");
+    }
+
+    return NumberCache.pushValue("Hood Position", convertMotorPositionToHood(m_hood.getSelectedSensorPosition()));
+  }
+
   @Override
   public void periodic() {
 
@@ -332,5 +390,7 @@ public class Shooter extends SubsystemBase implements CargoTarget {
     SmartDashboard.putBoolean("Shooter Flywheel On Target", onTarget());
     // SmartDashboard.putNumber("Flywheel Speed from Limelight", calcSpeedFromDistance(??));
     SmartDashboard.putBoolean("Shooter Wants Cargo", wantsCargo());
+    
+    SmartDashboard.putNumber("Hood Position", getHoodPosition());
   }
 }

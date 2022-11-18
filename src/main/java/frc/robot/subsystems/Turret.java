@@ -238,7 +238,7 @@ public class Turret extends SubsystemBase {
   }
 
   public boolean isSafeForClimber() {
-    return Math.abs(getPosition()) % 180 < 10;
+    return Math.abs(getFacing()) < 3;
   }
 
   private double getPosition() {
@@ -250,7 +250,7 @@ public class Turret extends SubsystemBase {
 
   private void goToPosition(double position, boolean spinCompensation) {
     if (spinCompensation) {
-      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.navx.getYawRate())/1023.);
+      m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 5*0.1*p_turretPID.getKF().getValue()*turretFacingToEncoderPosition(m_sensors.ahrs_navx.getRate())/1023.);
     } else {
       m_turret.set(TalonFXControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, 0);
     }
@@ -264,8 +264,8 @@ public class Turret extends SubsystemBase {
   private double cancoderPostionToFalconPosition(double position) {
     double normalPosition = (position - p_zeroPosition.getValue());
 
-    // if (normalPosition > 180) { normalPosition -= 360; }
-    // if (normalPosition < -180) { normalPosition += 360; }
+    while (normalPosition > 180) { normalPosition -= 360; }
+    while (normalPosition < -180) { normalPosition += 360; }
 
     return turretFacingToEncoderPosition(normalPosition *
     (Constants.TURRET_CANCODER_GEAR_RATIO/Constants.TURRET_GEAR_RATIO));
@@ -293,6 +293,7 @@ public class Turret extends SubsystemBase {
     SmartDashboard.putBoolean("Turret:Synchonized", isSynchronized());
     SmartDashboard.putBoolean("Turret:Tracking", isTracking());
     SmartDashboard.putBoolean("Turret:Safe", isPositionSafe(getPosition()));
+    SmartDashboard.putBoolean("Turret:OnTarget", onTarget());
   }
 
   public void setHasTarget(boolean hasTarget) {
