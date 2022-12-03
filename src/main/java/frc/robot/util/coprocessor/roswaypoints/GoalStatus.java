@@ -1,4 +1,4 @@
-package frc.robot.util.roswaypoints;
+package frc.robot.util.coprocessor.roswaypoints;
 
 public enum GoalStatus {
     IDLE(0),

@@ -9,27 +9,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 /** Add your docs here. */
 public class GameObject {
-    public String name = "";
-    public int count = 0;
+    private String name = "";
+    private int index = 0;
     private double x = 0.0;
     private double y = 0.0;
     private double z = 0.0;
-    public MessageTimer timer = new MessageTimer(500_000);
+    private double yaw = 0.0;
+    public MessageTimer timer = new MessageTimer(150_000);
 
-    public GameObject(String name)
+    public GameObject(String name, int index)
     {
         this.name = name;
+        this.index = index;
     }
 
-    public void set(double x, double y, double z) {
+    public void set(double x, double y, double z, double yaw) {
         timer.reset();
         this.x = x;
         this.y = y;
         this.z = z;
+        this.yaw = yaw;
     }
 
-    public Pose2d get() {
-        return new Pose2d(x, y, new Rotation2d());
+    public Pose2d getPose() {
+        return new Pose2d(x, y, new Rotation2d(yaw));
     }
 
     public double getX() {
@@ -42,6 +45,22 @@ public class GameObject {
 
     public double getZ() {
         return z;
+    }
+
+    public double getDistance() {
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    public double getYaw() {
+        return yaw;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public boolean isValid() {

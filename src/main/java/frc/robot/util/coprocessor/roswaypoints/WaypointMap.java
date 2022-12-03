@@ -1,12 +1,12 @@
-package frc.robot.util.roswaypoints;
+package frc.robot.util.coprocessor.roswaypoints;
 
 import java.util.Set;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.util.coprocessor.CoprocessorBase;
+import frc.robot.util.coprocessor.Helpers;
 
 public class WaypointMap {
     private CoprocessorBase m_coprocessor;
@@ -22,22 +22,8 @@ public class WaypointMap {
         return m_coprocessor.doesWaypointExist(waypointName);
     }
 
-    public static String getTeamColorName() {
-        if (DriverStation.getAlliance() == Alliance.Red) {
-            return "red";
-        }
-        else {
-            return "blue";
-        }
-    }
-
-    public static String parseWaypointName(String waypointName) {
-        return waypointName.replaceAll("<team>", getTeamColorName());
-    }
-
     public Pose2d getWaypoint(String waypointName) {
-        waypointName = parseWaypointName(waypointName);
-        System.out.println("Getting waypoint " + waypointName);
+        waypointName = Helpers.parseName(waypointName);
         if (doesWaypointExist(waypointName)) {
             return m_coprocessor.getWaypoint(waypointName);
         }
@@ -47,5 +33,14 @@ public class WaypointMap {
     }
     public boolean isPoseValid(Pose2d pose) {
         return !Double.isNaN(pose.getX()) && !Double.isNaN(pose.getY()) && !Double.isNaN(pose.getRotation().getRadians());
+    }
+
+    public Pose2d getPoseRelativeToWaypoint(String waypointName, Pose2d relativePose) {
+        Pose2d waypoint = getWaypoint(waypointName);
+        if (!isPoseValid(waypoint)) {
+            return waypoint;
+        }
+        
+        return waypoint.transformBy(new Transform2d(relativePose, new Pose2d()));
     }
 }

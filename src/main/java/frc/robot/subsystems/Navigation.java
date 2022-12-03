@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.coprocessor.VelocityCommand;
 import frc.robot.util.coprocessor.CoprocessorBase;
-import frc.robot.util.roswaypoints.GoalStatus;
-import frc.robot.util.roswaypoints.WaypointMap;
-import frc.robot.util.roswaypoints.WaypointsPlan;
+import frc.robot.util.coprocessor.roswaypoints.GoalStatus;
+import frc.robot.util.coprocessor.roswaypoints.WaypointMap;
+import frc.robot.util.coprocessor.roswaypoints.WaypointsPlan;
 
 public class Navigation extends SubsystemBase {
   private final WaypointMap m_waypointMap;

@@ -79,7 +79,7 @@ public class ChaseObject extends CommandBase {
       return;
     }
     
-    Pose2d relativeGoalPose = gameObject.get();
+    Pose2d relativeGoalPose = gameObject.getPose();
 
     m_goalDistance = relativeGoalPose.getX();  // ignoring Y component since we don't directly control it here
     double error = new Rotation2d(relativeGoalPose.getX(), relativeGoalPose.getY()).getRadians();

@@ -6,14 +6,16 @@ package frc.robot.util.coprocessor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.util.roswaypoints.GoalStatus;
-import frc.robot.util.roswaypoints.Waypoint;
+import frc.robot.util.coprocessor.roswaypoints.GoalStatus;
+import frc.robot.util.coprocessor.roswaypoints.Waypoint;
 
 public class CoprocessorBase {
     protected final long DEFAULT_MESSAGE_TIMEOUT = 1_000_000;
@@ -36,9 +38,11 @@ public class CoprocessorBase {
 
     protected Map<String, Pose2d> waypoints = new HashMap<>();
 
-    protected Map<String, GameObject> gameObjects = new HashMap<>();
+    protected Map<String, Map<Integer, GameObject>> gameObjects = new HashMap<>();
 
     protected LaserScanObstacleTracker laserObstacles = new LaserScanObstacleTracker();
+
+    protected ZoneManager zoneManager = new ZoneManager();
 
     public CoprocessorBase(ChassisInterface chassis) {
         this.chassis = chassis;
@@ -98,12 +102,10 @@ public class CoprocessorBase {
     }
 
     public Pose2d getWaypoint(String waypointName) {
-        System.out.println("waypoints.keySet(): " + waypoints.keySet());
         return waypoints.get(waypointName);
     }
 
     public void putWaypoint(String waypointName, Pose2d pose) {
-        System.out.println("putting waypoint: " + waypointName + ", " + pose);
         waypoints.put(waypointName, pose);
     }
 
@@ -140,17 +142,6 @@ public class CoprocessorBase {
         
     }
 
-    protected String getTeamName(DriverStation.Alliance team_color) {
-        String team_name = "";
-        if (team_color == Alliance.Red) {
-            team_name = "red";
-        }
-        else if (team_color == Alliance.Blue) {
-            team_name = "blue";
-        }
-        return team_name;
-    }
-
     public void setPoseEstimate(Pose2d poseEstimation) {
         
     }
@@ -159,11 +150,116 @@ public class CoprocessorBase {
         
     }
 
-    public GameObject getNearestGameObject(String objectName) {
-        return gameObjects.get(objectName);
+    public String parseObjectName(String objectName) {
+        return Helpers.parseName(objectName);
+    }
+
+    public GameObject getNearestGameObject(String objectName)
+    {
+        objectName = parseObjectName(objectName);
+        double min_dist = -1.0;
+        String min_obj_name = "";
+        int min_obj_index = -1;
+        for (String name : gameObjects.keySet()) {
+            for (Integer index : gameObjects.get(name).keySet()) {
+                GameObject gameObject = gameObjects.get(name).get(index);
+                if (gameObject.getName().equals(objectName)) {
+                    double distance = gameObject.getDistance();
+                    if (min_dist < 0.0 || distance < min_dist) {
+                        min_dist = distance;
+                        min_obj_name = name;
+                        min_obj_index = index;
+                    }
+                }
+            }
+        }
+        if (min_obj_name.length() == 0 || min_obj_index < 0) {
+            System.out.println(objectName + " doesn't exist in object table!");
+            return new GameObject("", 0);
+        }
+        return gameObjects.get(min_obj_name).get(min_obj_index);
+    }
+
+    public Set<GameObject> getGameObjects(String objectName) {
+        Set<GameObject> objects = new HashSet<>();
+        for (String name : gameObjects.keySet()) {
+            for (Integer index : gameObjects.get(name).keySet()) {
+                GameObject gameObject = gameObjects.get(name).get(index);
+                if (gameObject.getName().equals(objectName)) {
+                    objects.add(gameObject);
+                }
+            }
+        }
+        return objects;
+    }
+
+    public GameObject getFirstGameObject(String objectName) {
+        for (String name : gameObjects.keySet()) {
+            for (Integer index : gameObjects.get(name).keySet()) {
+                GameObject gameObject = gameObjects.get(name).get(index);
+                if (gameObject.getName().equals(objectName)) {
+                    return gameObject;
+                }
+            }
+        }
+        return new GameObject("", 0);
     }
 
     public LaserScanObstacleTracker getLaserScanObstacles() {
         return laserObstacles;
+    }
+
+    public boolean areZonesValid() {
+        return zoneManager.isValid();
+    }
+
+    public ZoneInfo getNearestNoGoZone() {
+        return zoneManager.getNearestNoGoZone();
+    }
+
+    public ZoneInfo getNearestZone() {
+        return zoneManager.getNearestZone();
+    }
+
+    public ZoneManager getZoneManager() {
+        return zoneManager;
+    }
+
+    public void setNoGoZones(String[] names) {
+        zoneManager.setNoGoes(names);
+    }
+
+    public void setNoGoZone(String name) {
+        zoneManager.setNoGo(name);
+    }
+
+    public void removeNoGoZone(String name) {
+        zoneManager.removeNoGo(name);
+    }
+
+    /**
+     * @param heading direction of travel of the robot from the robot's perspective
+     * @param reverseFanRadians range of accepted angles for each extended beam
+     * @param distanceRangeMeters if no go zone is further than this distance, ignore it
+     * @return
+     */
+    public boolean isDirectionTowardNoGoZonesAllowed(double heading, double reverseFanRadians, double distanceRangeMeters) {
+        Set<String> names = zoneManager.getNoGoNames();
+        List<String> in_bound_names = new ArrayList<>(names);
+        in_bound_names.removeIf(name -> zoneManager.getZone(name).getDistance() > distanceRangeMeters);
+        double angles[] = new double[in_bound_names.size()];
+
+        int index = 0;
+        Pose2d robot_pose = getGlobalPose();
+        for (String name : in_bound_names) {
+            ZoneInfo zone = zoneManager.getZone(name);
+            Pose2d nearest_pose = new Pose2d(zone.getNearestX(), zone.getNearestY(), new Rotation2d());
+            Pose2d relative_nearest = nearest_pose.relativeTo(robot_pose);
+            angles[index++] = Math.atan2(
+                relative_nearest.getY(),
+                relative_nearest.getX()
+            );
+        }
+        return Helpers.isDirectionAllowed(heading, angles, reverseFanRadians);
     }
 }
