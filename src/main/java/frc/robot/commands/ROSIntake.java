@@ -44,7 +44,7 @@ public class ROSIntake extends CommandBase {
       return;
     }
 
-    Pose2d relativeGoalPose = gameObject.get();
+    Pose2d relativeGoalPose = gameObject.getPose();
     
     double goalDistance = relativeGoalPose.getX();  // ignoring Y component since we don't directly control it here
     if (goalDistance < m_distanceThreshold) {

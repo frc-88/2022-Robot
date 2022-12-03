@@ -5,6 +5,8 @@
 package frc.robot.util.coprocessor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import edu.wpi.first.math.util.Units;
 
@@ -59,29 +61,15 @@ public class LaserScanObstacleTracker {
 
     public boolean isDirectionAllowed(double heading, double speed)
     {
-        double minAngle = Double.NaN;
-        double maxAngle = Double.NaN;
-        for (PointObstacle obstacle : obstacles) {
-            if (bbox.isObstacleWithinBounds(obstacle, speed)) {
-                double angle = Helpers.boundHalfAngle(Math.atan2(obstacle.getY(), obstacle.getX()) + Math.PI);
-                double minObsAngle = Helpers.boundHalfAngle(angle - kReverseFanRadians / 2.0);
-                double maxObsAngle = Helpers.boundHalfAngle(angle + kReverseFanRadians / 2.0);
-                if (Double.isNaN(minAngle) || minObsAngle > minAngle) {
-                    minAngle = minObsAngle;
-                }
-                if (Double.isNaN(maxAngle) || maxObsAngle < maxAngle) {
-                    maxAngle = maxObsAngle;
-                }
-            }
+        List<PointObstacle> in_bound_obs = new ArrayList<>(obstacles);
+        in_bound_obs.removeIf(obs -> !bbox.isObstacleWithinBounds(obs, speed));
+        double angles[] = new double[in_bound_obs.size()];
+        for (int index = 0; index < angles.length; index++) {
+            PointObstacle obstacle = in_bound_obs.get(index);
+            angles[index] = Helpers.boundHalfAngle(Math.atan2(obstacle.getY(), obstacle.getX()) + Math.PI);
         }
 
-        heading = Helpers.boundHalfAngle(heading);
-        if (maxAngle < minAngle) {
-            return !(maxAngle < heading && heading < minAngle);
-        }
-        else {
-            return minAngle <= heading && heading <= maxAngle;
-        }
+        return Helpers.isDirectionAllowed(heading, angles, kReverseFanRadians);
     }
 
     public static boolean testGetAllowableReverseDirections(ArrayList<PointObstacle> obstacles, VelocityCommand command)
