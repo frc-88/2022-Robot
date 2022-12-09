@@ -106,6 +106,8 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         private Pose2d m_traj_reset_pose;
         private Pose2d m_traj_offset;
 
+        private boolean m_autonomous_mode = false;
+
         public SwerveDrive(AHRS navx) {
                 m_navx = navx;
                 configureModules();
@@ -309,6 +311,7 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
 
         public SequentialCommandGroup swerveControllerCommand =
         new SequentialCommandGroup(
+                new InstantCommand(() -> {m_autonomous_mode = true;}),
                 new InstantCommand(() -> {
                         // Reset odometry for the first path you run during auto
                         if(isFirstPath){
@@ -319,12 +322,13 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
                         testTrajectory, 
                         this::getOdometryPose, // Pose supplier
                         this.kinematics, // SwerveDriveKinematics
-                        new PIDController(0, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-                        new PIDController(0, 0, 0), // Y controller (usually the same values as X controller)
-                        new PIDController(0, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+                        new PIDController(.4, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+                        new PIDController(.4, 0, 0), // Y controller (usually the same values as X controller)
+                        new PIDController(.2, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
                         this::setModuleStates, // Module states consumer
                         this // Requires this drive subsystem
-                )
+                ),
+                new InstantCommand(() -> {m_autonomous_mode = false;}) 
         );
         
       
@@ -334,10 +338,12 @@ public class SwerveDrive extends SubsystemBase implements ChassisInterface {
         public void periodic() {
                 updateOdometry();
 
-                // set modules to desired chassis speed
-                SwerveModuleState[] states = kinematics.toSwerveModuleStates(m_chassisSpeeds);
-                setModuleStates(states);
-                
+                if (!m_autonomous_mode) {
+                        // set modules to desired chassis speed
+                        SwerveModuleState[] states = kinematics.toSwerveModuleStates(m_chassisSpeeds);
+                        setModuleStates(states);
+                }
+
                 SmartDashboard.putNumber("odomX", Units.metersToFeet(m_pose.getX()));
                 SmartDashboard.putNumber("odomY", Units.metersToFeet(m_pose.getY()));
                 SmartDashboard.putNumber("odomTheta", m_pose.getRotation().getDegrees());
